@@ -1,0 +1,10 @@
+# IDE
+.idea/
+*.iml
+.vscode/
+
+.local/
+build/
+local.*
+
+.dart_tool/

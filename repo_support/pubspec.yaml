@@ -1,0 +1,22 @@
+name: firebase_auth_repo_support
+description: Firebase repo (tools)
+version: 0.2.0
+publish_to: none
+
+environment:
+  sdk: '>=3.3.0 <4.0.0'
+
+dev_dependencies:
+  path:
+  pub_semver:
+  test:
+  dev_build:
+  process_run:
+  lints: '>=2.1.1'
+  tekartik_lints:
+    git:
+      url: https://github.com/tekartik/common.dart
+      ref: dart3a
+      path: packages/lints
+    version: '>=0.1.0'
+

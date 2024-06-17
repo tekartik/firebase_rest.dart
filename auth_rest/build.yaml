@@ -1,0 +1,8 @@
+targets:
+  $default:
+    builders:
+      build_web_compilers|entrypoint:
+        # These are globs for the entrypoints you want to compile.
+        generate_for:
+          - example/**.dart
+          - test/**.dart

@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Sample FirebaseUI App</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="icon" href="packages/tekartik_browser_utils/img/favicon.png">
+
+    <script src="example_google_auth.dart.js"></script>
+</head>
+<body>
+<!-- The surrounding HTML is left untouched by FirebaseUI.
+     Your app may use that space for branding, controls and other customizations.-->
+<h1>Firebase Auth</h1>
+<div>
+    <button id="signOut">Sign out</button>
+    <button id="rawGoogleCredentials">RAW Credentials</button>
+    <button id="rawGoogleSignIn">RAW Sign in</button>
+    <button id="googleSignIn">Sign in</button>
+    <button id="googleSignInWithPopup">Sign in (popup)</button>
+    <button id="googleSignInWithRedirect">Sign in (redirect)</button>
+    <button id="currentUser">currentUser</button>
+    <button id="getUser">getUser</button>
+    <button id="onCurrentUser">first onCurrentUser</button>
+    <button id="reloadWithDelay">reload with delay</button>
+
+    <script src="example_google_auth.dart.js"></script>
+</div>
+<div>
+    <button id="restGetUser">REST getUser</button>
+</div>
+<pre id="output"></pre>
+</body>
+</html>

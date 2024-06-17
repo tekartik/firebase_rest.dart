@@ -1,0 +1,72 @@
+name: tekartik_firebase_auth_rest
+description: Firebase auth rest
+version: 0.9.1
+publish_to: none
+
+environment:
+  sdk: '>=3.4.0-0 <4.0.0'
+
+dependencies:
+  uuid: '>=1.0.0'
+  path:
+  tekartik_firebase_auth:
+    git:
+      url: https://github.com/tekartik/firebase_auth.dart
+      path: auth
+      ref: dart3a
+    version: '>=0.9.0'
+  tekartik_firebase_rest:
+    git:
+      url: https://github.com/tekartik/firebase.dart
+      path: firebase_rest
+      ref: dart3a
+    version: '>=0.8.3'
+  tekartik_firebase_auth_jwt:
+    git:
+      url: https://github.com/tekartik/firebase_auth.dart
+      path: auth_jwt
+      ref: dart3a
+    version: '>=0.3.0'
+  googleapis_auth: '>=1.4.0'
+  googleapis:
+  tekartik_common_utils:
+    git:
+      url: https://github.com/tekartik/common_utils.dart
+      ref: dart3a
+  http:
+  yaml:
+  fs_shim:
+dev_dependencies:
+  test: ">=1.0.0"
+  tekartik_firebase_auth_test:
+    git:
+      url: https://github.com/tekartik/firebase_auth.dart
+      path: auth_test
+      ref: dart3a
+    version: '>=0.8.0'
+  build_runner: ">1.6.0"
+  build_test: ">=0.10.9+1"
+  build_web_compilers: ">=2.7.0"
+  process_run: '>=0.10.0+1'
+  dev_test:
+  dev_build: '>=0.16.5-6'
+  tekartik_io_auth_utils:
+    git:
+      url: https://github.com/tekartik/io_auth_utils.dart
+      ref: dart3a
+    version: '>=0.3.0'
+
+dependency_overrides:
+  tekartik_firebase_rest:
+    path: ../firebase_rest
+  # tekartik_firebase_auth:
+  #  path: ../auth
+  # tekartik_firebase_auth_browser:
+  #  path: ../auth_browser
+  # tekartik_firebase_auth_test:
+  #  path: ../auth_test
+  # tekartik_firebase_auth_jwt:
+  #  path: ../auth_jwt
+  # tmp
+  # tekartik_firebase_rest:
+  #    path: ../../firebase.dart/firebase_rest

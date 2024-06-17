@@ -1,0 +1,86 @@
+name: tekartik_firebase_firestore_rest
+description: Firebase firestore rest API
+version: 0.8.6
+publish_to: none
+
+environment:
+  sdk: '>=3.3.0 <4.0.0'
+
+dependencies:
+  sembast: '>=1.19.0-dev.3'
+  uuid: '>=1.0.0'
+  tekartik_firebase_firestore:
+    git:
+      url: https://github.com/tekartik/firebase_firestore.dart
+      path: firestore
+      ref: dart3a
+    version: '>=0.8.2'
+  tekartik_firebase_rest:
+    git:
+      url: https://github.com/tekartik/firebase_rest.dart
+      path: firebase_rest
+      ref: dart3a
+    version: '>=0.7.4'
+  googleapis: '>=12.0.0'
+  googleapis_auth:
+  tekartik_http:
+    git:
+      url: https://github.com/tekartik/http.dart
+      path: http
+      ref: dart3a
+    version: '>=0.2.0+2'
+  tekartik_common_utils:
+    git:
+      url: https://github.com/tekartik/common_utils.dart
+      ref: dart3a
+    version: '>=0.10.7'
+  path:
+dev_dependencies:
+  tekartik_firebase_local:
+    git:
+      url: https://github.com/tekartik/firebase.dart
+      path: firebase_local
+      ref: dart3a
+    version: '>=0.6.3'
+  test: any
+  dev_test:
+  build_runner: ">=0.9.1"
+  build_test: ">=0.10.3"
+  tekartik_firebase_firestore_test:
+    git:
+      url: https://github.com/tekartik/firestore.dart
+      path: firestore_test
+      ref: dart3a
+    version: '>=0.7.4'
+  process_run: '>=0.10.2'
+  tekartik_firebase_firestore_sembast:
+    git:
+      url: https://github.com/tekartik/firebase_firestore.dart
+      path: firestore_sembast
+      ref: dart3a
+    version: '>=0.8.0'
+  tekartik_app_http:
+    git:
+      url: https://github.com/tekartik/app_common_utils.dart
+      ref: dart3a
+      path: app_http
+    version: '>=0.1.0'
+dependency_overrides:
+  tekartik_firebase_rest:
+    path: ../firebase_rest
+  # tekartik_firebase_firestore:
+  #  path: ../firestore
+  # tekartik_firebase_firestore_test:
+  #  path: ../firestore_test
+  # tekartik_firebase_firestore_sembast:
+  #  path: ../firestore_sembast
+  # tmp
+  # tekartik_firebase_rest:
+  #   path: ../../firebase.dart/firebase_rest
+  # tmp
+_dependency_overrides:
+  googleapis:
+    git:
+      url: https://github.com/google/googleapis.dart
+      path: generated/googleapis
+      ref: i303

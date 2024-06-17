@@ -1,0 +1,17 @@
+# Local Environment path and variable for `Shell.run` calls.
+# See <https://github.com/tekartik/process_run.dart/blob/master/doc/user_config.md> for more information
+# To copy as `ds_env.yaml` in the same folder `.local`, excluded from source control by default
+#
+var:
+  # Credentials for firebase account
+  firebaseStorageTestBucket: xxxxxxx.appspot.com
+  # Define a unique readwrite path to run the tests
+  firebaseStorageTestRootPath: tests/8fabdcd4-b5f8-472a-a375-f1ac6e1cc530
+
+  # No auth project id
+  TEKARTIK_STORAGE_REST_NO_AUTH_PROJECT_ID: <your-project-id>
+  # No auth project id
+  TEKARTIK_STORAGE_REST_NO_AUTH_ROOT_PATH: /your/safe/path/to_write
+  # No auth bucket
+  TEKARTIK_STORAGE_REST_NO_AUTH_BUCKET: todo
+
