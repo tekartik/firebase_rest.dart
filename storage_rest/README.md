@@ -8,7 +8,7 @@ In `pubspec.yaml`:
 dependencies:
   tekartik_firebase_storage_rest:
     git:
-      url: https://github.com/tekartik/firebase_storage.dart
+      url: https://github.com/tekartik/firebase_rest.dart
       path: storage_rest
       ref: dart3a
     version: '>=0.7.2'

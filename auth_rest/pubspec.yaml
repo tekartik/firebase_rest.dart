@@ -17,7 +17,7 @@ dependencies:
     version: '>=0.9.0'
   tekartik_firebase_rest:
     git:
-      url: https://github.com/tekartik/firebase.dart
+      url: https://github.com/tekartik/firebase_rest.dart
       path: firebase_rest
       ref: dart3a
     version: '>=0.8.3'
