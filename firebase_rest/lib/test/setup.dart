@@ -16,4 +16,4 @@ bool isGithubActionsUbuntuAndDartStable() {
 }
 
 final githubActionsPrefix =
-    'ga_${platformIo.environment['TEKARTIK_GITHUB_ACTIONS_DART']}_${platformIo.environment['TEKARTIK_GITHUB_ACTIONS_OS']?.split('-')}';
+    'ga_${platformIo.environment['TEKARTIK_GITHUB_ACTIONS_DART']}_${platformIo.environment['TEKARTIK_GITHUB_ACTIONS_OS']?.split('-').first}';
