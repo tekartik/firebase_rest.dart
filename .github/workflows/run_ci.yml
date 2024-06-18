@@ -7,7 +7,6 @@ on:
 
 jobs:
   test:
-    concurrency: tekartik-firebase-rest-test
     name: Test on ${{ matrix.os }} / ${{ matrix.dart }}
     runs-on: ${{ matrix.os }}
     defaults:
@@ -39,3 +38,5 @@ jobs:
           TEKARTIK_FIREBASE_REST_TEST_SERVICE_ACCOUNT: ${{ secrets.TEKARTIK_FIREBASE_REST_TEST_SERVICE_ACCOUNT }}
           TEKARTIK_FIRESTORE_REST_TEST_ROOT_COLLECTION_PATH: ${{ secrets.TEKARTIK_FIRESTORE_REST_TEST_ROOT_COLLECTION_PATH }}
           TEKARTIK_FIREBASE_STORAGE_REST_TEST_ROOT_PATH: ${{ secrets.TEKARTIK_FIREBASE_STORAGE_REST_TEST_ROOT_PATH }}
+          TEKARTIK_GITHUB_ACTIONS_OS: ${{ matrix.os }}
+          TEKARTIK_GITHUB_ACTIONS_DART: ${{ matrix.dart }}

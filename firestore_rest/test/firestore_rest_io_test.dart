@@ -11,7 +11,7 @@ import 'test_setup.dart';
 Future main() async {
   // debugFirestoreRest = devWarning(true);
   skipConcurrentTransactionTests = true;
-  var context = await setup();
+  var context = await firestoreRestSetup();
   group('rest_io', () {
     if (context != null) {
       var firebase = firebaseRest;

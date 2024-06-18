@@ -12,7 +12,7 @@ import 'no_auth_firestore.dart';
 import 'test_setup.dart';
 
 Future main() async {
-  final context = await setup();
+  final context = await firestoreRestSetup();
   AppOptions? accessTokenAppOptions;
   if (context != null) {
     accessTokenAppOptions = getAppOptionsFromAccessToken(

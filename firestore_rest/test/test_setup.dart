@@ -12,6 +12,6 @@ const _firestoreScopes = [
   // "https://www.googleapis.com/auth/userinfo.email"
 ];
 
-Future<FirebaseRestTestContext?> setup({bool? useEnv}) async {
+Future<FirebaseRestTestContext?> firestoreRestSetup({bool? useEnv}) async {
   return await firebase.setup(scopes: _firestoreScopes, useEnv: useEnv);
 }

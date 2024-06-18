@@ -6,7 +6,7 @@ import 'test_setup.dart';
 
 // Future<List<String>> get
 Future main() async {
-  final context = await setup();
+  final context = await storageRestSetup();
   // AppOptions accessTokenAppOptions;
   if (context != null) {
     /*

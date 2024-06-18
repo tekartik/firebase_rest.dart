@@ -12,7 +12,8 @@ Future main() async {
   test('setup', () async {
     var serviceAccountJsonPath = join('test', 'local.service_account.json');
     if (File(serviceAccountJsonPath).existsSync()) {
-      var context = await setup(serviceAccountJsonPath: serviceAccountJsonPath);
+      var context = await firebaseRestSetup(
+          serviceAccountJsonPath: serviceAccountJsonPath);
       expect(context!.accessToken, isNotNull);
     }
   });

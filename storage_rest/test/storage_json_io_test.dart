@@ -10,7 +10,7 @@ import 'package:test/test.dart';
 import 'test_setup.dart';
 
 Future main() async {
-  final context = await setup();
+  final context = await storageRestSetup();
 
   group('rest', () {
     var supported = false;

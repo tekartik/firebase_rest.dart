@@ -13,7 +13,7 @@ import 'package:test/test.dart';
 import 'test_setup.dart';
 
 Future main() async {
-  var context = await setup();
+  var context = await authRestSetup();
   var firebase = firebaseRest;
 
   AppOptions? accessTokenAppOptions;

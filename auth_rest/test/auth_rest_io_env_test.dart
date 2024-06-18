@@ -8,17 +8,24 @@ import 'package:tekartik_firebase_auth_rest/auth_rest.dart';
 import 'package:tekartik_firebase_auth_rest/src/import.dart';
 import 'package:tekartik_firebase_auth_test/auth_test.dart';
 import 'package:tekartik_firebase_rest/firebase_rest.dart';
+import 'package:tekartik_firebase_rest/test/setup.dart';
 import 'package:test/test.dart';
 
 import 'test_setup.dart';
 
 Future main() async {
-  var context = await setup(useEnv: true);
+  var context = await authRestSetup(useEnv: true);
   var firebase = firebaseRest;
 
   if (context == null) {
     test('no env setup available', () {});
   } else {
+    if (runningOnGithub && !isGithubActionsUbuntuAndDartStable()) {
+      test('Skip on github for other than ubuntu and dart stable', () {
+        print('githubActionsPrefix: $githubActionsPrefix');
+      });
+      return;
+    }
     group('auth_rest', () {
       test('setup', () {
         print('Using firebase:');

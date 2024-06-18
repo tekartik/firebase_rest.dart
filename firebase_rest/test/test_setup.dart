@@ -7,7 +7,7 @@ export 'package:tekartik_firebase_rest/src/test/test_setup.dart'
     show getContextFromAccessToken, getAppOptionsFromAccessToken;
 
 /// Setup helper
-Future<FirebaseRestTestContext?> setup(
+Future<FirebaseRestTestContext?> firebaseRestSetup(
     {String? serviceAccountJsonPath,
     Map? serviceAccountMap,
     bool? useEnv}) async {
