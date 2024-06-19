@@ -28,6 +28,7 @@ dependencies:
       ref: dart3a
     version: '>=0.2.1'
 dev_dependencies:
+  web:
   dev_build:
   tekartik_firebase_test:
     git:

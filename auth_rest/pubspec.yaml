@@ -31,6 +31,7 @@ dependencies:
   yaml:
   fs_shim:
 dev_dependencies:
+  web:
   test: ">=1.0.0"
   tekartik_firebase_auth_test:
     git:

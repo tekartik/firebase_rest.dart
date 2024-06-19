@@ -1,6 +1,4 @@
 //import 'package:googleapis/people/v1.dart';
-import 'dart:html';
-
 import 'package:googleapis/oauth2/v2.dart';
 import 'package:googleapis_auth/auth_browser.dart' as auth_browser;
 import 'package:googleapis_auth/auth_browser.dart';
@@ -14,6 +12,7 @@ import 'package:tekartik_firebase_auth_rest/src/auth_rest.dart';
 import 'package:tekartik_firebase_auth_rest/src/google_auth_rest_web.dart';
 import 'package:tekartik_firebase_auth_rest/src/identitytoolkit/v3.dart';
 import 'package:tekartik_firebase_rest/firebase_rest.dart';
+import 'package:web/web.dart' as web;
 
 //import 'package:tekartik_firebase_browser/src/interop.dart';
 //import 'package:tekartik_firebase_rest/firebase_rest.dart';
@@ -124,7 +123,7 @@ Future<void> main() async {
   write('app ${app.name}');
   write('currentUser ${auth.currentUser}');
   */
-  querySelector('#signOut')!.onClick.listen((_) async {
+  web.document.querySelector('#signOut')!.onClick.listen((_) async {
     write('signing out...');
     await auth.signOut();
     write('signed out');
@@ -132,7 +131,7 @@ Future<void> main() async {
 
   //var clientId =
   // '673610294238-qvk8j295q46sb752nj20oapdjsmrmgde.apps.googleusercontent.com';
-  querySelector('#googleSignIn')!.onClick.listen((_) async {
+  web.document.querySelector('#googleSignIn')!.onClick.listen((_) async {
     write('signing in');
     var result = await auth.signIn(googleAuthProviderRestWeb);
     write('done $result');
@@ -175,7 +174,7 @@ Future<void> main() async {
 
      */
   });
-  querySelector('#rawGoogleSignIn')!.onClick.listen((_) async {
+  web.document.querySelector('#rawGoogleSignIn')!.onClick.listen((_) async {
     //write('signing in');
     // var options = await setup();
     var scopes = [
@@ -215,7 +214,10 @@ Future<void> main() async {
     }*/
   });
 
-  querySelector('#rawGoogleCredentials')!.onClick.listen((_) async {
+  web.document
+      .querySelector('#rawGoogleCredentials')!
+      .onClick
+      .listen((_) async {
     //write('signing in');
     // var options = await setup();
     var scopes = [
@@ -300,7 +302,7 @@ Future<void> main() async {
     }
   });
   */
-  querySelector('#restGetUser')!.onClick.listen((_) async {
+  web.document.querySelector('#restGetUser')!.onClick.listen((_) async {
     var oauth2 = Oauth2Api(auth.client!);
     var userInfo = await oauth2.userinfo.get();
     write(jsonPretty(userInfo.toJson()));
@@ -354,7 +356,7 @@ Future<void> main() async {
       write('getUser error $e');
     }
   });
-  querySelector('#currentUser')!.onClick.listen((_) async {
+  web.document.querySelector('#currentUser')!.onClick.listen((_) async {
     write('currentUser ${auth.currentUser}');
   });
 /*
