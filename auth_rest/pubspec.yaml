@@ -21,12 +21,6 @@ dependencies:
       path: firebase_rest
       ref: dart3a
     version: '>=0.8.3'
-  tekartik_firebase_auth_jwt:
-    git:
-      url: https://github.com/tekartik/firebase_auth.dart
-      path: auth_jwt
-      ref: dart3a
-    version: '>=0.3.0'
   googleapis_auth: '>=1.4.0'
   googleapis:
   tekartik_common_utils:
@@ -65,8 +59,6 @@ dependency_overrides:
   #  path: ../auth_browser
   # tekartik_firebase_auth_test:
   #  path: ../auth_test
-  # tekartik_firebase_auth_jwt:
-  #  path: ../auth_jwt
   # tmp
   # tekartik_firebase_rest:
   #    path: ../../firebase.dart/firebase_rest
