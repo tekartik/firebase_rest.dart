@@ -866,7 +866,7 @@ class FirestoreRestImpl
 }
 
 class FirestoreServiceRestImpl
-    with FirestoreServiceDefaultMixin, FirestoreServiceMixin
+    with FirestoreServiceDefaultMixin, FirebaseProductServiceMixin<Firestore>
     implements FirestoreServiceRest {
   @override
   Firestore firestore(App app) {

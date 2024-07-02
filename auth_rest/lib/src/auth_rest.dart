@@ -517,7 +517,9 @@ class DecodedIdTokenLocal implements DecodedIdToken {
   DecodedIdTokenLocal({required this.uid});
 }
 
-class AuthServiceRest with AuthServiceMixin implements FirebaseAuthService {
+class AuthServiceRest
+    with FirebaseProductServiceMixin<FirebaseAuth>
+    implements FirebaseAuthService {
   @override
   bool get supportsListUsers => false;
 

@@ -31,7 +31,7 @@ abstract class StorageRest extends Storage {
 StorageServiceRest storageServiceRest = StorageServiceRestImpl();
 
 class StorageServiceRestImpl
-    with StorageServiceMixin
+    with FirebaseProductServiceMixin<Storage>
     implements StorageServiceRest {
   @override
   Storage storage(App app) {
