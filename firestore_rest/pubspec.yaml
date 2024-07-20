@@ -43,7 +43,7 @@ dev_dependencies:
       ref: dart3a
     version: '>=0.6.3'
   test: any
-  dev_test:
+  dev_build:
   build_runner: ">=0.9.1"
   build_test: ">=0.10.3"
   tekartik_firebase_firestore_test:
