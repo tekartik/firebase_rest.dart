@@ -18,6 +18,7 @@ Future main() async {
       runFirestoreTests(
           firebase: firebase,
           firestoreService: firestoreServiceRest,
+          testContext: FirestoreTestContext()..allowedDelayInReadMs = 3000,
           options: context.options);
     }
   }, skip: context == null);
