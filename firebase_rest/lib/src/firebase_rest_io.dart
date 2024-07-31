@@ -7,15 +7,22 @@ import 'package:tekartik_firebase_rest/firebase_rest.dart';
 
 import 'firebase_rest.dart';
 
+/// Firebase admin credential rest implementation
 class FirebaseAdminCredentialRestImpl implements FirebaseAdminCredentialRest {
+  /// Service account credentials
   late ServiceAccountCredentials serviceAccountCredentials;
+
+  /// Scopes
   final List<String> scopes;
   @override
   AuthClient? authClient;
   @override
   AppOptionsRest? appOptions;
+
+  /// Project id
   String? projectId;
 
+  /// from service account json string
   factory FirebaseAdminCredentialRestImpl.fromServiceAccountJson(
           String serviceAccountJson,
           {List<String>? scopes}) =>
@@ -23,6 +30,7 @@ class FirebaseAdminCredentialRestImpl implements FirebaseAdminCredentialRest {
           jsonDecode(serviceAccountJson) as Map,
           scopes: scopes);
 
+  /// from service account map
   FirebaseAdminCredentialRestImpl.fromServiceAccountMap(Map serviceAccountMap,
       {List<String>? scopes})
       : scopes = scopes ?? firebaseBaseScopes {
@@ -60,6 +68,7 @@ class FirebaseAdminCredentialRestImpl implements FirebaseAdminCredentialRest {
  */
 }
 
+/// Create a new firebase admin credential rest from a service account json
 FirebaseAdminCredentialRest newFromServiceAccountJson(String serviceAccountJson,
     {List<String>? scopes}) {
   return FirebaseAdminCredentialRestImpl.fromServiceAccountJson(
@@ -67,6 +76,7 @@ FirebaseAdminCredentialRest newFromServiceAccountJson(String serviceAccountJson,
       scopes: scopes);
 }
 
+/// Create a new firebase admin credential rest from a service account map
 FirebaseAdminCredentialRest newFromServiceAccountMap(Map serviceAccountMap,
     {List<String>? scopes}) {
   return FirebaseAdminCredentialRestImpl.fromServiceAccountMap(

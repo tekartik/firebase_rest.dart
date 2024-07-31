@@ -1,3 +1,5 @@
+// ignore_for_file: avoid_print
+
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
@@ -19,25 +21,38 @@ String? _envGetServiceAccountJsonOrPath() {
   return shellEnvironment[_envServiceAccount];
 }
 
+/// Context for testing
 class FirebaseRestTestContext {
+  /// The http client
   Client? client;
+
+  /// Authenticated client
   AuthClient? authClient;
+
+  /// Access token
   AccessToken? accessToken;
 
+  /// App options
   AppOptionsRest? options;
 
   /// True if it can be used
   bool get valid => authClient != null;
 }
 
+/// Compat
 @Deprecated('Use FirebaseRestTestContext')
 typedef Context = FirebaseRestTestContext;
 
+/// Service account
 class ServiceAccount {
+  /// Json data
   Map? jsonData;
+
+  /// Access token
   AccessToken? accessToken;
 }
 
+/// Get the access token
 @Deprecated('Use getContext')
 Future<AccessToken> getAccessToken(Client client) async {
   var serviceAccountJsonPath = join('test', 'local.service_account.json');
@@ -109,6 +124,7 @@ Future<FirebaseRestTestContext> getContext(Client client,
   return context;
 }
 
+/// Get the FirebaseRestTestContext from access credentials
 Future<FirebaseRestTestContext> getContextFromAccessCredentials(
     Client client, AccessCredentials accessCredentials,
     {List<String>? scopes}) async {
@@ -125,6 +141,7 @@ Future<FirebaseRestTestContext> getContextFromAccessCredentials(
   return context;
 }
 
+/// Get the FirebaseRestTestContext from an access token
 Future<FirebaseRestTestContext> getContextFromAccessToken(
     Client client, String token,
     {required List<String> scopes}) async {
@@ -134,6 +151,7 @@ Future<FirebaseRestTestContext> getContextFromAccessToken(
   return getContextFromAccessCredentials(client, accessCredentials);
 }
 
+/// Setup the test
 Future<FirebaseRestTestContext?> setup(
     {List<String>? scopes,
     String dir = 'test',
@@ -151,7 +169,7 @@ Future<FirebaseRestTestContext?> setup(
         useEnv: useEnv);
   } catch (e) {
     client.close();
-    print(e);
+    print('Error getting context: $e');
   }
   return null;
 }

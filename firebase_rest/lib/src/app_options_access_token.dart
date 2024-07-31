@@ -4,7 +4,8 @@ import 'package:http/http.dart';
 import 'package:tekartik_firebase/firebase.dart';
 import 'package:tekartik_firebase_rest/firebase_rest.dart';
 
-AppOptions getAppOptionsFromAccessCredentials(
+/// Get app options from access credentials
+FirebaseAppOptions getAppOptionsFromAccessCredentials(
     Client client, AccessCredentials accessCredentials,
     {List<String>? scopes, String? projectId}) {
   var authClient = authenticatedClient(client, accessCredentials);
@@ -12,7 +13,8 @@ AppOptions getAppOptionsFromAccessCredentials(
   return appOptions;
 }
 
-AppOptions getAppOptionsFromAccessToken(Client client, String token,
+/// Get app options from access token
+FirebaseAppOptions getAppOptionsFromAccessToken(Client client, String token,
     {required String projectId, required List<String> scopes}) {
   // expiry is ignored in request
   var accessToken = AccessToken('Bearer', token, DateTime.now().toUtc());

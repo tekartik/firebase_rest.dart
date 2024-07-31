@@ -4,6 +4,7 @@ import 'package:tekartik_platform_io/context_io.dart';
 
 export 'package:tekartik_firebase_rest/src/test/test_setup.dart' show setup;
 
+/// True if running on github
 bool get runningOnGithub => platformIo.runningOnGithub;
 
 /// stable
@@ -15,5 +16,6 @@ bool isGithubActionsUbuntuAndDartStable() {
           false);
 }
 
+/// Github actions prefix
 final githubActionsPrefix =
     'ga_${platformIo.environment['TEKARTIK_GITHUB_ACTIONS_DART']}_${platformIo.environment['TEKARTIK_GITHUB_ACTIONS_OS']?.split('-').first}';

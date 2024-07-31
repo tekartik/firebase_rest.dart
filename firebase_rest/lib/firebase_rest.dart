@@ -28,11 +28,11 @@ FirebaseAdminRest get firebaseRest => impl;
 
 /// Rest app extension (if any)
 abstract class AppRest implements App {
-  // Compat
+  /// Compat
   @Deprecated('Use client')
   AuthClient? get authClient;
 
-  // @Deprecated('Use client')
+  /// The http client
   Client? get client;
 
   @Deprecated('Only implementation should call that')

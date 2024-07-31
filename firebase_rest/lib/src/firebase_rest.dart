@@ -9,6 +9,7 @@ import 'platform.dart';
 
 String get _defaultAppName => firebaseAppNameDefault;
 
+/// Rest options.
 abstract class AdminAppOptionsRest implements AppOptionsRest {
   /// The http client
   @override
@@ -34,28 +35,36 @@ extension FirebaseAdminRestExtension on FirebaseAdminRest {
   }
 }
 
+/// Compat
+typedef AppOptionsRest = FirebaseAppOptionsRest;
+
 /// The app options to use for REST app initialization.
-abstract class AppOptionsRest extends AppOptions {
+abstract class FirebaseAppOptionsRest extends AppOptions {
   /// The http client
   @Deprecated('Use client in auth')
   Client? get client;
 
   /// Create a new options object.
-  factory AppOptionsRest(
+  factory FirebaseAppOptionsRest(
           {@Deprecated('Use client') AuthClient? authClient, Client? client}) =>
       // ignore: deprecated_member_use_from_same_package
       AppOptionsRestImpl(authClient: authClient, client: client);
 }
 
+/// firebase rest instance.
 var firebaseRest = FirebaseRestImpl();
 
 // const String googleApisAuthDatastoreScope =
 //    'https://www.googleapis.com/auth/datastore';
+/// Auth scope
 const String googleApisAuthCloudPlatformScope =
     'https://www.googleapis.com/auth/cloud-platform';
 
-class AppOptionsRestImpl extends AppOptions implements AppOptionsRest {
+/// Firebase rest implementation.
+class AppOptionsRestImpl extends FirebaseAppOptions implements AppOptionsRest {
   @Deprecated('Use client')
+
+  /// Compat
   AuthClient? get authClient =>
       (client is AuthClient) ? (client as AuthClient?) : null;
   @override
@@ -72,6 +81,7 @@ class AppOptionsRestImpl extends AppOptions implements AppOptionsRest {
   }
 }
 
+/// Rest implementation.
 class FirebaseRestImpl with FirebaseMixin implements FirebaseAdminRest {
   @override
   App initializeApp({AppOptions? options, String? name}) {
@@ -112,10 +122,12 @@ class FirebaseRestImpl with FirebaseMixin implements FirebaseAdminRest {
 
 FirebaseRestImpl? _impl;
 
+/// Firebase rest instance.
 FirebaseRestImpl get impl => _impl ??= FirebaseRestImpl();
 
 /// Mixin
 mixin FirebaseAppRestMixin {
+  /// The http client
   Client? currentAuthClient;
 }
 
@@ -123,15 +135,20 @@ mixin FirebaseAppRestMixin {
 class AppRestImpl
     with FirebaseAppMixin, FirebaseAppRestMixin
     implements AppRest {
+  /// Firebase rest implementation
   final FirebaseRestImpl firebaseRest;
 
   @override
+  Firebase get firebase => firebaseRest;
+  @override
   final AppOptions options;
 
+  /// Deleted flag
   bool deleted = false;
   @override
   late final String name;
 
+  /// App rest implementation.
   AppRestImpl(
       {required this.firebaseRest, required this.options, String? name}) {
     this.name = name ?? _defaultAppName;
@@ -160,20 +177,25 @@ class AppRestImpl
   set client(Client? client) => currentAuthClient = client;
 }
 
+/// Rest implementation.
 class FirebaseAdminAccessTokenRest implements FirebaseAdminAccessToken {
   @override
   final String data;
 
+  /// Rest implementation.
   FirebaseAdminAccessTokenRest({required this.data});
 
   @override
   int get expiresIn => 0;
 }
 
+/// Rest implementation.
 class FirebaseAdminCredentialServiceRest
     implements FirebaseAdminCredentialService {
+  /// Firebase rest implementation
   final FirebaseRestImpl firebaseRest;
 
+  /// Rest implementation.
   FirebaseAdminCredentialServiceRest(this.firebaseRest);
 
   FirebaseAdminCredentialRest? _applicationDefault;
@@ -190,16 +212,20 @@ class FirebaseAdminCredentialServiceRest
 
 /// Rest credentials implementation
 abstract class FirebaseAdminCredentialRest implements FirebaseAdminCredential {
+  /// App options
   AppOptionsRest? get appOptions;
 
+  /// Auth client
   AuthClient? get authClient;
 
+  /// from service account json string
   factory FirebaseAdminCredentialRest.fromServiceAccountJson(
       String serviceAccountJson,
       {List<String>? scopes}) {
     return newFromServiceAccountJson(serviceAccountJson, scopes: scopes);
   }
 
+  /// from service account map
   factory FirebaseAdminCredentialRest.fromServiceAccountMap(
       Map serviceAccountMap,
       {List<String>? scopes}) {

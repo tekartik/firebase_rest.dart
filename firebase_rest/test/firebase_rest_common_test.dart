@@ -1,3 +1,5 @@
+// ignore_for_file: avoid_print
+
 library tekartik_firebase_rest.rest_common_test;
 
 import 'package:tekartik_firebase/firebase_admin.dart';
