@@ -7,6 +7,9 @@ import 'package:tekartik_firebase_rest/firebase_rest.dart';
 import 'package:test/test.dart';
 
 Future main() async {
+  test('isLocal', () {
+    expect(firebaseRest.isLocal, isFalse);
+  });
   test('setup', () async {
     var serviceAccountMap = {
       'type': 'service_account',

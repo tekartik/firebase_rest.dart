@@ -1,0 +1,31 @@
+# Dependabot configuration file.
+# See https://docs.github.com/en/code-security/dependabot/dependabot-version-updates
+version: 2
+
+enable-beta-ecosystems: true
+
+updates:
+  - package-ecosystem: "pub"
+    directory: "auth_rest"
+    schedule:
+      interval: "monthly"
+  - package-ecosystem: "pub"
+    directory: "firebase_rest"
+    schedule:
+      interval: "monthly"
+  - package-ecosystem: "pub"
+    directory: "firestore_rest"
+    schedule:
+      interval: "monthly"
+  - package-ecosystem: "pub"
+    directory: "repo_support"
+    schedule:
+      interval: "monthly"
+  - package-ecosystem: "pub"
+    directory: "storage_rest"
+    schedule:
+      interval: "monthly"
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "monthly"

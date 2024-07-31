@@ -14,6 +14,9 @@ Future main() async {
     test('no setup available', () {});
   } else {
     group('rest', () {
+      test('isLocal', () {
+        expect(firebaseRest.isLocal, isFalse);
+      });
       // there is no name on node
       runFirebaseTests(firebaseRest);
 
