@@ -4,6 +4,7 @@ import 'package:googleapis/bigquery/v2.dart';
 import 'package:googleapis/storage/v1.dart' as api;
 import 'package:http/http.dart';
 import 'package:tekartik_firebase/firebase.dart';
+import 'package:tekartik_firebase/firebase_mixin.dart';
 import 'package:tekartik_firebase_rest/src/firebase_rest.dart'; // ignore: implementation_imports
 import 'package:tekartik_firebase_storage/storage.dart';
 import 'package:tekartik_firebase_storage_rest/src/bucket_rest.dart';
@@ -31,7 +32,7 @@ abstract class StorageRest extends Storage {
 StorageServiceRest storageServiceRest = StorageServiceRestImpl();
 
 class StorageServiceRestImpl
-    with FirebaseProductServiceMixin<Storage>
+    with FirebaseProductServiceMixin<FirebaseStorage>
     implements StorageServiceRest {
   @override
   Storage storage(App app) {
@@ -42,7 +43,9 @@ class StorageServiceRestImpl
   }
 }
 
-class StorageRestImpl with StorageMixin implements StorageRest {
+class StorageRestImpl
+    with FirebaseAppProductMixin<FirebaseStorage>, StorageMixin
+    implements StorageRest {
   late final StorageServiceRest service;
   late final AppRestImpl? appImpl;
 

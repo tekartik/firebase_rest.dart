@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:path/path.dart';
 import 'package:tekartik_common_utils/env_utils.dart';
 import 'package:tekartik_firebase/firebase.dart';
+import 'package:tekartik_firebase/firebase_mixin.dart';
 // ignore: implementation_imports
 // ignore: implementation_imports
 // ignore: implementation_imports
@@ -11,9 +12,9 @@ import 'package:tekartik_firebase_firestore_rest/firestore_rest.dart';
 import 'package:tekartik_firebase_firestore_rest/src/collection_reference_rest.dart';
 import 'package:tekartik_firebase_firestore_rest/src/document_reference_rest.dart';
 import 'package:tekartik_firebase_firestore_rest/src/document_rest_impl.dart';
-import 'package:tekartik_firebase_firestore_rest/src/firestore/v1_fixed.dart';
 import 'package:tekartik_firebase_firestore_rest/src/firestore/v1_fixed.dart'
     as api;
+import 'package:tekartik_firebase_firestore_rest/src/firestore/v1_fixed.dart';
 import 'package:tekartik_firebase_firestore_rest/src/patch_document_rest_impl.dart';
 import 'package:tekartik_firebase_firestore_rest/src/query_rest.dart';
 import 'package:tekartik_firebase_firestore_rest/src/transaction_rest.dart';
@@ -221,7 +222,10 @@ Value toRestValue(FirestoreRestImpl firestore, dynamic value) {
 }
 
 class FirestoreRestImpl
-    with FirestoreDefaultMixin, FirestoreMixin
+    with
+        FirebaseAppProductMixin<Firestore>,
+        FirestoreDefaultMixin,
+        FirestoreMixin
     implements Firestore, FirestoreDocumentContext {
   @override
   final FirestoreServiceRestImpl service;
@@ -866,7 +870,7 @@ class FirestoreRestImpl
 }
 
 class FirestoreServiceRestImpl
-    with FirestoreServiceDefaultMixin, FirebaseProductServiceMixin<Firestore>
+    with FirebaseProductServiceMixin<Firestore>, FirestoreServiceDefaultMixin
     implements FirestoreServiceRest {
   @override
   Firestore firestore(App app) {
