@@ -296,7 +296,7 @@ class _ProviderUser {
 }
 
 class AuthRestImpl
-    with FirebaseAppProductMixin, AuthMixin, AuthRestMixin
+    with FirebaseAppProductMixin<FirebaseAuth>, AuthMixin, AuthRestMixin
     implements AuthRest {
   @override
   Client? client;
