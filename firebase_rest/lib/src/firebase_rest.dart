@@ -86,15 +86,15 @@ class FirebaseRestImpl with FirebaseMixin implements FirebaseAdminRest {
   @override
   App initializeApp({AppOptions? options, String? name}) {
     name ??= _defaultAppName;
-    var impl = AppRestImpl(
+    var app = AppRestImpl(
       name: name,
       firebaseRest: this,
       options: (options ??
           (credential.applicationDefault() as FirebaseAdminCredentialRest)
               .appOptions)!,
     );
-    _apps[impl.name] = impl;
-    return impl;
+    _apps[app.name] = FirebaseMixin.latestFirebaseInstanceOrNull = app;
+    return app;
   }
 
   @override
