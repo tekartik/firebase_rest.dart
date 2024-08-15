@@ -4,9 +4,6 @@ import 'package:path/path.dart';
 import 'package:tekartik_common_utils/env_utils.dart';
 import 'package:tekartik_firebase/firebase.dart';
 import 'package:tekartik_firebase/firebase_mixin.dart';
-// ignore: implementation_imports
-// ignore: implementation_imports
-// ignore: implementation_imports
 import 'package:tekartik_firebase_firestore/utils/json_utils.dart';
 import 'package:tekartik_firebase_firestore_rest/firestore_rest.dart';
 import 'package:tekartik_firebase_firestore_rest/src/collection_reference_rest.dart';
@@ -19,7 +16,7 @@ import 'package:tekartik_firebase_firestore_rest/src/patch_document_rest_impl.da
 import 'package:tekartik_firebase_firestore_rest/src/query_rest.dart';
 import 'package:tekartik_firebase_firestore_rest/src/transaction_rest.dart';
 import 'package:tekartik_firebase_firestore_rest/src/write_batch.dart';
-import 'package:tekartik_firebase_rest/src/firebase_rest.dart'; // ignore: implementation_imports
+import 'package:tekartik_firebase_rest/firebase_rest.dart';
 import 'package:tekartik_http/http.dart';
 
 import 'aggregate_query_rest.dart';
@@ -229,7 +226,7 @@ class FirestoreRestImpl
     implements Firestore, FirestoreDocumentContext {
   @override
   final FirestoreServiceRestImpl service;
-  final AppRestImpl appImpl;
+  final FirebaseAppRest appImpl;
   api.FirestoreApi? _firestoreApi;
   api.FirestoreFixedApi? _firestoreFixedApi;
 
@@ -874,7 +871,8 @@ class FirestoreServiceRestImpl
     implements FirestoreServiceRest {
   @override
   Firestore firestore(App app) {
-    return getInstance(app, () => FirestoreRestImpl(this, app as AppRestImpl));
+    return getInstance(
+        app, () => FirestoreRestImpl(this, app as FirebaseAppRest));
   }
 
   @override

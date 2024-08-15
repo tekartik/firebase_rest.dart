@@ -5,9 +5,11 @@ import 'package:tekartik_firebase/firebase_admin.dart';
 import 'package:tekartik_firebase/src/firebase_mixin.dart'; // ignore: implementation_imports
 import 'package:tekartik_firebase_rest/firebase_rest.dart';
 
+import 'firebase_app_rest.dart';
 import 'platform.dart';
 
-String get _defaultAppName => firebaseAppNameDefault;
+/// Default app name
+String get firebaseRestDefaultAppName => firebaseAppNameDefault;
 
 /// Rest options.
 abstract class AdminAppOptionsRest implements AppOptionsRest {
@@ -85,7 +87,7 @@ class AppOptionsRestImpl extends FirebaseAppOptions implements AppOptionsRest {
 class FirebaseRestImpl with FirebaseMixin implements FirebaseAdminRest {
   @override
   App initializeApp({AppOptions? options, String? name}) {
-    name ??= _defaultAppName;
+    name ??= firebaseRestDefaultAppName;
     var app = AppRestImpl(
       name: name,
       firebaseRest: this,
@@ -109,7 +111,7 @@ class FirebaseRestImpl with FirebaseMixin implements FirebaseAdminRest {
 
   @override
   App app({String? name}) {
-    name ??= _defaultAppName;
+    name ??= firebaseRestDefaultAppName;
     return _apps[name]!;
   }
 
@@ -124,58 +126,6 @@ FirebaseRestImpl? _impl;
 
 /// Firebase rest instance.
 FirebaseRestImpl get impl => _impl ??= FirebaseRestImpl();
-
-/// Mixin
-mixin FirebaseAppRestMixin {
-  /// The http client
-  Client? currentAuthClient;
-}
-
-/// App Rest
-class AppRestImpl
-    with FirebaseAppMixin, FirebaseAppRestMixin
-    implements AppRest {
-  /// Firebase rest implementation
-  final FirebaseRestImpl firebaseRest;
-
-  @override
-  Firebase get firebase => firebaseRest;
-  @override
-  final AppOptions options;
-
-  /// Deleted flag
-  bool deleted = false;
-  @override
-  late final String name;
-
-  /// App rest implementation.
-  AppRestImpl(
-      {required this.firebaseRest, required this.options, String? name}) {
-    this.name = name ?? _defaultAppName;
-    var options = this.options;
-    if (options is AppOptionsRest) {
-      // Compat
-      // ignore: deprecated_member_use_from_same_package
-      currentAuthClient = options.client;
-    }
-  }
-
-  @override
-  Future<void> delete() async {
-    deleted = true;
-    await closeServices();
-  }
-
-  @override
-  @Deprecated('Use client')
-  AuthClient? get authClient => currentAuthClient as AuthClient;
-
-  @override
-  Client? get client => currentAuthClient;
-
-  @override
-  set client(Client? client) => currentAuthClient = client;
-}
 
 /// Rest implementation.
 class FirebaseAdminAccessTokenRest implements FirebaseAdminAccessToken {

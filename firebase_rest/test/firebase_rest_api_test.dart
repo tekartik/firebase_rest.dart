@@ -11,7 +11,7 @@ void main() async {
       // ignore: unnecessary_statements
       FirebaseRest;
       // ignore: unnecessary_statements
-      AppRest;
+      FirebaseAppRest;
       expect(true, isTrue);
     });
   });

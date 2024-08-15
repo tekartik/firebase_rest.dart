@@ -5,7 +5,7 @@ import 'package:googleapis/storage/v1.dart' as api;
 import 'package:http/http.dart';
 import 'package:tekartik_firebase/firebase.dart';
 import 'package:tekartik_firebase/firebase_mixin.dart';
-import 'package:tekartik_firebase_rest/src/firebase_rest.dart'; // ignore: implementation_imports
+import 'package:tekartik_firebase_rest/firebase_rest.dart';
 import 'package:tekartik_firebase_storage/storage.dart';
 import 'package:tekartik_firebase_storage_rest/src/bucket_rest.dart';
 import 'package:tekartik_firebase_storage_rest/src/file_rest.dart';
@@ -37,8 +37,8 @@ class StorageServiceRestImpl
   @override
   Storage storage(App app) {
     return getInstance(app, () {
-      assert(app is AppRestImpl, 'invalid firebase app type');
-      return StorageRestImpl(this, app as AppRestImpl);
+      assert(app is FirebaseAppRest, 'invalid firebase app type');
+      return StorageRestImpl(this, app as FirebaseAppRest);
     });
   }
 }
@@ -47,7 +47,7 @@ class StorageRestImpl
     with FirebaseAppProductMixin<FirebaseStorage>, StorageMixin
     implements StorageRest {
   late final StorageServiceRest service;
-  late final AppRestImpl? appImpl;
+  late final FirebaseAppRest? appImpl;
 
   Client get authClient => _authClient ??= appImpl!.client!;
   Client? _authClient;

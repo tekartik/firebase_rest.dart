@@ -21,8 +21,11 @@ String? _envGetServiceAccountJsonOrPath() {
   return shellEnvironment[_envServiceAccount];
 }
 
+/// Compat
+typedef FirebaseRestTestContext = FirebaseRestSetupContext;
+
 /// Context for testing
-class FirebaseRestTestContext {
+class FirebaseRestSetupContext {
   /// The http client
   Client? client;
 
@@ -37,11 +40,20 @@ class FirebaseRestTestContext {
 
   /// True if it can be used
   bool get valid => authClient != null;
+
+  /// Project id, ok when using service account.
+  String get projectId => options!.projectId!;
+
+  /// Firebase app when using service account
+  FirebaseAppRest get app {
+    var app = firebaseRest.initializeApp(options: options!);
+    return app as FirebaseAppRest;
+  }
 }
 
 /// Compat
-@Deprecated('Use FirebaseRestTestContext')
-typedef Context = FirebaseRestTestContext;
+@Deprecated('Use FirebaseRestSetupContext')
+typedef Context = FirebaseRestSetupContext;
 
 /// Service account
 class ServiceAccount {
@@ -149,6 +161,27 @@ Future<FirebaseRestTestContext> getContextFromAccessToken(
   var accessToken = AccessToken('Bearer', token, DateTime.now().toUtc());
   var accessCredentials = AccessCredentials(accessToken, null, scopes);
   return getContextFromAccessCredentials(client, accessCredentials);
+}
+
+/// Setup the rest context
+Future<FirebaseRestSetupContext?> firebaseRestSetupContext(
+    {List<String>? scopes,
+    bool? useEnv,
+    String? serviceAccountJsonPath,
+    Map? serviceAccountMap}) async {
+  var client = Client();
+  // Load client info
+  try {
+    return await getContext(client,
+        scopes: scopes,
+        serviceAccountJsonPath: serviceAccountJsonPath,
+        serviceAccountMap: serviceAccountMap,
+        useEnv: useEnv);
+  } catch (e) {
+    client.close();
+    print('Error getting context: $e');
+  }
+  return null;
 }
 
 /// Setup the test

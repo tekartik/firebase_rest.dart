@@ -4,6 +4,9 @@ import 'package:tekartik_firebase/firebase.dart';
 import 'package:tekartik_firebase/firebase_admin.dart';
 import 'package:tekartik_firebase_rest/src/firebase_rest.dart';
 
+export 'package:tekartik_firebase_rest/src/firebase_app_rest.dart'
+    show FirebaseAppRestExt;
+
 export 'package:tekartik_firebase_rest/src/firebase_rest.dart'
     show
         AppOptionsRest,
@@ -26,8 +29,11 @@ abstract class FirebaseAdminRest implements FirebaseRest, FirebaseAdmin {}
 /// Rest firebase api
 FirebaseAdminRest get firebaseRest => impl;
 
+/// Compat
+typedef AppRest = FirebaseAppRest;
+
 /// Rest app extension (if any)
-abstract class AppRest implements App {
+abstract class FirebaseAppRest implements FirebaseApp {
   /// Compat
   @Deprecated('Use client')
   AuthClient? get authClient;

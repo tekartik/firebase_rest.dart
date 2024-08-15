@@ -265,7 +265,9 @@ abstract class AuthRest implements FirebaseAuth {
 
   /// Custom AuthRest
   factory AuthRest(
-      {required AppRest appRest, String? rootUrl, String? servicePathBase}) {
+      {required FirebaseAppRest appRest,
+      String? rootUrl,
+      String? servicePathBase}) {
     return AuthRestImpl(appRest,
         rootUrl: rootUrl, servicePathBase: servicePathBase);
   }
@@ -305,7 +307,7 @@ class AuthRestImpl
   _ProviderUser? _currentProviderUser;
 
   AuthSignInResultRest? signInResultRest;
-  final AppRest? _appRest;
+  final FirebaseAppRest? _appRest;
 
   // ignore: unused_field
   final App _app;
@@ -350,7 +352,7 @@ class AuthRestImpl
   final _currentUserInitLock = Lock();
 
   AuthRestImpl(this._app, {this.rootUrl, this.servicePathBase})
-      : _appRest = (_app is AppRest ? _app : null) {
+      : _appRest = (_app is FirebaseAppRest ? _app : null) {
     client = _appRest?.client;
     // Copy auth client upon connection
 
@@ -448,7 +450,7 @@ class AuthRestImpl
         client = result.client;
         // Set in global too.
         // ignore: deprecated_member_use
-        (_appRest as AppRest).client = client;
+        (_appRest as FirebaseAppRest).client = client;
         signInResultRest = result;
       }
       return result;
@@ -528,7 +530,7 @@ class AuthServiceRest
   @override
   FirebaseAuth auth(App app) {
     return getInstance(app, () {
-      assert(app is AppRest, 'invalid app type - not AppLocal');
+      assert(app is FirebaseAppRest, 'invalid app type - not AppLocal');
       // final appLocal = app as AppLocal;
       return AuthRestImpl(app);
     });
