@@ -2,8 +2,7 @@ import 'package:http/http.dart';
 import 'package:tekartik_firebase/firebase.dart';
 import 'package:tekartik_firebase_firestore/firestore.dart';
 import 'package:tekartik_firebase_firestore_rest/firestore_rest.dart';
-import 'package:tekartik_firebase_firestore_rest/src/firestore/v1_fixed.dart'
-    as api;
+import 'package:tekartik_firebase_firestore_rest/src/firestore/v1.dart' as api;
 import 'package:tekartik_firebase_firestore_rest/src/firestore_rest_impl.dart';
 import 'package:tekartik_firebase_firestore_rest/src/import.dart';
 import 'package:test/test.dart';

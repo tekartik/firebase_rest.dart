@@ -4,7 +4,7 @@ import 'package:tekartik_firebase_firestore/src/common/value_key_mixin.dart'; //
 import 'package:tekartik_firebase_firestore_rest/src/document_rest_impl.dart';
 import 'package:tekartik_firebase_firestore_rest/src/firestore_rest_impl.dart';
 
-import 'firestore/v1_fixed.dart';
+import 'firestore/v1.dart';
 
 class SetDocument extends WriteDocument {
   SetDocument(super.firestore, super.data) : super(merge: false);

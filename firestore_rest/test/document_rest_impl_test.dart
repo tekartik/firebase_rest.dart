@@ -1,6 +1,6 @@
 import 'package:tekartik_firebase_firestore/firestore.dart';
 import 'package:tekartik_firebase_firestore_rest/src/document_rest_impl.dart';
-import 'package:tekartik_firebase_firestore_rest/src/firestore/v1_fixed.dart';
+import 'package:tekartik_firebase_firestore_rest/src/firestore/v1.dart';
 import 'package:tekartik_firebase_firestore_rest/src/firestore_rest_impl.dart';
 import 'package:tekartik_firebase_firestore_rest/src/import.dart';
 import 'package:tekartik_firebase_firestore_rest/src/patch_document_rest_impl.dart';
@@ -200,7 +200,7 @@ Future main() async {
       ];
 
       // ignore: omit_local_variable_types
-      RunQueryFixedResponse response =
+      RunQueryResponse response =
           json.map((e) => RunQueryResponseElement.fromJson(e)).toList();
       expect(response.length, 2);
     });

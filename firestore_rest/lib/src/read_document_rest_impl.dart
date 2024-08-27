@@ -1,7 +1,7 @@
 import 'package:tekartik_firebase_firestore_rest/src/document_rest_impl.dart';
 import 'package:tekartik_firebase_firestore_rest/src/firestore_rest_impl.dart';
 
-import 'firestore/v1_fixed.dart';
+import 'firestore/v1.dart';
 
 class ReadDocument with DocumentContext {
   @override

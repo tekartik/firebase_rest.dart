@@ -3,8 +3,8 @@ import 'package:tekartik_firebase_firestore/src/common/query_mixin.dart'; // ign
 import 'package:tekartik_firebase_firestore/src/common/reference_mixin.dart'; // ignore: implementation_imports
 import 'package:tekartik_firebase_firestore_rest/src/collection_reference_rest.dart';
 import 'package:tekartik_firebase_firestore_rest/src/document_reference_rest.dart';
-import 'package:tekartik_firebase_firestore_rest/src/firestore/v1_fixed.dart'
-    show RunQueryFixedResponse;
+import 'package:tekartik_firebase_firestore_rest/src/firestore/v1.dart'
+    show RunQueryResponse;
 import 'package:tekartik_firebase_firestore_rest/src/firestore_rest_impl.dart';
 
 import 'aggregate_query_rest.dart';
@@ -43,7 +43,7 @@ class QueryRestImpl
 
 class QuerySnapshotRestImpl implements QuerySnapshot {
   final FirestoreRestImpl firestoreRest;
-  final RunQueryFixedResponse response;
+  final RunQueryResponse response;
 
   QuerySnapshotRestImpl(this.firestoreRest, this.response);
 

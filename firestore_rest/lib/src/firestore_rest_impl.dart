@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 
+import 'package:http/http.dart' as http;
 import 'package:path/path.dart';
 import 'package:tekartik_common_utils/env_utils.dart';
 import 'package:tekartik_firebase/firebase.dart';
@@ -9,9 +10,6 @@ import 'package:tekartik_firebase_firestore_rest/firestore_rest.dart';
 import 'package:tekartik_firebase_firestore_rest/src/collection_reference_rest.dart';
 import 'package:tekartik_firebase_firestore_rest/src/document_reference_rest.dart';
 import 'package:tekartik_firebase_firestore_rest/src/document_rest_impl.dart';
-import 'package:tekartik_firebase_firestore_rest/src/firestore/v1_fixed.dart'
-    as api;
-import 'package:tekartik_firebase_firestore_rest/src/firestore/v1_fixed.dart';
 import 'package:tekartik_firebase_firestore_rest/src/patch_document_rest_impl.dart';
 import 'package:tekartik_firebase_firestore_rest/src/query_rest.dart';
 import 'package:tekartik_firebase_firestore_rest/src/transaction_rest.dart';
@@ -20,6 +18,8 @@ import 'package:tekartik_firebase_rest/firebase_rest.dart';
 import 'package:tekartik_http/http.dart';
 
 import 'aggregate_query_rest.dart';
+import 'firestore/v1.dart' as api;
+import 'firestore/v1.dart';
 import 'import.dart';
 import 'import_firestore.dart';
 
@@ -228,13 +228,16 @@ class FirestoreRestImpl
   final FirestoreServiceRestImpl service;
   final FirebaseAppRest appImpl;
   api.FirestoreApi? _firestoreApi;
-  api.FirestoreFixedApi? _firestoreFixedApi;
 
-  api.FirestoreApi get firestoreApi =>
-      _firestoreApi ??= FirestoreApi(appImpl.client!);
-
-  api.FirestoreFixedApi get firestoreFixedApi =>
-      _firestoreFixedApi ??= FirestoreFixedApi(appImpl.client!);
+  http.Client? _lastApiClient;
+  api.FirestoreApi get firestoreApi {
+    if (_lastApiClient == appImpl.client) {
+      return _firestoreApi!;
+    } else {
+      _lastApiClient = appImpl.client;
+      return _firestoreApi = FirestoreApi(appImpl.client!);
+    }
+  }
 
   String? get projectId => appImpl.options.projectId;
 
@@ -285,7 +288,7 @@ class FirestoreRestImpl
       if (debugRest) {
         print('documentGetRequest: $name, transactionId: $transactionId');
       }
-      var document = await firestoreFixedApi.projects.databases.documents
+      var document = await firestoreApi.projects.databases.documents
           .get(name, transaction: transactionId);
       // Debug read
       if (debugRest) {
@@ -376,7 +379,7 @@ class FirestoreRestImpl
           'writeDocumentRequest: ${jsonPretty(patch.document.toJson())}, name: $name, updateFieldPaths: ${patch.fieldPaths}');
     }
     try {
-      var document = await firestoreFixedApi.projects.databases.documents
+      var document = await firestoreApi.projects.databases.documents
           .patch(patch.document, name, updateMask_fieldPaths: patch.fieldPaths);
       if (debugRest) {
         print('writeDocument: ${jsonPretty(document.toJson())}');
@@ -403,7 +406,7 @@ class FirestoreRestImpl
           'updateDocumentRequest: ${jsonPretty(patch.document.toJson())}, name: $name, updateFieldPaths: ${patch.fieldPaths}');
     }
     try {
-      var document = await firestoreFixedApi.projects.databases.documents.patch(
+      var document = await firestoreApi.projects.databases.documents.patch(
           patch.document, name,
           currentDocument_exists: true,
           updateMask_fieldPaths: patch.fieldPaths);
@@ -605,7 +608,7 @@ class FirestoreRestImpl
       // Debug
       // devPrint('request: ${jsonPretty(request.toJson())}');
       // devPrint('parent: $parent');
-      var response = await firestoreFixedApi.projects.databases.documents
+      var response = await firestoreApi.projects.databases.documents
           .runAggregationQuery(request, parent);
 
       // devPrint(jsonPretty(response.map((e) => e.toJson()).toList()));
@@ -652,7 +655,7 @@ class FirestoreRestImpl
       // Debug
       // devPrint('request: ${jsonPretty(request.toJson())}');
       // devPrint('parent: $parent');
-      var response = await firestoreFixedApi.projects.databases.documents
+      var response = await firestoreApi.projects.databases.documents
           .runQuery(request, parent);
 
       // devPrint(jsonPretty(response.toJson()));
