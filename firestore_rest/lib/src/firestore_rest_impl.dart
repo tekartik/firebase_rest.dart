@@ -867,6 +867,9 @@ class FirestoreRestImpl
   Future<List<CollectionReference>> listDocumentCollections(String path) async {
     return _listCollections(path);
   }
+
+  @override
+  FirebaseApp get app => appImpl;
 }
 
 class FirestoreServiceRestImpl

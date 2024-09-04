@@ -265,10 +265,11 @@ abstract class AuthRest implements FirebaseAuth {
 
   /// Custom AuthRest
   factory AuthRest(
-      {required FirebaseAppRest appRest,
+      {required AuthServiceRest authService,
+      required FirebaseAppRest appRest,
       String? rootUrl,
       String? servicePathBase}) {
-    return AuthRestImpl(appRest,
+    return AuthRestImpl(authService, appRest,
         rootUrl: rootUrl, servicePathBase: servicePathBase);
   }
 
@@ -300,6 +301,7 @@ class _ProviderUser {
 class AuthRestImpl
     with FirebaseAppProductMixin<FirebaseAuth>, AuthMixin, AuthRestMixin
     implements AuthRest {
+  final AuthServiceRest serviceRest;
   @override
   Client? client;
 
@@ -307,10 +309,8 @@ class AuthRestImpl
   _ProviderUser? _currentProviderUser;
 
   AuthSignInResultRest? signInResultRest;
-  final FirebaseAppRest? _appRest;
+  final FirebaseAppRest _appRest;
 
-  // ignore: unused_field
-  final App _app;
   IdentityToolkitApi? _identitytoolkitApi;
   String? rootUrl;
   String? servicePathBase;
@@ -323,13 +323,13 @@ class AuthRestImpl
           var defaultRootUrl = 'https://www.googleapis.com/';
 
           var defaultServicePath = 'identitytoolkit/v3/relyingparty/';
-          return IdentityToolkitApi(_appRest!.client!,
+          return IdentityToolkitApi(_appRest.client!,
               servicePath: servicePathBase == null
                   ? defaultServicePath
                   : '$servicePathBase/$defaultServicePath',
               rootUrl: rootUrl ?? defaultRootUrl);
         } else {
-          return IdentityToolkitApi(_appRest!.client!);
+          return IdentityToolkitApi(_appRest.client!);
         }
       }();
 
@@ -346,14 +346,14 @@ class AuthRestImpl
       }
     }
     // ignore: deprecated_member_use
-    _appRest!.client = client;
+    _appRest.client = client;
   }
 
   final _currentUserInitLock = Lock();
 
-  AuthRestImpl(this._app, {this.rootUrl, this.servicePathBase})
-      : _appRest = (_app is FirebaseAppRest ? _app : null) {
-    client = _appRest?.client;
+  AuthRestImpl(this.serviceRest, this._appRest,
+      {this.rootUrl, this.servicePathBase}) {
+    client = _appRest.client;
     // Copy auth client upon connection
 
     var firstCurrentUserCompleter = Completer<_ProviderUser?>();
@@ -450,7 +450,7 @@ class AuthRestImpl
         client = result.client;
         // Set in global too.
         // ignore: deprecated_member_use
-        (_appRest as FirebaseAppRest).client = client;
+        _appRest.client = client;
         signInResultRest = result;
       }
       return result;
@@ -469,7 +469,7 @@ class AuthRestImpl
   }
 
   @override
-  String toString() => _appRest?.name ?? 'local';
+  String toString() => _appRest.name;
 
   @override
   Future<DecodedIdToken> verifyIdToken(String idToken,
@@ -485,7 +485,7 @@ class AuthRestImpl
   @override
   Future<UserCredential> signInWithEmailAndPassword(
       {required String email, required String password}) async {
-    var client = EmailPasswordLoginClient(apiKey: _appRest!.options.apiKey!);
+    var client = EmailPasswordLoginClient(apiKey: _appRest.options.apiKey!);
     var apiV3 = identitytoolkit_v3.IdentityToolkitApi(client);
     var response = await apiV3.relyingparty.verifyPassword(
         identitytoolkit_v3.IdentitytoolkitRelyingpartyVerifyPasswordRequest()
@@ -512,6 +512,12 @@ class AuthRestImpl
             provider: EmailPasswordAuthProviderRest(),
             uid: response.localId!));
   }
+
+  @override
+  FirebaseApp get app => _appRest;
+
+  @override
+  FirebaseAuthService get service => serviceRest;
 }
 
 class DecodedIdTokenLocal implements DecodedIdToken {
@@ -531,8 +537,9 @@ class AuthServiceRest
   FirebaseAuth auth(App app) {
     return getInstance(app, () {
       assert(app is FirebaseAppRest, 'invalid app type - not AppLocal');
+      final appRest = app as FirebaseAppRest;
       // final appLocal = app as AppLocal;
-      return AuthRestImpl(app);
+      return AuthRestImpl(this, appRest);
     });
   }
 

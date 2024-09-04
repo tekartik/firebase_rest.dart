@@ -25,7 +25,7 @@ abstract class StorageRest extends Storage {
       // StorageServiceRest? serviceRest,
       required Client authClient}) {
     return StorageRestImpl.fromAuthClient(
-        service: storageServiceRest, authClient: authClient);
+        serviceRest: storageServiceRest, authClient: authClient);
   }
 }
 
@@ -46,28 +46,27 @@ class StorageServiceRestImpl
 class StorageRestImpl
     with FirebaseAppProductMixin<FirebaseStorage>, StorageMixin
     implements StorageRest {
-  late final StorageServiceRest service;
-  late final FirebaseAppRest? appImpl;
+  late final StorageServiceRest serviceRest;
+  late final FirebaseAppRest appRest;
 
-  Client get authClient => _authClient ??= appImpl!.client!;
+  Client get authClient => _authClient ??= appRest.client!;
   Client? _authClient;
   api.StorageApi? _storageApi;
 
   api.StorageApi get storageApi => _storageApi ??= api.StorageApi(authClient);
 
-  StorageRestImpl(this.service, this.appImpl);
+  StorageRestImpl(this.serviceRest, this.appRest);
   StorageRestImpl.fromAuthClient(
-      {required this.service, required Client authClient}) {
+      {required this.serviceRest, required Client authClient}) {
     _authClient = authClient;
-    appImpl = null;
   }
 
   @override
   Bucket bucket([String? name]) => BucketRest(
       this,
       name ??
-          appImpl!.options.storageBucket ??
-          '${appImpl!.options.projectId}.appspot.com');
+          appRest.options.storageBucket ??
+          '${appRest.options.projectId}.appspot.com');
 
   Future<bool> fileExists(BucketRest bucket, String path) async {
     try {
@@ -162,6 +161,12 @@ class StorageRestImpl
       rethrow;
     }
   }
+
+  @override
+  FirebaseApp get app => appRest;
+
+  @override
+  FirebaseStorageService get service => serviceRest;
 }
 
 class GetFilesResponseRest implements GetFilesResponse {
