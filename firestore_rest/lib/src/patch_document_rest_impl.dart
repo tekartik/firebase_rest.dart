@@ -25,12 +25,7 @@ class SetMergedDocument extends WriteDocument {
   }
 
   String _keyToString(String key) {
-    print('key: $key');
-    /*
-    if (key.isNotEmpty && isDigit(key[0])) {
-      return '`$key`';
-    }*/
-
+    // print('key: $key');
     return key.toString();
   }
 

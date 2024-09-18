@@ -1,3 +1,5 @@
+// ignore_for_file: avoid_print
+
 import 'package:googleapis/firestore/v1.dart';
 import 'package:http/http.dart';
 import 'package:path/path.dart' as p;

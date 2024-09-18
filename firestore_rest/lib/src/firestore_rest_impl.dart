@@ -26,6 +26,11 @@ import 'import_firestore.dart';
 const restNullValue = 'NULL_VALUE';
 const restRequestTime = 'REQUEST_TIME';
 
+void logDebug(Object? message) {
+  // ignore: avoid_print
+  print(message);
+}
+
 bool get debugRest => debugFirestoreRest; // devWarning(true); // false
 
 /// Exported for strict debugging
@@ -81,7 +86,7 @@ Object? fromRestValue(FirestoreDocumentContext firestore, Value restValue) {
   } else {
     // This is null!
     if (isDebug) {
-      print(
+      logDebug(
           '[firestore_rest] unsupported type ${restValue.runtimeType}: $restValue ${restValue.toJson()}');
       if (debugFirestoreRest) {
         throw UnsupportedError(
@@ -286,13 +291,13 @@ class FirestoreRestImpl
     try {
       // devPrint('name $name');
       if (debugRest) {
-        print('documentGetRequest: $name, transactionId: $transactionId');
+        logDebug('documentGetRequest: $name, transactionId: $transactionId');
       }
       var document = await firestoreApi.projects.databases.documents
           .get(name, transaction: transactionId);
       // Debug read
       if (debugRest) {
-        print('documentGet: ${jsonPretty(document.toJson())}');
+        logDebug('documentGet: ${jsonPretty(document.toJson())}');
       }
       return DocumentSnapshotRestImpl(this, document);
     } catch (e) {
@@ -308,7 +313,7 @@ class FirestoreRestImpl
 
   Future deleteDocument(String path) async {
     if (debugRest) {
-      print('delete $path');
+      logDebug('delete $path');
     }
     var name = getDocumentName(path);
     try {
@@ -351,13 +356,13 @@ class FirestoreRestImpl
     var parent = url.dirname(getDocumentName(path));
     var collectionId = getPathId(path);
     if (debugRest) {
-      print(
+      logDebug(
           'createDocumentRequest: ${jsonPretty(document.toJson())}, parent: $parent, collectionId: $collectionId');
     }
     document = await firestoreApi.projects.databases.documents
         .createDocument(document, parent, collectionId);
     if (debugRest) {
-      print('createDocument: ${jsonPretty(document.toJson())}');
+      logDebug('createDocument: ${jsonPretty(document.toJson())}');
     }
     return DocumentReferenceRestImpl(this, document.name!);
   }
@@ -375,18 +380,18 @@ class FirestoreRestImpl
     var name = getDocumentName(path);
     // devPrint('patch $name: $data');
     if (debugRest) {
-      print(
+      logDebug(
           'writeDocumentRequest: ${jsonPretty(patch.document.toJson())}, name: $name, updateFieldPaths: ${patch.fieldPaths}');
     }
     try {
       var document = await firestoreApi.projects.databases.documents
           .patch(patch.document, name, updateMask_fieldPaths: patch.fieldPaths);
       if (debugRest) {
-        print('writeDocument: ${jsonPretty(document.toJson())}');
+        logDebug('writeDocument: ${jsonPretty(document.toJson())}');
       }
     } catch (e) {
       if (debugRest) {
-        print('writeDocument error: $e');
+        logDebug('writeDocument error: $e');
       }
       rethrow;
     }
@@ -402,7 +407,7 @@ class FirestoreRestImpl
     // devPrint('update $name: $data');
 
     if (debugRest) {
-      print(
+      logDebug(
           'updateDocumentRequest: ${jsonPretty(patch.document.toJson())}, name: $name, updateFieldPaths: ${patch.fieldPaths}');
     }
     try {
@@ -411,11 +416,11 @@ class FirestoreRestImpl
           currentDocument_exists: true,
           updateMask_fieldPaths: patch.fieldPaths);
       if (debugRest) {
-        print('updateDocument: ${jsonPretty(document.toJson())}');
+        logDebug('updateDocument: ${jsonPretty(document.toJson())}');
       }
     } catch (e) {
       if (debugRest) {
-        print('updateDocument error: $e');
+        logDebug('updateDocument error: $e');
       }
       rethrow;
     }
@@ -686,7 +691,7 @@ class FirestoreRestImpl
     try {
       // Debug
       if (debugRest) {
-        print(
+        logDebug(
             'beginTransactionRequest: ${jsonPretty(beginTransactionRequest.toJson())}');
       }
       beginTransactionResponse = await firestoreApi.projects.databases.documents
@@ -694,7 +699,7 @@ class FirestoreRestImpl
 
       // devPrint(jsonPretty(response.toJson()));
       if (debugRest) {
-        print(
+        logDebug(
             'beginTransaction ${jsonPretty(beginTransactionResponse.toJson())}');
       }
       return beginTransactionResponse.transaction;
@@ -739,7 +744,7 @@ class FirestoreRestImpl
     try {
       // Debug
       if (debugRest) {
-        print('commitRequest: ${jsonPretty(request.toJson())}');
+        logDebug('commitRequest: ${jsonPretty(request.toJson())}');
       }
       // devPrint('commitRequest: ${jsonPretty(request.toJson())}');
 
@@ -749,7 +754,7 @@ class FirestoreRestImpl
 
       // devPrint(jsonPretty(response.toJson()));
       if (debugRest) {
-        print('commit ${jsonPretty(response.toJson())}');
+        logDebug('commit ${jsonPretty(response.toJson())}');
       }
     } catch (e) {
       // devPrint(e);
@@ -825,7 +830,7 @@ class FirestoreRestImpl
       while (true) {
         // Debug
         if (debugRest) {
-          print('listCollections: ${jsonPretty(request.toJson())}');
+          logDebug('listCollections: ${jsonPretty(request.toJson())}');
         }
         // devPrint('commitRequest: ${jsonPretty(request.toJson())}');
 
@@ -834,7 +839,9 @@ class FirestoreRestImpl
         // ignore: unused_local_variable
         var response = await firestoreApi.projects.databases.documents
             .listCollectionIds(request, parent);
-        print('response: ${jsonPretty(response.toJson())}');
+        if (debugRest) {
+          logDebug('response: ${jsonPretty(response.toJson())}');
+        }
         var stepCollections = (response.collectionIds ?? <String>[])
             .map((e) => collection(path == null ? e : url.join(path, e)))
             .toList();
