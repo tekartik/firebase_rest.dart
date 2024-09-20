@@ -52,7 +52,7 @@ class EmailPasswordAuthProviderRest implements AuthProviderRest {
 
   @override
   // TODO: implement onCurrentUser
-  Stream<User?> get onCurrentUser => throw UnimplementedError();
+  Stream<FirebaseUserRest?> get onCurrentUser => throw UnimplementedError();
 
   @override
   // TODO: implement providerId
@@ -177,7 +177,8 @@ class UserRecordRest implements UserRecord {
   }
 
   User toUser() {
-    return UserRest(uid: uid, emailVerified: emailVerified, provider: null)
+    return UserRest(
+        uid: uid, emailVerified: emailVerified, provider: null, client: null)
       ..email = email
       ..displayName = displayName;
   }
@@ -240,13 +241,19 @@ class UserCredentialEmailPasswordRestImpl implements UserCredentialRest {
   String toString() => '$user $credential';
 }
 
+/// Compat
+typedef UserRest = FirebaseUserRest;
+
 /// Top level class
-class UserRest extends UserInfoRest implements User {
+class FirebaseUserRest extends UserInfoRest implements User {
   @override
   final bool emailVerified;
 
-  UserRest(
+  final Client? client;
+
+  FirebaseUserRest(
       {required this.emailVerified,
+      this.client,
       required super.uid,
       required super.provider});
 
@@ -366,7 +373,7 @@ class AuthRestImpl
               if (user != null) {
                 if (!firstCurrentUserCompleter.isCompleted) {
                   firstCurrentUserCompleter
-                      .complete(_ProviderUser(provider, user as UserRest));
+                      .complete(_ProviderUser(provider, user));
                 }
               }
             }));
@@ -498,6 +505,7 @@ class AuthRestImpl
         response,
         AuthCredentialRestImpl(),
         UserRest(
+            client: client,
             emailVerified: false,
             provider: EmailPasswordAuthProviderRest(),
             uid: response.localId!));
@@ -508,6 +516,7 @@ class AuthRestImpl
         response,
         AuthCredentialRestImpl(),
         UserRest(
+            client: client,
             emailVerified: false,
             provider: EmailPasswordAuthProviderRest(),
             uid: response.localId!));
@@ -569,7 +578,7 @@ class AuthAccountApi {
 abstract class AuthProviderRest implements AuthProvider {
   Future<AuthSignInResult> signIn();
 
-  Stream<User?> get onCurrentUser;
+  Stream<FirebaseUserRest?> get onCurrentUser;
 
   Future<String> getIdToken({bool? forceRefresh});
 

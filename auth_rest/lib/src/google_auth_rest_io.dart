@@ -53,8 +53,8 @@ class GoogleAuthProviderRestIoImpl
   }
 
   @override
-  Stream<User?> get onCurrentUser {
-    late StreamController<User?> ctlr;
+  Stream<FirebaseUserRest?> get onCurrentUser {
+    late StreamController<FirebaseUserRest?> ctlr;
     if (currentUserController == null) {
       ctlr = currentUserController ??=
           StreamController.broadcast(onListen: () async {
@@ -98,7 +98,7 @@ class GoogleAuthProviderRestIoImpl
     }
   }
 
-  Stream<User?> get _onCurrentUser async* {
+  Stream<FirebaseUserRest?> get _onCurrentUser async* {
     yield currentUser;
     yield* currentUserController!.stream;
   }
@@ -180,7 +180,8 @@ class GoogleAuthProviderRestIoImpl
     }
     // devPrint(jsonPretty(person.toJson()));
     // devPrint(auth.currentUser);
-    var user = UserRest(
+    var user = FirebaseUserRest(
+        client: authClient,
         emailVerified: person.verifiedEmail ?? false,
         uid: person.id!,
         provider: this)

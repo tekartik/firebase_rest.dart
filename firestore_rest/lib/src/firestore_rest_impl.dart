@@ -236,7 +236,7 @@ class FirestoreRestImpl
 
   http.Client? _lastApiClient;
   api.FirestoreApi get firestoreApi {
-    if (_lastApiClient == appImpl.client) {
+    if (_firestoreApi != null && _lastApiClient == appImpl.client) {
       return _firestoreApi!;
     } else {
       _lastApiClient = appImpl.client;

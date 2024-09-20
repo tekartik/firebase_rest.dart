@@ -42,8 +42,8 @@ class GoogleAuthProviderRestImpl
   }
 
   @override
-  Stream<User?> get onCurrentUser {
-    late StreamController<User?> ctlr;
+  Stream<FirebaseUserRest?> get onCurrentUser {
+    late StreamController<FirebaseUserRest?> ctlr;
     ctlr = currentUserController ??=
         StreamController.broadcast(onListen: () async {
       // Get first client, next will sent through currentUserController
@@ -92,7 +92,7 @@ class GoogleAuthProviderRestImpl
   }
 
   UserRest toUserRest(AccessCredentials credentials) {
-    return UserRest(emailVerified: true, uid: '', provider: this)
+    return UserRest(emailVerified: true, uid: '', provider: this, client: null)
       ..accessCredentials = credentials;
   }
 
@@ -156,6 +156,7 @@ class GoogleAuthProviderRestImpl
         ..credential = UserCredentialRestImpl(
             AuthCredentialRestImpl(providerId: providerId),
             UserRest(
+                client: authClient,
                 uid: person.id!,
                 emailVerified: person.verifiedEmail ?? false,
                 provider: this));
