@@ -7,6 +7,8 @@ import 'package:tekartik_http/http_client.dart';
 
 import 'src/import.dart';
 
+export 'package:tekartik_firebase_storage/storage.dart';
+
 // {
 //  "prefixes": [],
 //  "items": [

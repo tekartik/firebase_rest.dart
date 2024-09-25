@@ -1,5 +1,4 @@
 import 'package:tekartik_app_http/app_http.dart';
-import 'package:tekartik_firebase_firestore/firestore.dart';
 import 'package:tekartik_firebase_firestore_rest/firestore_rest.dart';
 import 'package:tekartik_firebase_rest/firebase_rest.dart';
 

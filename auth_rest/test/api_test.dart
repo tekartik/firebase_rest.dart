@@ -1,5 +1,4 @@
 import 'package:tekartik_common_utils/env_utils.dart';
-import 'package:tekartik_firebase_auth_rest/auth_rest.dart';
 import 'package:tekartik_firebase_auth_rest/auth_rest_web.dart';
 import 'package:test/test.dart';
 

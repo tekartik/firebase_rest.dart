@@ -2,10 +2,8 @@
 library;
 
 import 'package:tekartik_common_utils/common_utils_import.dart';
-import 'package:tekartik_firebase_auth/auth.dart';
 import 'package:tekartik_firebase_auth/utils/json_utils.dart';
 import 'package:tekartik_firebase_auth_rest/auth_rest.dart';
-import 'package:tekartik_firebase_auth_rest/src/import.dart';
 import 'package:tekartik_firebase_auth_test/auth_test.dart';
 import 'package:tekartik_firebase_rest/firebase_rest.dart';
 import 'package:test/test.dart';

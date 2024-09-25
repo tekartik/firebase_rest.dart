@@ -3,7 +3,6 @@
 import 'dart:io';
 
 import 'package:tekartik_common_utils/common_utils_import.dart';
-import 'package:tekartik_firebase_auth_rest/auth_rest.dart';
 import 'package:tekartik_firebase_auth_rest/auth_rest_io.dart';
 import 'package:tekartik_firebase_rest/firebase_rest.dart';
 import 'package:yaml/yaml.dart';

@@ -4,9 +4,9 @@ import 'package:tekartik_firebase/firebase.dart';
 import 'package:tekartik_firebase/firebase_admin.dart';
 import 'package:tekartik_firebase_rest/src/firebase_rest.dart';
 
+export 'package:tekartik_firebase/firebase.dart';
 export 'package:tekartik_firebase_rest/src/firebase_app_rest.dart'
     show FirebaseAppRestExt;
-
 export 'package:tekartik_firebase_rest/src/firebase_rest.dart'
     show
         AppOptionsRest,

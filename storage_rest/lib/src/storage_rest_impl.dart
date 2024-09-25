@@ -3,7 +3,6 @@ import 'dart:typed_data';
 import 'package:googleapis/bigquery/v2.dart';
 import 'package:googleapis/storage/v1.dart' as api;
 import 'package:http/http.dart';
-import 'package:tekartik_firebase/firebase.dart';
 import 'package:tekartik_firebase/firebase_mixin.dart';
 import 'package:tekartik_firebase_rest/firebase_rest.dart';
 import 'package:tekartik_firebase_storage/storage.dart';

@@ -1,7 +1,6 @@
 // Token data
 import 'package:googleapis_auth/googleapis_auth.dart';
 import 'package:http/http.dart';
-import 'package:tekartik_firebase/firebase.dart';
 import 'package:tekartik_firebase_rest/firebase_rest.dart';
 
 /// Get app options from access credentials

@@ -6,7 +6,6 @@ import 'package:http/http.dart';
 import 'package:tekartik_common_utils/common_utils_import.dart';
 // ignore: depend_on_referenced_packages
 
-import 'package:tekartik_firebase_auth/auth.dart';
 import 'package:tekartik_firebase_auth_rest/auth_rest.dart';
 import 'package:tekartik_firebase_auth_rest/src/auth_rest.dart';
 import 'package:tekartik_firebase_auth_rest/src/google_auth_rest_web.dart';

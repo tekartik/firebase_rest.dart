@@ -3,7 +3,6 @@ import 'dart:typed_data';
 import 'package:http/http.dart' as http;
 import 'package:path/path.dart';
 import 'package:tekartik_common_utils/env_utils.dart';
-import 'package:tekartik_firebase/firebase.dart';
 import 'package:tekartik_firebase/firebase_mixin.dart';
 import 'package:tekartik_firebase_firestore/utils/json_utils.dart';
 import 'package:tekartik_firebase_firestore_rest/firestore_rest.dart';

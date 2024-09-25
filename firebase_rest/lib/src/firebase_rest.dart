@@ -1,6 +1,5 @@
 import 'package:googleapis_auth/googleapis_auth.dart';
 import 'package:http/http.dart';
-import 'package:tekartik_firebase/firebase.dart';
 import 'package:tekartik_firebase/firebase_admin.dart';
 import 'package:tekartik_firebase/src/firebase_mixin.dart'; // ignore: implementation_imports
 import 'package:tekartik_firebase_rest/firebase_rest.dart';

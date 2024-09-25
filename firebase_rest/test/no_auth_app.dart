@@ -1,5 +1,4 @@
 import 'package:tekartik_app_http/app_http.dart';
-import 'package:tekartik_firebase/firebase.dart';
 import 'package:tekartik_firebase_rest/firebase_rest.dart';
 
 /// Create new firestore client without auth
