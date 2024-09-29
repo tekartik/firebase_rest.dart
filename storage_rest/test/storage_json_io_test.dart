@@ -1,5 +1,5 @@
 @TestOn('vm')
-library tekartik_firebase_storage_rest.test.storage_json_io_test;
+library;
 
 import 'dart:io';
 

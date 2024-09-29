@@ -32,6 +32,11 @@ dependencies:
     version: '>=0.2.0+2'
   path:
   http:
+  tekartik_firebase:
+    git:
+      url: https://github.com/tekartik/firebase.dart
+      ref: dart3a
+      path: firebase
 dev_dependencies:
   tekartik_firebase_local:
     git:
@@ -56,6 +61,10 @@ dev_dependencies:
       path: app_http
     version: '>=0.1.0'
 
+  tekartik_common_utils:
+    git:
+      url: https://github.com/tekartik/common_utils.dart
+      ref: dart3a
 dependency_overrides:
   tekartik_firebase_rest:
     path: ../firebase_rest

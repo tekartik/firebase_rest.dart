@@ -1,5 +1,5 @@
 @TestOn('vm')
-library tekartik_firebase_storage_rest.storage_rest_io_test;
+library;
 
 import 'package:process_run/shell.dart';
 import 'package:tekartik_firebase_rest/test/setup.dart';

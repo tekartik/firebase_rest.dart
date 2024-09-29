@@ -27,6 +27,12 @@ dependencies:
       path: platform_io
       ref: dart3a
     version: '>=0.2.1'
+  tekartik_platform:
+    git:
+      url: https://github.com/tekartik/platform.dart
+      ref: dart3a
+      path: platform
+  process_run: any
 dev_dependencies:
   web:
   dev_build:
@@ -36,7 +42,6 @@ dev_dependencies:
       path: firebase_test
       ref: dart3a
     version: '>=0.3.9'
-  process_run:
   tekartik_app_http:
     git:
       url: https://github.com/tekartik/app_common_utils.dart

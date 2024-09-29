@@ -1,5 +1,5 @@
 @TestOn('vm')
-library tekartik_firebase_rest.firestore_rest_io_test;
+library;
 
 import 'package:tekartik_common_utils/common_utils_import.dart';
 import 'package:tekartik_firebase_firestore_rest/firestore_rest.dart';

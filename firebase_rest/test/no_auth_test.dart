@@ -1,7 +1,7 @@
 // ignore_for_file: avoid_print
 
 @TestOn('vm')
-library no_auth_test;
+library;
 
 import 'package:process_run/shell.dart';
 import 'package:test/test.dart';
