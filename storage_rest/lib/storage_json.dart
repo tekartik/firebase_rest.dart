@@ -1,4 +1,3 @@
-import 'package:http/http.dart';
 import 'package:path/path.dart';
 import 'package:tekartik_firebase/firebase.dart';
 import 'package:tekartik_firebase_storage_rest/src/storage_json_impl.dart';
