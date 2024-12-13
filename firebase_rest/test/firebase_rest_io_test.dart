@@ -1,6 +1,7 @@
 @TestOn('vm')
 library;
 
+import 'package:tekartik_firebase/firebase_mixin.dart';
 import 'package:tekartik_firebase_rest/firebase_rest.dart';
 import 'package:tekartik_firebase_rest/src/test/test_setup.dart'
     show firebaseRestSetup;
@@ -28,6 +29,14 @@ Future main() async {
                   .authClient,
               isNotNull);
         }
+      });
+
+      test('initialize sync and latest', () {
+        FirebaseMixin.latestFirebaseInstanceOrNull = null;
+        var firebase = firebaseRest;
+        var app =
+            firebase.initializeApp(options: AppOptions(projectId: 'test'));
+        expect(FirebaseMixin.latestFirebaseInstanceOrNull, app);
       });
 
       test('admin', () async {
