@@ -7,8 +7,8 @@ environment:
   sdk: ^3.5.0
 
 dependencies:
-  fs_shim:
-  sembast: '>=1.19.0-dev.3'
+  fs_shim: ">=2.3.3+1"
+  sembast: ">=3.7.4+3"
   uuid: '>=1.0.0'
   tekartik_firebase_storage:
     git:
@@ -30,7 +30,7 @@ dependencies:
       path: http
       ref: dart3a
     version: '>=0.2.0+2'
-  path:
+  path: ">=1.9.0"
   http:
   tekartik_firebase:
     git:
@@ -44,8 +44,8 @@ dev_dependencies:
       path: firebase_local
       ref: dart3a
     version: '>=0.3.7'
-  test: any
-  build_runner: ">=0.9.1"
+  test: ">=1.24.0"
+  build_runner: ">=2.4.13"
   build_test: ">=0.10.3"
   tekartik_firebase_storage_test:
     git:
@@ -53,7 +53,7 @@ dev_dependencies:
       path: storage_test
       ref: dart3a
     version: '>=0.4.1'
-  process_run: '>=0.10.2'
+  process_run: ">=1.2.1+1"
   tekartik_app_http:
     git:
       url: https://github.com/tekartik/app_common_utils.dart
@@ -65,9 +65,8 @@ dev_dependencies:
     git:
       url: https://github.com/tekartik/common_utils.dart
       ref: dart3a
-dependency_overrides:
-  tekartik_firebase_rest:
-    path: ../firebase_rest
+
+resolution: workspace
   # tekartik_firebase_storage:
   #  path: ../storage
   # tmp

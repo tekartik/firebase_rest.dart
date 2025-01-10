@@ -8,7 +8,7 @@ environment:
 
 dependencies:
   uuid: '>=1.0.0'
-  path:
+  path: ">=1.9.0"
   tekartik_firebase_auth:
     git:
       url: https://github.com/tekartik/firebase_auth.dart
@@ -28,22 +28,22 @@ dependencies:
       url: https://github.com/tekartik/common_utils.dart
       ref: dart3a
   http:
-  yaml:
-  fs_shim:
+  yaml: ">=3.1.2"
+  fs_shim: ">=2.3.3+1"
 dev_dependencies:
   web: '>=0.5.0'
-  test: ">=1.0.0"
+  test: ">=1.24.0"
   tekartik_firebase_auth_test:
     git:
       url: https://github.com/tekartik/firebase_auth.dart
       path: auth_test
       ref: dart3a
     version: '>=0.8.0'
-  build_runner: ">1.6.0"
+  build_runner: ">=2.4.13"
   build_test: ">=0.10.9+1"
-  build_web_compilers: ">=2.7.0"
-  process_run: '>=0.10.0+1'
-  dev_build: '>=0.16.5-6'
+  build_web_compilers: ">=4.0.11"
+  process_run: ">=1.2.1+1"
+  dev_build: ">=1.1.0+2"
   tekartik_io_auth_utils:
     git:
       url: https://github.com/tekartik/io_auth_utils.dart
@@ -55,9 +55,8 @@ dev_dependencies:
       url: https://github.com/tekartik/firebase.dart
       ref: dart3a
       path: firebase
-dependency_overrides:
-  tekartik_firebase_rest:
-    path: ../firebase_rest
+
+resolution: workspace
   # tekartik_firebase_auth:
   #  path: ../auth
   # tekartik_firebase_auth_browser:

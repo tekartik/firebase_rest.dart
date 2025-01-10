@@ -18,9 +18,9 @@ dependencies:
     version: '>=0.7.3'
   googleapis_auth: '>=1.4.1'
   googleapis:
-  test: ">=1.0.0"
+  test: ">=1.24.0"
   http:
-  path:
+  path: ">=1.9.0"
   tekartik_platform_io:
     git:
       url: https://github.com/tekartik/platform.dart
@@ -32,10 +32,10 @@ dependencies:
       url: https://github.com/tekartik/platform.dart
       ref: dart3a
       path: platform
-  process_run: any
+  process_run: ">=1.2.1+1"
 dev_dependencies:
   web:
-  dev_build:
+  dev_build: ">=1.1.0+2"
   tekartik_firebase_test:
     git:
       url: https://github.com/tekartik/firebase.dart
@@ -48,11 +48,11 @@ dev_dependencies:
       ref: dart3a
       path: app_http
     version: '>=0.1.0'
-  build_runner: '>=2.0.0'
-  build_web_compilers: '>3.0.0'
+  build_runner: ">=2.4.13"
+  build_web_compilers: ">=4.0.11"
   build_test: '>=2.0.0'
-  lints: '>=1.0.0'
+  lints: ">=5.0.0"
 
-dependency_overrides:
+resolution: workspace
   # tekartik_firebase:
   #  path: ../firebase

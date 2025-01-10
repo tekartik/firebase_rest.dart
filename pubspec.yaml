@@ -1,0 +1,10 @@
+name: _
+publish_to: none
+environment:
+  sdk: ^3.6.0
+workspace:
+  - auth_rest
+  - firebase_rest
+  - firestore_rest
+  - repo_support
+  - storage_rest
