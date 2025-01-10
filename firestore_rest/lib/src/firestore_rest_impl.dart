@@ -209,12 +209,11 @@ Value toRestValue(FirestoreRestImpl firestore, dynamic value) {
     if (value == FieldValue.serverTimestamp) {
       // TODO for now use local date time
       restValue = Value()..timestampValue = Timestamp.now().toIso8601String();
-      //}
-      //if (value == FieldValue.delete) {
-      //  restValue = Value()..timestampValue = Timestamp.now().toIso8601String();
     } else {
       throw UnsupportedError('FieldValue ${value.runtimeType}: $value');
     }
+  } else if (value is VectorValue) {
+    return _listToRestValue(firestore, value.toArray());
   } else {
     throw UnsupportedError('type ${value.runtimeType}: $value');
   }
@@ -913,6 +912,9 @@ class FirestoreServiceRestImpl
 
   @override
   bool get supportsAggregateQueries => true;
+
+  @override
+  bool get supportsVectorValue => false; // Not yet
 }
 
 /// Join ignoring null but not both!
