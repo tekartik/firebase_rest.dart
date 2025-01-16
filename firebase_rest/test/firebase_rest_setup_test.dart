@@ -14,7 +14,7 @@ Future main() async {
     if (File(serviceAccountJsonPath).existsSync()) {
       var context = await firebaseRestSetup(
           serviceAccountJsonPath: serviceAccountJsonPath);
-      expect(context!.accessToken, isNotNull);
+      expect(context!.authClient, isNotNull);
     }
   });
 }

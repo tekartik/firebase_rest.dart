@@ -33,7 +33,7 @@ class FirebaseRestSetupContext {
   AuthClient? authClient;
 
   /// Access token
-  AccessToken? accessToken;
+  // AccessToken? accessToken;
 
   /// App options
   AppOptionsRest? options;
@@ -61,7 +61,7 @@ class ServiceAccount {
   Map? jsonData;
 
   /// Access token
-  AccessToken? accessToken;
+  /// AccessToken? accessToken;
 }
 
 /// Get the access token
@@ -119,41 +119,39 @@ Future<FirebaseRestTestContext> getContext(Client client,
     jsonData = serviceAccountFromPath(serviceAccountJsonPath);
   }
 
-  var creds = ServiceAccountCredentials.fromJson(jsonData);
+  var credentials = FirebaseAdminCredentialRest.fromServiceAccountMap(jsonData);
+  var authClient = await credentials.initAuthClient();
 
-  var accessCreds = await obtainAccessCredentialsViaServiceAccount(
-      creds, scopes ?? firebaseBaseScopes, client);
-  var accessToken = accessCreds.accessToken;
-
-  var authClient = authenticatedClient(client, accessCreds);
   var appOptions = AppOptionsRest(client: authClient)
-    ..projectId = (jsonData)['project_id']?.toString();
+    ..projectId = credentials.projectId;
   var context = FirebaseRestTestContext()
     ..client = client
-    ..accessToken = accessToken
+    //..accessToken = accessToken
     ..authClient = authClient
     ..options = appOptions;
   return context;
 }
 
 /// Get the FirebaseRestTestContext from access credentials
+@Deprecated('Use authClient instead')
 Future<FirebaseRestTestContext> getContextFromAccessCredentials(
     Client client, AccessCredentials accessCredentials,
     {List<String>? scopes}) async {
-  var accessToken = accessCredentials.accessToken;
+  //var accessToken = accessCredentials.accessToken;
 
   var authClient = authenticatedClient(client, accessCredentials);
   var appOptions = AppOptionsRest(client: authClient);
   // ..projectId = jsonData['project_id']?.toString();
   var context = FirebaseRestTestContext()
     ..client = client
-    ..accessToken = accessToken
+    //..accessToken = accessToken
     ..authClient = authClient
     ..options = appOptions;
   return context;
 }
 
 /// Get the FirebaseRestTestContext from an access token
+@Deprecated('User authToken instead')
 Future<FirebaseRestTestContext> getContextFromAccessToken(
     Client client, String token,
     {required List<String> scopes}) async {

@@ -20,7 +20,8 @@ class FirebaseAdminCredentialRestImpl implements FirebaseAdminCredentialRest {
   AppOptionsRest? appOptions;
 
   /// Project id
-  String? projectId;
+  @override
+  late String projectId;
 
   /// from service account json string
   factory FirebaseAdminCredentialRestImpl.fromServiceAccountJson(
@@ -34,13 +35,23 @@ class FirebaseAdminCredentialRestImpl implements FirebaseAdminCredentialRest {
   FirebaseAdminCredentialRestImpl.fromServiceAccountMap(Map serviceAccountMap,
       {List<String>? scopes})
       : scopes = scopes ?? firebaseBaseScopes {
-    projectId = serviceAccountMap['project_id']?.toString();
+    projectId = serviceAccountMap['project_id'].toString();
 
     serviceAccountCredentials =
         ServiceAccountCredentials.fromJson(serviceAccountMap);
   }
 
   Future<FirebaseAdminAccessToken>? _accessToken;
+
+  /// Get the auto refreshing auth client
+  @override
+  Future<AuthClient> initAuthClient() async {
+    authClient =
+        await clientViaServiceAccount(serviceAccountCredentials, scopes);
+    appOptions = AppOptionsRest(client: authClient)..projectId = projectId;
+
+    return authClient!;
+  }
 
   @override
   Future<FirebaseAdminAccessToken> getAccessToken() =>
@@ -69,7 +80,8 @@ class FirebaseAdminCredentialRestImpl implements FirebaseAdminCredentialRest {
 }
 
 /// Create a new firebase admin credential rest from a service account json
-FirebaseAdminCredentialRest newFromServiceAccountJson(String serviceAccountJson,
+FirebaseAdminCredentialRest firebaseAdminCredentialsFromServiceAccountJson(
+    String serviceAccountJson,
     {List<String>? scopes}) {
   return FirebaseAdminCredentialRestImpl.fromServiceAccountJson(
       serviceAccountJson,
@@ -77,7 +89,8 @@ FirebaseAdminCredentialRest newFromServiceAccountJson(String serviceAccountJson,
 }
 
 /// Create a new firebase admin credential rest from a service account map
-FirebaseAdminCredentialRest newFromServiceAccountMap(Map serviceAccountMap,
+FirebaseAdminCredentialRest firebaseAdminCredentialsFromServiceAccountMap(
+    Map serviceAccountMap,
     {List<String>? scopes}) {
   return FirebaseAdminCredentialRestImpl.fromServiceAccountMap(
       serviceAccountMap,

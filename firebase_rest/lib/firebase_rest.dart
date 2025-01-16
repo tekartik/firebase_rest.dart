@@ -10,7 +10,9 @@ export 'package:tekartik_firebase_rest/src/firebase_app_rest.dart'
 export 'package:tekartik_firebase_rest/src/firebase_rest.dart'
     show
         AppOptionsRest,
+        FirebaseAppOptionsRest,
         FirebaseAdminCredentialRest,
+        FirebaseAdminCredentialsRest,
         FirebaseAdminRestExtension;
 
 export 'src/app_options_access_token.dart' show getAppOptionsFromAccessToken;

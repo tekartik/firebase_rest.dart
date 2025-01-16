@@ -2,7 +2,6 @@
 
 library;
 
-import 'package:tekartik_firebase/firebase_admin.dart';
 import 'package:tekartik_firebase_rest/firebase_rest.dart';
 import 'package:test/test.dart';
 
@@ -23,7 +22,7 @@ Future main() async {
       'auth_provider_x509_cert_url': 'eee',
       'client_x509_cert_url': 'fff'
     };
-    var firebaseAdmin = firebaseRest as FirebaseAdmin;
+    var firebaseAdmin = firebaseRest;
     try {
       firebaseAdmin.credential.setApplicationDefault(
           FirebaseAdminCredentialRest.fromServiceAccountMap(

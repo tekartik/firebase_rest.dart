@@ -1,3 +1,4 @@
+import 'package:googleapis_auth/auth_io.dart';
 import 'package:googleapis_auth/googleapis_auth.dart';
 import 'package:http/http.dart';
 import 'package:tekartik_firebase/firebase_admin.dart';
@@ -5,7 +6,7 @@ import 'package:tekartik_firebase/src/firebase_mixin.dart'; // ignore: implement
 import 'package:tekartik_firebase_rest/firebase_rest.dart';
 
 import 'firebase_app_rest.dart';
-import 'platform.dart';
+import 'firebase_rest_io.dart';
 
 /// Default app name
 String get firebaseRestDefaultAppName => firebaseAppNameDefault;
@@ -20,17 +21,21 @@ abstract class AdminAppOptionsRest implements AppOptionsRest {
 /// Rest extension.
 extension FirebaseAdminRestExtension on FirebaseAdminRest {
   /// Initialize rest with a service account json map.
-  Future<FirebaseApp> initializeAppWithServiceAccountMap(Map map) async {
-    var credentials = FirebaseAdminCredentialRest.fromServiceAccountMap(map);
+  Future<FirebaseApp> initializeAppWithServiceAccountMap(Map map,
+      {List<String>? scopes}) async {
+    var credentials =
+        FirebaseAdminCredentialRest.fromServiceAccountMap(map, scopes: scopes);
     credential.setApplicationDefault(credentials);
     return await initializeAppAsync();
   }
 
   /// Initialize rest with a service account json string.
   Future<FirebaseApp> initializeAppWithServiceAccountString(
-      String serviceAccountString) async {
+      String serviceAccountString,
+      {List<String>? scopes}) async {
     var credentials = FirebaseAdminCredentialRest.fromServiceAccountJson(
-        serviceAccountString);
+        serviceAccountString,
+        scopes: scopes);
     credential.setApplicationDefault(credentials);
     return await initializeAppAsync();
   }
@@ -87,21 +92,28 @@ class FirebaseRestImpl with FirebaseMixin implements FirebaseAdminRest {
   @override
   App initializeApp({AppOptions? options, String? name}) {
     name ??= firebaseRestDefaultAppName;
-    var app = AppRestImpl(
-      name: name,
-      firebaseRest: this,
-      options: (options ??
-          (credential.applicationDefault() as FirebaseAdminCredentialRest)
-              .appOptions)!,
-    );
+    AppRestImpl app;
+    if (options == null) {
+      var credentialsRest =
+          credential.applicationDefault() as FirebaseAdminCredentialRest;
+      options = (credentialsRest.appOptions)!;
+      app = AppRestImpl(name: name, firebaseRest: this, options: options);
+    } else {
+      app = AppRestImpl(name: name, firebaseRest: this, options: options);
+    }
     _apps[app.name] = FirebaseMixin.latestFirebaseInstanceOrNull = app;
     return app;
   }
 
   @override
   Future<App> initializeAppAsync({AppOptions? options, String? name}) async {
+    var credentials = credential.applicationDefault();
+    if (credentials is FirebaseAdminCredentialRestImpl) {
+      await credentials.initAuthClient();
+    }
+    // old
     // initialize client
-    await credential.applicationDefault()?.getAccessToken();
+//        await credential.applicationDefault()?.getAccessToken();
     var app = initializeApp(options: options, name: name);
     return app;
   }
@@ -159,8 +171,17 @@ class FirebaseAdminCredentialServiceRest
   }
 }
 
+/// Compat
+typedef FirebaseAdminCredentialRest = FirebaseAdminCredentialsRest;
+
 /// Rest credentials implementation
-abstract class FirebaseAdminCredentialRest implements FirebaseAdminCredential {
+abstract class FirebaseAdminCredentialsRest implements FirebaseAdminCredential {
+  /// Initialize the auth client (service account only)
+  Future<AuthClient> initAuthClient();
+
+  /// Get the project Id (if available)
+  String get projectId;
+
   /// App options
   AppOptionsRest? get appOptions;
 
@@ -168,16 +189,18 @@ abstract class FirebaseAdminCredentialRest implements FirebaseAdminCredential {
   AuthClient? get authClient;
 
   /// from service account json string
-  factory FirebaseAdminCredentialRest.fromServiceAccountJson(
+  factory FirebaseAdminCredentialsRest.fromServiceAccountJson(
       String serviceAccountJson,
       {List<String>? scopes}) {
-    return newFromServiceAccountJson(serviceAccountJson, scopes: scopes);
+    return firebaseAdminCredentialsFromServiceAccountJson(serviceAccountJson,
+        scopes: scopes);
   }
 
   /// from service account map
-  factory FirebaseAdminCredentialRest.fromServiceAccountMap(
+  factory FirebaseAdminCredentialsRest.fromServiceAccountMap(
       Map serviceAccountMap,
       {List<String>? scopes}) {
-    return newFromServiceAccountMap(serviceAccountMap, scopes: scopes);
+    return firebaseAdminCredentialsFromServiceAccountMap(serviceAccountMap,
+        scopes: scopes);
   }
 }
