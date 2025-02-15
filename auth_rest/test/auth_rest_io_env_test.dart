@@ -1,6 +1,7 @@
 @TestOn('vm')
 library;
 
+import 'package:dev_build/shell.dart';
 import 'package:tekartik_common_utils/common_utils_import.dart';
 import 'package:tekartik_firebase_auth/utils/json_utils.dart';
 import 'package:tekartik_firebase_auth_rest/auth_rest.dart';
@@ -11,6 +12,7 @@ import 'package:test/test.dart';
 
 import 'test_setup.dart';
 
+final userId = ShellEnvironment().vars['TEKARTIK_FIREBASE_REST_TEST_USER_ID'];
 Future main() async {
   var context = await authRestSetup(useEnv: true);
   var firebase = firebaseRest;
@@ -69,11 +71,12 @@ Future main() async {
           var user = auth.currentUser;
           expect(user, isNull);
           // devPrint('user: $user');
-          var userId = 'gpt1QKVyJMcLHh2MM2x4THAaQW63';
-          var userRecord = await auth.getUser(userId);
-          if (userRecord != null) {
-            expect(userRecord.displayName, isNotNull);
-            print('userRecord: $userRecord');
+          if (userId != null) {
+            var userRecord = await auth.getUser(userId!);
+            if (userRecord != null) {
+              expect(userRecord.displayName, isNotNull);
+              print('userRecord: $userRecord');
+            }
           }
           //expect(true, isFalse);
         });
@@ -81,14 +84,15 @@ Future main() async {
         test('getUsers', () async {
           var user = auth.currentUser;
           expect(user, isNull);
-          var userId = 'gpt1QKVyJMcLHh2MM2x4THAaQW63';
-          var userRecords =
-              await auth.getUsers([userId, 'NX8geaeHWCcibyp2YWeyU7UqEtN2']);
-          if (userRecords.isNotEmpty) {
-            for (var i = 0; i < userRecords.length; i++) {
-              var userRecord = userRecords[i];
-              expect(userRecord.displayName, isNotNull);
-              print('userRecords[$i]: $userRecord');
+          if (userId != null) {
+            var userRecords =
+                await auth.getUsers([userId!, 'NX8geaeHWCcibyp2YWeyU7UqEtN2']);
+            if (userRecords.isNotEmpty) {
+              for (var i = 0; i < userRecords.length; i++) {
+                var userRecord = userRecords[i];
+                expect(userRecord.displayName, isNotNull);
+                print('userRecords[$i]: $userRecord');
+              }
             }
           }
           //expect(true, isFalse);

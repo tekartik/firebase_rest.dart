@@ -30,4 +30,5 @@ Future<void> main() async {
     print(options);
   }
   print('currentUser: $currentUser');
+  print('applicationDefault: ${firebaseRest.credential.applicationDefault()}');
 }
