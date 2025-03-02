@@ -6,7 +6,7 @@ publish_to: none
 #author: alex <email@example.com>
 
 environment:
-  sdk: ^3.5.0
+  sdk: ^3.6.0
 
 dependencies:
   uuid: '>=1.0.0'
@@ -35,7 +35,7 @@ dependencies:
   process_run: ">=1.2.1+1"
 dev_dependencies:
   web:
-  dev_build: ">=1.1.0+2"
+  dev_build: ">=1.1.2"
   tekartik_firebase_test:
     git:
       url: https://github.com/tekartik/firebase.dart
