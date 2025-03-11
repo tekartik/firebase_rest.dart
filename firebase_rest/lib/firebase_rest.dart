@@ -1,6 +1,5 @@
 import 'package:googleapis_auth/googleapis_auth.dart';
 import 'package:http/http.dart';
-import 'package:tekartik_firebase/firebase.dart';
 import 'package:tekartik_firebase/firebase_admin.dart';
 import 'package:tekartik_firebase_rest/src/firebase_rest.dart';
 
@@ -16,6 +15,8 @@ export 'package:tekartik_firebase_rest/src/firebase_rest.dart'
         FirebaseAdminRestExtension;
 
 export 'src/app_options_access_token.dart' show getAppOptionsFromAccessToken;
+export 'src/firebase_rest_identity.dart'
+    show FirebaseRestIdentifyServiceAccount, FirebaseRestIdentity;
 export 'src/scopes.dart'
     show
         firebaseBaseScopes,

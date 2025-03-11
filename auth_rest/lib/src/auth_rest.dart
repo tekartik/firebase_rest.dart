@@ -13,7 +13,13 @@ import 'email_password_auth_rest.dart';
 import 'google_auth_rest.dart';
 import 'import.dart';
 
-bool debugRest = false; // devWarning(true); // false
+/// Debug rest (to move to firebase rest)
+//bool debugRest = false; // devWarning(true); // false
+var debugFirebaseAuthRest = false; // devWarning(true);
+
+void _log(Object? message) {
+  print(message);
+}
 
 @Deprecated('Use AuthProviderRest')
 abstract class AuthRestProvider implements AuthProvider {
@@ -266,13 +272,16 @@ class FirebaseUserRest extends UserInfoRest implements User {
   }
 }
 
+/// Compat
+typedef AuthRest = FirebaseAuthRest;
+
 /// Custom auth rest
-abstract class AuthRest implements FirebaseAuth {
+abstract class FirebaseAuthRest implements FirebaseAuth {
   Client? get client;
 
   /// Custom AuthRest
-  factory AuthRest(
-      {required AuthServiceRest authService,
+  factory FirebaseAuthRest(
+      {required FirebaseAuthServiceRest authService,
       required FirebaseAppRest appRest,
       String? rootUrl,
       String? servicePathBase}) {
@@ -286,7 +295,7 @@ abstract class AuthRest implements FirebaseAuth {
 /// Rest specific helper for adding a provider.
 extension AuthRestExt on FirebaseAuth {
   void addProvider(AuthProviderRest authProviderRest) =>
-      (this as AuthRest).addProviderImpl(authProviderRest);
+      (this as FirebaseAuthRest).addProviderImpl(authProviderRest);
 }
 
 /// Common management
@@ -307,8 +316,8 @@ class _ProviderUser {
 
 class AuthRestImpl
     with FirebaseAppProductMixin<FirebaseAuth>, AuthMixin, AuthRestMixin
-    implements AuthRest {
-  final AuthServiceRest serviceRest;
+    implements FirebaseAuthRest {
+  final FirebaseAuthServiceRest serviceRest;
   @override
   Client? client;
 
@@ -361,6 +370,9 @@ class AuthRestImpl
   AuthRestImpl(this.serviceRest, this._appRest,
       {this.rootUrl, this.servicePathBase}) {
     client = _appRest.client;
+    if (debugFirebaseAuthRest) {
+      _log('AuthRest(client: $client) is this a service account?');
+    }
     // Copy auth client upon connection
 
     var firstCurrentUserCompleter = Completer<_ProviderUser?>();
@@ -368,6 +380,9 @@ class AuthRestImpl
     _currentUserInitLock.synchronized(() => Future.value(null).then((_) {
           // Get initial user
           var futures = <Future>[];
+          if (debugFirebaseAuthRest) {
+            _log('providers: $providers');
+          }
           for (var provider in providers) {
             futures.add(provider.onCurrentUser.first.then((user) {
               if (user != null) {
@@ -412,12 +427,12 @@ class AuthRestImpl
   Future<UserRecord?> getUser(String uid) async {
     var request = IdentitytoolkitRelyingpartyGetAccountInfoRequest()
       ..localId = [uid];
-    if (debugRest) {
-      print('getAccountInfoRequest: ${jsonPretty(request.toJson())}');
+    if (debugFirebaseAuthRest) {
+      _log('getAccountInfoRequest: ${jsonPretty(request.toJson())}');
     }
     var result = await identitytoolkitApi.relyingparty.getAccountInfo(request);
-    if (debugRest) {
-      print('getAccountInfo: ${jsonPretty(result.toJson())}');
+    if (debugFirebaseAuthRest) {
+      _log('getAccountInfo: ${jsonPretty(result.toJson())}');
     }
     if (result.users?.isNotEmpty ?? false) {
       var restUserInfo = result.users!.first;
@@ -430,12 +445,12 @@ class AuthRestImpl
   Future<List<UserRecord>> getUsers(List<String> uids) async {
     var request = IdentitytoolkitRelyingpartyGetAccountInfoRequest()
       ..localId = uids;
-    if (debugRest) {
-      print('getAccountInfoRequest: ${jsonPretty(request.toJson())}');
+    if (debugFirebaseAuthRest) {
+      _log('getAccountInfoRequest: ${jsonPretty(request.toJson())}');
     }
     var result = await identitytoolkitApi.relyingparty.getAccountInfo(request);
-    if (debugRest) {
-      print('getAccountInfo: ${jsonPretty(result.toJson())}');
+    if (debugFirebaseAuthRest) {
+      _log('getAccountInfo: ${jsonPretty(result.toJson())}');
     }
     var users = (result.users ?? <api.UserInfo>[]);
     return users
@@ -536,14 +551,14 @@ class DecodedIdTokenLocal implements DecodedIdToken {
   DecodedIdTokenLocal({required this.uid});
 }
 
-class AuthServiceRest
+class FirebaseAuthServiceRest
     with FirebaseProductServiceMixin<FirebaseAuth>
     implements FirebaseAuthService {
   @override
   bool get supportsListUsers => false;
 
   @override
-  FirebaseAuth auth(App app) {
+  FirebaseAuthRest auth(App app) {
     return getInstance(app, () {
       assert(app is FirebaseAppRest, 'invalid app type - not AppLocal');
       final appRest = app as FirebaseAppRest;
@@ -556,11 +571,22 @@ class AuthServiceRest
   bool get supportsCurrentUser => true;
 }
 
-AuthServiceRest? _authServiceRest;
+FirebaseAuthServiceRest? _authServiceRest;
 
-AuthServiceRest get authServiceLocal => _authServiceRest ??= AuthServiceRest();
+FirebaseAuthServiceRest get _firebaseAuthServiceRest =>
+    _authServiceRest ??= FirebaseAuthServiceRest();
 
-FirebaseAuthService get authService => authServiceLocal;
+/// Compat
+FirebaseAuthServiceRest get authServiceRest => _firebaseAuthServiceRest;
+
+/// auth service
+FirebaseAuthServiceRest get firebaseAuthServiceRest =>
+    _firebaseAuthServiceRest; //firebaseAuthServiceRest;
+
+/// Compat
+typedef AuthServiceRest = FirebaseAuthServiceRest;
+//
+//FirebaseAuthServiceRest get authService => authServiceLocal;
 
 class AuthAccountApi {
   final String apiKey;

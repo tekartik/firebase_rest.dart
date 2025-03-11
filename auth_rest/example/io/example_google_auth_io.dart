@@ -9,7 +9,7 @@ import 'package:yaml/yaml.dart';
 import 'package:path/path.dart';
 
 Future<void> main() async {
-  var authService = authServiceRest;
+  var authService = firebaseAuthServiceRest;
   var options = GoogleAuthOptions.fromMap(loadYaml(
           await File(join('example', 'local.config_io.yaml')).readAsString())
       as Map);

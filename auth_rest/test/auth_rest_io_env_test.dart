@@ -32,31 +32,31 @@ Future main() async {
         print('projectId: ${context.options!.projectId}');
       });
       test('factory', () {
-        expect(authServiceRest.supportsListUsers, isFalse);
-        expect(authServiceRest.supportsCurrentUser, isTrue);
+        expect(firebaseAuthServiceRest.supportsListUsers, isFalse);
+        expect(firebaseAuthServiceRest.supportsCurrentUser, isTrue);
       });
 
       runAuthTests(
           firebase: firebase,
-          authService: authServiceRest,
+          authService: firebaseAuthServiceRest,
           options: context.options);
       group('access_token', () {
         runAuthTests(
             firebase: firebase,
-            authService: authServiceRest,
+            authService: firebaseAuthServiceRest,
             name: 'access_token',
             options: context.options);
       });
 
       group('auth', () {
         late App app;
-        late AuthRest auth;
+        late FirebaseAuthRest auth;
 
         setUpAll(() async {
           app = firebase.initializeApp(
               options: context.options,
               name: 'auth'); //, options: context?.options);
-          auth = authServiceRest.auth(app) as AuthRest;
+          auth = firebaseAuthServiceRest.auth(app);
         });
 
         tearDownAll(() {

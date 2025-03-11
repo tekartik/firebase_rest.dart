@@ -18,28 +18,28 @@ Future main() async {
   if (context != null) {
     group('auth_rest', () {
       test('factory', () {
-        expect(authServiceRest.supportsListUsers, isFalse);
-        expect(authServiceRest.supportsCurrentUser, isFalse);
+        expect(firebaseAuthServiceRest.supportsListUsers, isFalse);
+        expect(firebaseAuthServiceRest.supportsCurrentUser, isFalse);
       });
 
-      runAuthTests(firebase: firebase, authService: authServiceRest);
+      runAuthTests(firebase: firebase, authService: firebaseAuthServiceRest);
       group('access_token', () {
         runAuthTests(
             firebase: firebase,
-            authService: authServiceRest,
+            authService: firebaseAuthServiceRest,
             name: 'access_token',
             options: accessTokenAppOptions);
       });
-      runAuthTests(firebase: firebase, authService: authServiceRest);
+      runAuthTests(firebase: firebase, authService: firebaseAuthServiceRest);
 
       group('auth', () {
         late App app;
-        late AuthRest auth;
+        late FirebaseAuthRest auth;
 
         setUpAll(() async {
           app = firebase.initializeApp(
               name: 'auth'); //, options: context?.options);
-          auth = authServiceRest.auth(app) as AuthRest;
+          auth = firebaseAuthServiceRest.auth(app);
         });
 
         tearDownAll(() {

@@ -42,6 +42,17 @@ class AppRestImpl
   }
 
   @override
+  bool get hasAdminCredentials {
+    var options = this.options;
+
+    /// Only true if initializing with a service account
+    if (options is FirebaseAppOptionsRest) {
+      return (options.identityServiceAccount != null);
+    }
+    return false;
+  }
+
+  @override
   Future<void> delete() async {
     deleted = true;
     await closeServices();
@@ -56,6 +67,11 @@ class AppRestImpl
 
   @override
   set client(Client? client) => currentAuthClient = client;
+
+  @override
+  String toString() {
+    return 'FirebaseAppRest($client)';
+  }
 }
 
 /// Public extension

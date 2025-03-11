@@ -4,6 +4,7 @@ import 'package:googleapis_auth/auth_io.dart';
 import 'package:http/http.dart';
 import 'package:tekartik_firebase/firebase_admin.dart';
 import 'package:tekartik_firebase_rest/firebase_rest.dart';
+import 'package:tekartik_firebase_rest/src/firebase_rest_identity.dart';
 
 import 'firebase_rest.dart';
 
@@ -48,7 +49,10 @@ class FirebaseAdminCredentialRestImpl implements FirebaseAdminCredentialRest {
   Future<AuthClient> initAuthClient() async {
     authClient =
         await clientViaServiceAccount(serviceAccountCredentials, scopes);
-    appOptions = AppOptionsRest(client: authClient)..projectId = projectId;
+    appOptions = AppOptionsRest(
+        client: authClient,
+        identifyServiceAccount: FirebaseRestIdentifyServiceAccountImpl())
+      ..projectId = projectId;
 
     return authClient!;
   }
@@ -61,7 +65,10 @@ class FirebaseAdminCredentialRestImpl implements FirebaseAdminCredentialRest {
             serviceAccountCredentials, scopes, client);
         var accessToken = accessCreds.accessToken;
         authClient = authenticatedClient(client, accessCreds);
-        appOptions = AppOptionsRest(client: authClient)..projectId = projectId;
+        appOptions = AppOptionsRest(
+            client: authClient,
+            identifyServiceAccount: FirebaseRestIdentifyServiceAccountImpl())
+          ..projectId = projectId;
         return FirebaseAdminAccessTokenRest(data: accessToken.data);
       }();
 /*
@@ -77,6 +84,10 @@ class FirebaseAdminCredentialRestImpl implements FirebaseAdminCredentialRest {
   }
 
  */
+  @override
+  String toString() {
+    return 'FirebaseRest($projectId)';
+  }
 }
 
 /// Create a new firebase admin credential rest from a service account json

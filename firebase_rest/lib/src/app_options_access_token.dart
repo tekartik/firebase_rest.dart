@@ -2,13 +2,17 @@
 import 'package:googleapis_auth/googleapis_auth.dart';
 import 'package:http/http.dart';
 import 'package:tekartik_firebase_rest/firebase_rest.dart';
+import 'package:tekartik_firebase_rest/src/firebase_rest_identity.dart';
 
 /// Get app options from access credentials
-FirebaseAppOptions getAppOptionsFromAccessCredentials(
+FirebaseAppOptionsRest getAppOptionsFromAccessCredentials(
     Client client, AccessCredentials accessCredentials,
     {List<String>? scopes, String? projectId}) {
   var authClient = authenticatedClient(client, accessCredentials);
-  var appOptions = AppOptionsRest(client: authClient)..projectId = projectId;
+  var appOptions = AppOptionsRest(
+      client: authClient,
+      identifyServiceAccount: FirebaseRestIdentifyServiceAccountImpl())
+    ..projectId = projectId;
   return appOptions;
 }
 

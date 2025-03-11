@@ -7,16 +7,18 @@ import 'package:tekartik_firebase_auth_rest/src/identitytoolkit/v3.dart'
 
 import 'identitytoolkit/v3.dart';
 
+/// Convert a rest user to a user record
+/// User?
 Future<UserRecord?> getUser(AuthClient client, String uid) async {
   var request = IdentitytoolkitRelyingpartyGetAccountInfoRequest()
       //  ..localId = [uid]
       ;
-  if (debugRest) {
+  if (debugFirebaseAuthRest) {
     print('getAccountInfoRequest2: ${jsonPretty(request.toJson())}');
   }
   var identitytoolkitApi = IdentityToolkitApi(client);
   var result = await identitytoolkitApi.relyingparty.getAccountInfo(request);
-  if (debugRest) {
+  if (debugFirebaseAuthRest) {
     print('getAccountInfo: ${jsonPretty(result.toJson())}');
   }
   if (result.users?.isNotEmpty ?? false) {

@@ -4,9 +4,19 @@ import 'package:http/http.dart';
 import 'package:tekartik_firebase/firebase_admin.dart';
 import 'package:tekartik_firebase/src/firebase_mixin.dart'; // ignore: implementation_imports
 import 'package:tekartik_firebase_rest/firebase_rest.dart';
-
 import 'firebase_app_rest.dart';
 import 'firebase_rest_io.dart';
+
+/// Debug flag for firebase rest
+bool debugFirebaseRest = false;
+
+/// Compat
+bool get debugRest =>
+    debugFirebaseRest; // devWarning(true); // false// devWarning(true); // false
+@Deprecated('Use debugFirebaseRest')
+set debugRest(bool value) {
+  debugFirebaseRest = value;
+}
 
 /// Default app name
 String get firebaseRestDefaultAppName => firebaseAppNameDefault;
@@ -46,15 +56,23 @@ typedef AppOptionsRest = FirebaseAppOptionsRest;
 
 /// The app options to use for REST app initialization.
 abstract class FirebaseAppOptionsRest extends AppOptions {
+  /// The identity service account if any
+  FirebaseRestIdentifyServiceAccount? get identityServiceAccount;
+
   /// The http client
   @Deprecated('Use client in auth')
   Client? get client;
 
   /// Create a new options object.
   factory FirebaseAppOptionsRest(
-          {@Deprecated('Use client') AuthClient? authClient, Client? client}) =>
-      // ignore: deprecated_member_use_from_same_package
-      AppOptionsRestImpl(authClient: authClient, client: client);
+          {@Deprecated('Use client') AuthClient? authClient,
+          Client? client,
+          FirebaseRestIdentifyServiceAccount? identifyServiceAccount}) =>
+      AppOptionsRestImpl(
+          // ignore: deprecated_member_use_from_same_package
+          authClient: authClient,
+          client: client,
+          identityServiceAccount: identifyServiceAccount);
 }
 
 /// firebase rest instance.
@@ -68,6 +86,8 @@ const String googleApisAuthCloudPlatformScope =
 
 /// Firebase rest implementation.
 class AppOptionsRestImpl extends FirebaseAppOptions implements AppOptionsRest {
+  @override
+  final FirebaseRestIdentifyServiceAccount? identityServiceAccount;
   @Deprecated('Use client')
 
   /// Compat
@@ -78,7 +98,9 @@ class AppOptionsRestImpl extends FirebaseAppOptions implements AppOptionsRest {
 
   /// authClient will be deprecated.
   AppOptionsRestImpl(
-      {@Deprecated('Use client') AuthClient? authClient, Client? client})
+      {@Deprecated('Use client') AuthClient? authClient,
+      Client? client,
+      this.identityServiceAccount})
       : client = client ?? authClient {
     if (client != null) {
       assert(authClient == null);
@@ -131,6 +153,11 @@ class FirebaseRestImpl with FirebaseMixin implements FirebaseAdminRest {
   @override
   FirebaseAdminCredentialService get credential =>
       _credentialServiceRest ??= FirebaseAdminCredentialServiceRest(this);
+
+  @override
+  String toString() {
+    return 'FirebaseRest($_credentialServiceRest)';
+  }
 }
 
 FirebaseRestImpl? _impl;
@@ -169,6 +196,10 @@ class FirebaseAdminCredentialServiceRest
   void setApplicationDefault(FirebaseAdminCredential? credential) {
     _applicationDefault = credential as FirebaseAdminCredentialRest?;
   }
+
+  @override
+  String toString() =>
+      'FirebaseAdminCredentialServiceRest($_applicationDefault)';
 }
 
 /// Compat

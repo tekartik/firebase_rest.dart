@@ -9,7 +9,7 @@ Future<void> main(List<String> args) async {
     print('no env setup available');
   } else {
     var app = context.app; //, options: context?.options);
-    var auth = authServiceRest.auth(app) as AuthRest;
+    var auth = firebaseAuthServiceRest.auth(app);
     var currentUser = await auth.onCurrentUser.first;
     print('Using firebase:');
     print('currentUser: $currentUser');

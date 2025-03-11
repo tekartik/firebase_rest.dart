@@ -7,7 +7,6 @@ import 'package:tekartik_common_utils/common_utils_import.dart';
 // ignore: depend_on_referenced_packages
 
 import 'package:tekartik_firebase_auth_rest/auth_rest.dart';
-import 'package:tekartik_firebase_auth_rest/src/auth_rest.dart';
 import 'package:tekartik_firebase_auth_rest/src/google_auth_rest_web.dart';
 import 'package:tekartik_firebase_auth_rest/src/identitytoolkit/v3.dart';
 import 'package:tekartik_firebase_rest/firebase_rest.dart';
@@ -27,13 +26,13 @@ Future<void> main() async {
     write('options not laoded. Retry');
     return;
   }
-  late AuthRest auth;
+  late FirebaseAuthRest auth;
   var app = firebaseRest.initializeApp(
       options: AppOptionsRest()
         ..projectId = options.projectId
         ..apiKey = options.apiKey);
   googleAuthProviderRestWeb = GoogleAuthProviderRestWeb(options: options);
-  auth = authServiceRest.auth(app) as AuthRest;
+  auth = firebaseAuthServiceRest.auth(app);
   //if (options.clientId != null) {
   auth.addProvider(googleAuthProviderRestWeb);
   //}
@@ -311,9 +310,9 @@ Future<void> main() async {
           //  ..localId = [auth.currentUser!.uid]
           '';
     //devWarning;
-    if (debugRest) {
-      print('getAccountInfoRequest: ${jsonPretty(request.toJson())}');
-    }
+
+    print('getAccountInfoRequest: ${jsonPretty(request.toJson())}');
+
     // ignore: no_leading_underscores_for_local_identifiers
     var _identitytoolkitApi = IdentityToolkitApi(auth.client!);
     var result = await _identitytoolkitApi.relyingparty.getAccountInfo(request);

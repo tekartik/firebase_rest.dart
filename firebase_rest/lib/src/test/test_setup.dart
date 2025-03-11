@@ -26,6 +26,9 @@ typedef FirebaseRestTestContext = FirebaseRestSetupContext;
 
 /// Context for testing
 class FirebaseRestSetupContext {
+  /// Firebase
+  FirebaseRest get firebase => firebaseRest;
+
   /// The http client
   Client? client;
 
@@ -46,7 +49,7 @@ class FirebaseRestSetupContext {
 
   /// Firebase app when using service account
   FirebaseAppRest get app {
-    var app = firebaseRest.initializeApp(options: options!);
+    var app = firebase.initializeApp(options: options!);
     return app as FirebaseAppRest;
   }
 }
@@ -122,8 +125,8 @@ Future<FirebaseRestTestContext> getContext(Client client,
   var credentials = FirebaseAdminCredentialRest.fromServiceAccountMap(jsonData);
   var authClient = await credentials.initAuthClient();
 
-  var appOptions = AppOptionsRest(client: authClient)
-    ..projectId = credentials.projectId;
+  var appOptions = credentials.appOptions;
+
   var context = FirebaseRestTestContext()
     ..client = client
     //..accessToken = accessToken

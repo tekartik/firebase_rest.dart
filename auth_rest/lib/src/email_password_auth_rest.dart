@@ -36,6 +36,7 @@ class EmailPasswordLoginClient extends BaseClient {
   }
 }
 
+/// Authenticated client
 class EmailPasswordLoggedInClient extends BaseClient {
   final UserCredentialEmailPasswordRestImpl userCredential;
   final Client inner;
