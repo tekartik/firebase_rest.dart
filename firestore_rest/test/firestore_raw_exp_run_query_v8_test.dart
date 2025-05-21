@@ -14,11 +14,15 @@ void main() {
           'projects/tekartik-net-dev/databases/(default)/documents/tests/tekartik_firebase/tests/a2OZAEskPoMDERpjLEc4/et1fJO9Bk8iGu9MaMpXh';
       var firestoreApi = FirestoreApi(client);
       // Run query
-      var query = RunQueryRequest()
-        ..structuredQuery = StructuredQuery(
-            from: [CollectionSelector()..collectionId = p.url.basename(path)]);
-      var response = await firestoreApi.projects.databases.documents
-          .runQuery(query, p.url.dirname(path));
+      var query =
+          RunQueryRequest()
+            ..structuredQuery = StructuredQuery(
+              from: [CollectionSelector()..collectionId = p.url.basename(path)],
+            );
+      var response = await firestoreApi.projects.databases.documents.runQuery(
+        query,
+        p.url.dirname(path),
+      );
       // There should be 2 documents
       print(response.map((element) => element.document?.toJson()).join('\n'));
     } finally {

@@ -78,18 +78,23 @@ Future<AccessToken> getAccessToken(Client client) async {
   var creds = ServiceAccountCredentials.fromJson(serviceAccountJsonString);
 
   var accessCreds = await obtainAccessCredentialsViaServiceAccount(
-      creds, firebaseBaseScopes, client);
+    creds,
+    firebaseBaseScopes,
+    client,
+  );
 
   return accessCreds.accessToken;
 }
 
 /// Get the FirebaseRestTestContext from a json file or local.service_account.json file
-Future<FirebaseRestTestContext> getContext(Client client,
-    {List<String>? scopes,
-    String? dir,
-    String? serviceAccountJsonPath,
-    Map? serviceAccountMap,
-    bool? useEnv}) async {
+Future<FirebaseRestTestContext> getContext(
+  Client client, {
+  List<String>? scopes,
+  String? dir,
+  String? serviceAccountJsonPath,
+  Map? serviceAccountMap,
+  bool? useEnv,
+}) async {
   Map serviceAccountFromString(String jsonString) {
     return jsonDecode(jsonString) as Map;
   }
@@ -117,8 +122,10 @@ Future<FirebaseRestTestContext> getContext(Client client,
       jsonData = serviceAccountFromPath(serviceAccountJsonOrPath);
     }
   } else {
-    serviceAccountJsonPath ??=
-        join(dir ?? 'test', 'local.service_account.json');
+    serviceAccountJsonPath ??= join(
+      dir ?? 'test',
+      'local.service_account.json',
+    );
     jsonData = serviceAccountFromPath(serviceAccountJsonPath);
   }
 
@@ -127,37 +134,43 @@ Future<FirebaseRestTestContext> getContext(Client client,
 
   var appOptions = credentials.appOptions;
 
-  var context = FirebaseRestTestContext()
-    ..client = client
-    //..accessToken = accessToken
-    ..authClient = authClient
-    ..options = appOptions;
+  var context =
+      FirebaseRestTestContext()
+        ..client = client
+        //..accessToken = accessToken
+        ..authClient = authClient
+        ..options = appOptions;
   return context;
 }
 
 /// Get the FirebaseRestTestContext from access credentials
 @Deprecated('Use authClient instead')
 Future<FirebaseRestTestContext> getContextFromAccessCredentials(
-    Client client, AccessCredentials accessCredentials,
-    {List<String>? scopes}) async {
+  Client client,
+  AccessCredentials accessCredentials, {
+  List<String>? scopes,
+}) async {
   //var accessToken = accessCredentials.accessToken;
 
   var authClient = authenticatedClient(client, accessCredentials);
   var appOptions = AppOptionsRest(client: authClient);
   // ..projectId = jsonData['project_id']?.toString();
-  var context = FirebaseRestTestContext()
-    ..client = client
-    //..accessToken = accessToken
-    ..authClient = authClient
-    ..options = appOptions;
+  var context =
+      FirebaseRestTestContext()
+        ..client = client
+        //..accessToken = accessToken
+        ..authClient = authClient
+        ..options = appOptions;
   return context;
 }
 
 /// Get the FirebaseRestTestContext from an access token
 @Deprecated('User authToken instead')
 Future<FirebaseRestTestContext> getContextFromAccessToken(
-    Client client, String token,
-    {required List<String> scopes}) async {
+  Client client,
+  String token, {
+  required List<String> scopes,
+}) async {
   // expiry is ignored in request
   var accessToken = AccessToken('Bearer', token, DateTime.now().toUtc());
   var accessCredentials = AccessCredentials(accessToken, null, scopes);
@@ -165,19 +178,22 @@ Future<FirebaseRestTestContext> getContextFromAccessToken(
 }
 
 /// Setup the rest context
-Future<FirebaseRestSetupContext?> firebaseRestSetupContext(
-    {List<String>? scopes,
-    bool? useEnv,
-    String? serviceAccountJsonPath,
-    Map? serviceAccountMap}) async {
+Future<FirebaseRestSetupContext?> firebaseRestSetupContext({
+  List<String>? scopes,
+  bool? useEnv,
+  String? serviceAccountJsonPath,
+  Map? serviceAccountMap,
+}) async {
   var client = Client();
   // Load client info
   try {
-    return await getContext(client,
-        scopes: scopes,
-        serviceAccountJsonPath: serviceAccountJsonPath,
-        serviceAccountMap: serviceAccountMap,
-        useEnv: useEnv);
+    return await getContext(
+      client,
+      scopes: scopes,
+      serviceAccountJsonPath: serviceAccountJsonPath,
+      serviceAccountMap: serviceAccountMap,
+      useEnv: useEnv,
+    );
   } catch (e) {
     client.close();
     print('Error getting context: $e');
@@ -186,21 +202,24 @@ Future<FirebaseRestSetupContext?> firebaseRestSetupContext(
 }
 
 /// Setup the test
-Future<FirebaseRestTestContext?> setup(
-    {List<String>? scopes,
-    String dir = 'test',
-    bool? useEnv,
-    String? serviceAccountJsonPath,
-    Map? serviceAccountMap}) async {
+Future<FirebaseRestTestContext?> setup({
+  List<String>? scopes,
+  String dir = 'test',
+  bool? useEnv,
+  String? serviceAccountJsonPath,
+  Map? serviceAccountMap,
+}) async {
   var client = Client();
   // Load client info
   try {
-    return await getContext(client,
-        scopes: scopes,
-        dir: dir,
-        serviceAccountJsonPath: serviceAccountJsonPath,
-        serviceAccountMap: serviceAccountMap,
-        useEnv: useEnv);
+    return await getContext(
+      client,
+      scopes: scopes,
+      dir: dir,
+      serviceAccountJsonPath: serviceAccountJsonPath,
+      serviceAccountMap: serviceAccountMap,
+      useEnv: useEnv,
+    );
   } catch (e) {
     client.close();
     print('Error getting context: $e');
@@ -209,11 +228,12 @@ Future<FirebaseRestTestContext?> setup(
 }
 
 /// if [serviceAccountJsonPath] is not set, look for [dir]/local.service_account.json
-Future<FirebaseRest?> firebaseRestSetup(
-    {List<String>? scopes,
-    String dir = 'test',
-    Map? serviceAccountMap,
-    String? serviceAccountJsonPath}) async {
+Future<FirebaseRest?> firebaseRestSetup({
+  List<String>? scopes,
+  String dir = 'test',
+  Map? serviceAccountMap,
+  String? serviceAccountJsonPath,
+}) async {
   var client = Client();
   // Load client info
   try {
@@ -222,9 +242,11 @@ Future<FirebaseRest?> firebaseRestSetup(
     var serviceAccountJsonString =
         File(serviceAccountJsonPath).readAsStringSync();
     firebaseRest.credential.setApplicationDefault(
-        FirebaseAdminCredentialRest.fromServiceAccountJson(
-            serviceAccountJsonString,
-            scopes: scopes));
+      FirebaseAdminCredentialRest.fromServiceAccountJson(
+        serviceAccountJsonString,
+        scopes: scopes,
+      ),
+    );
     await firebaseRest.credential.applicationDefault()?.getAccessToken();
     return firebaseRest;
   } catch (e) {

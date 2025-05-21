@@ -28,9 +28,11 @@ Future<void> main() async {
   }
   late FirebaseAuthRest auth;
   var app = firebaseRest.initializeApp(
-      options: AppOptionsRest()
-        ..projectId = options.projectId
-        ..apiKey = options.apiKey);
+    options:
+        AppOptionsRest()
+          ..projectId = options.projectId
+          ..apiKey = options.apiKey,
+  );
   googleAuthProviderRestWeb = GoogleAuthProviderRestWeb(options: options);
   auth = firebaseAuthServiceRest.auth(app);
   //if (options.clientId != null) {
@@ -51,27 +53,29 @@ Future<void> main() async {
       var _identitytoolkitApi = IdentityToolkitApi(auth.client!);
       //var _identitytoolkitApi = (auth as AuthRestImpl)
       //  .identitytoolkitApi; //IdentityToolkitApi(auth.client!);
-      final request = IdentitytoolkitRelyingpartyVerifyAssertionRequest()
-        ..returnSecureToken = true
-        ..autoCreate = true
-        ..returnIdpCredential = true
-        ..requestUri = Uri.base.toString()
-        ..returnRefreshToken;
+      final request =
+          IdentitytoolkitRelyingpartyVerifyAssertionRequest()
+            ..returnSecureToken = true
+            ..autoCreate = true
+            ..returnIdpCredential = true
+            ..requestUri = Uri.base.toString()
+            ..returnRefreshToken;
       var providerId = 'google.com';
       var authToken = (auth.client as AuthClient).credentials.accessToken.data;
       request.postBody =
-              'providerId=$providerId&access_token=$authToken' //&oauth_token_secret=$authTokenSecret'
-          //..requestUri = 'http://localhost'
-          ;
-      var assertionResult =
-          await _identitytoolkitApi.relyingparty.verifyAssertion(request);
+          'providerId=$providerId&access_token=$authToken' //&oauth_token_secret=$authTokenSecret'
+      //..requestUri = 'http://localhost'
+      ;
+      var assertionResult = await _identitytoolkitApi.relyingparty
+          .verifyAssertion(request);
       write('verifyAssertion: ${jsonPretty(assertionResult.toJson())}');
       var idToken = assertionResult.idToken!;
       final getAccountInfoRequest =
           IdentitytoolkitRelyingpartyGetAccountInfoRequest()..idToken = idToken;
 
-      final response = await _identitytoolkitApi.relyingparty
-          .getAccountInfo(getAccountInfoRequest);
+      final response = await _identitytoolkitApi.relyingparty.getAccountInfo(
+        getAccountInfoRequest,
+      );
       write('getAccountInfo: ${jsonPretty(response.toJson())}');
 
       write('idToken: ${await ((user as UserInfoWithIdToken).getIdToken())}');
@@ -178,15 +182,20 @@ Future<void> main() async {
     var scopes = [
       ...firebaseBaseScopes,
       'https://www.googleapis.com/auth/devstorage.read_write',
-      'https://www.googleapis.com/auth/datastore'
+      'https://www.googleapis.com/auth/datastore',
     ];
     var clientId = options.clientId!;
     write('signing in...$clientId');
     try {
-      var accessCredentials =
-          await requestAccessCredentials(clientId: clientId, scopes: scopes);
-      var client = auth_browser.authenticatedClient(Client(), accessCredentials,
-          closeUnderlyingClient: true);
+      var accessCredentials = await requestAccessCredentials(
+        clientId: clientId,
+        scopes: scopes,
+      );
+      var client = auth_browser.authenticatedClient(
+        Client(),
+        accessCredentials,
+        closeUnderlyingClient: true,
+      );
 
       var oauth2Api = Oauth2Api(client);
       // oauth2Api.tokeninfo(accessToken: )
@@ -212,25 +221,28 @@ Future<void> main() async {
     }*/
   });
 
-  web.document
-      .querySelector('#rawGoogleCredentials')!
-      .onClick
-      .listen((_) async {
+  web.document.querySelector('#rawGoogleCredentials')!.onClick.listen((
+    _,
+  ) async {
     //write('signing in');
     // var options = await setup();
     var scopes = [
       ...firebaseBaseScopes,
       'https://www.googleapis.com/auth/devstorage.read_write',
-      'https://www.googleapis.com/auth/datastore'
+      'https://www.googleapis.com/auth/datastore',
     ];
     var clientId = options.clientId!;
     write('auto signing in...$clientId');
     try {
-      var accessCredentials =
-          await requestAccessCredentials(clientId: clientId, scopes: scopes);
+      var accessCredentials = await requestAccessCredentials(
+        clientId: clientId,
+        scopes: scopes,
+      );
       var authClient = auth_browser.authenticatedClient(
-          Client(), accessCredentials,
-          closeUnderlyingClient: true);
+        Client(),
+        accessCredentials,
+        closeUnderlyingClient: true,
+      );
       write(accessCredentials.accessToken);
 
       /*
@@ -264,7 +276,7 @@ Future<void> main() async {
       write('signed in error $e');
     }*/
   });
-/*
+  /*
   querySelector('#googleSignInWithPopup')!.onClick.listen((_) async {
     write('popup signing in...');
     try {
@@ -305,10 +317,11 @@ Future<void> main() async {
     var userInfo = await oauth2.userinfo.get();
     write(jsonPretty(userInfo.toJson()));
     // devPrint(auth.currentUser);
-    var request = IdentitytoolkitRelyingpartyGetAccountInfoRequest()
-      ..idToken =
-          //  ..localId = [auth.currentUser!.uid]
-          '';
+    var request =
+        IdentitytoolkitRelyingpartyGetAccountInfoRequest()
+          ..idToken =
+              //  ..localId = [auth.currentUser!.uid]
+              '';
     //devWarning;
 
     print('getAccountInfoRequest: ${jsonPretty(request.toJson())}');
@@ -357,7 +370,7 @@ Future<void> main() async {
   web.document.querySelector('#currentUser')!.onClick.listen((_) async {
     write('currentUser ${auth.currentUser}');
   });
-/*
+  /*
   querySelector('#onCurrentUser')!.onClick.listen((_) async {
     write('wait for first onCurrentUser');
     write('onCurrentUser ${await auth.onCurrentUser.first}');

@@ -7,7 +7,9 @@ class TransactionRestImpl extends WriteBatchRestImpl implements Transaction {
 
   @override
   Future<DocumentSnapshot> get(DocumentReference documentRef) async {
-    return firestoreRestImpl.getDocument(documentRef.path,
-        transactionId: transactionId);
+    return firestoreRestImpl.getDocument(
+      documentRef.path,
+      transactionId: transactionId,
+    );
   }
 }

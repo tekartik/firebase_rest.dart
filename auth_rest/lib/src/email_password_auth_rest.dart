@@ -5,7 +5,7 @@ class RequestImpl extends BaseRequest {
   final Stream<List<int>> _stream;
 
   RequestImpl(super.method, super.url, [Stream<List<int>>? stream])
-      : _stream = stream ?? const Stream.empty();
+    : _stream = stream ?? const Stream.empty();
 
   @override
   ByteStream finalize() {
@@ -19,7 +19,7 @@ class EmailPasswordLoginClient extends BaseClient {
   final Client inner;
 
   EmailPasswordLoginClient({Client? inner, required this.apiKey})
-      : inner = inner ?? Client();
+    : inner = inner ?? Client();
 
   @override
   Future<StreamedResponse> send(BaseRequest request) async {
@@ -28,8 +28,11 @@ class EmailPasswordLoginClient extends BaseClient {
     var queryParam = Map<String, String>.from(existing.url.queryParameters);
 
     queryParam['key'] = apiKey;
-    var newRequest = RequestImpl(existing.method,
-        existing.url.replace(queryParameters: queryParam), stream);
+    var newRequest = RequestImpl(
+      existing.method,
+      existing.url.replace(queryParameters: queryParam),
+      stream,
+    );
     newRequest.headers.addAll(existing.headers);
 
     return inner.send(newRequest);
@@ -42,7 +45,7 @@ class EmailPasswordLoggedInClient extends BaseClient {
   final Client inner;
 
   EmailPasswordLoggedInClient({Client? inner, required this.userCredential})
-      : inner = inner ?? Client();
+    : inner = inner ?? Client();
 
   @override
   Future<StreamedResponse> send(BaseRequest request) async {

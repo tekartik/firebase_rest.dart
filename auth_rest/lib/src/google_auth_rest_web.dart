@@ -25,11 +25,14 @@ class GoogleAuthProviderRestImpl
   @override
   String get apiKey => googleAuthOptions.apiKey!;
 
-  GoogleAuthProviderRestImpl(GoogleAuthOptions googleAuthOptions,
-      {List<String>? scopes}) {
+  GoogleAuthProviderRestImpl(
+    GoogleAuthOptions googleAuthOptions, {
+    List<String>? scopes,
+  }) {
     this.googleAuthOptions = googleAuthOptions;
     // devPrint('GoogleAuthProviderRestImpl($googleAuthOptions, $scopes');
-    this.scopes = scopes ??
+    this.scopes =
+        scopes ??
         [
           ...firebaseBaseScopes,
           'https://www.googleapis.com/auth/devstorage.read_write',
@@ -37,28 +40,30 @@ class GoogleAuthProviderRestImpl
           // OAuth scope
           // 'https://www.googleapis.com/auth/firebase'
           //'https://www.googleapis.com/auth/contacts.readonly',
-          'https://www.googleapis.com/auth/contacts.readonly'
+          'https://www.googleapis.com/auth/contacts.readonly',
         ];
   }
 
   @override
   Stream<FirebaseUserRest?> get onCurrentUser {
     late StreamController<FirebaseUserRest?> ctlr;
-    ctlr = currentUserController ??=
-        StreamController.broadcast(onListen: () async {
-      // Get first client, next will sent through currentUserController
-      try {
-        var client = _authClient;
-        if (client != null) {
-          var credentials = client.credentials;
-          setCurrentUser(toUserRest(credentials));
-        } else {
-          setCurrentUser(null);
-        }
-      } catch (_) {
-        setCurrentUser(null);
-      }
-    });
+    ctlr =
+        currentUserController ??= StreamController.broadcast(
+          onListen: () async {
+            // Get first client, next will sent through currentUserController
+            try {
+              var client = _authClient;
+              if (client != null) {
+                var credentials = client.credentials;
+                setCurrentUser(toUserRest(credentials));
+              } else {
+                setCurrentUser(null);
+              }
+            } catch (_) {
+              setCurrentUser(null);
+            }
+          },
+        );
 
     return ctlr.stream;
   }
@@ -121,10 +126,14 @@ class GoogleAuthProviderRestImpl
           
                  */
       var accessCredentials = await auth_browser.requestAccessCredentials(
-          clientId: clientId, scopes: scopes);
+        clientId: clientId,
+        scopes: scopes,
+      );
       var authClient = auth_browser.authenticatedClient(
-          Client(), accessCredentials,
-          closeUnderlyingClient: true);
+        Client(),
+        accessCredentials,
+        closeUnderlyingClient: true,
+      );
 
       /*
       // devPrint('ID token: ${client.credentials.idToken}');
@@ -151,21 +160,23 @@ class GoogleAuthProviderRestImpl
       // devPrint(jsonPretty(person.toJson()));
       // devPrint(auth.currentUser);
 
-      var result = AuthSignInResultRest(client: authClient, provider: this)
-        ..hasInfo = true
-        ..credential = UserCredentialRestImpl(
-            AuthCredentialRestImpl(providerId: providerId),
-            UserRest(
+      var result =
+          AuthSignInResultRest(client: authClient, provider: this)
+            ..hasInfo = true
+            ..credential = UserCredentialRestImpl(
+              AuthCredentialRestImpl(providerId: providerId),
+              UserRest(
                 client: authClient,
                 uid: person.id!,
                 emailVerified: person.verifiedEmail ?? false,
-                provider: this));
+                provider: this,
+              ),
+            );
       () async {
         var user = toUserRest(authClient.credentials);
         // devPrint('adding user $user ($currentUserController)');
         setCurrentUser(user);
-      }()
-          .unawait();
+      }().unawait();
       return result;
     } catch (e) {
       // devPrint('error $e');
@@ -208,7 +219,8 @@ Future<GoogleAuthOptions?> loadGoogleAuthOptions() async {
       print(e);
       print('Cannot find local.config.yaml');
       print(
-          'Create it from the sample.local.config.yaml file with your firebase information');
+        'Create it from the sample.local.config.yaml file with your firebase information',
+      );
       print(sample);
     }
   } catch (e) {

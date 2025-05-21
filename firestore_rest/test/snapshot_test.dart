@@ -42,14 +42,18 @@ void main() {
       data.setInt('int', 1);
       data.setBool('bool', true);
       data.setDateTime(
-          'dateTime', DateTime.parse('2018-10-23T16:04:46.071Z').toLocal());
+        'dateTime',
+        DateTime.parse('2018-10-23T16:04:46.071Z').toLocal(),
+      );
       data.setGeoPoint('geo', GeoPoint(23.03, 19.84));
       data.setBlob('blob', Blob.fromList([1, 2, 3]));
       data.setNum('double', 19.84);
       data.setDocumentReference('ref', firestore.doc('doc/path'));
       data.setList('list', [2, 'item']);
       data.setData(
-          'nested', DocumentData()..setString('nestedKey', 'much nested'));
+        'nested',
+        DocumentData()..setString('nestedKey', 'much nested'),
+      );
       expect(documentDataToJson(app, data), {
         'fields': {
           'string': {'stringValue': 'text'},
@@ -57,30 +61,30 @@ void main() {
           'bool': {'booleanValue': true},
           'dateTime': {'timestampValue': '2018-10-23T16:04:46.071Z'},
           'geo': {
-            'geoPointValue': {'latitude': 23.03, 'longitude': 19.84}
+            'geoPointValue': {'latitude': 23.03, 'longitude': 19.84},
           },
           'blob': {'bytesValue': 'AQID'},
           'double': {'doubleValue': 19.84},
           'ref': {
             'referenceValue':
-                'projects/my_app/databases/(default)/documents/doc/path'
+                'projects/my_app/databases/(default)/documents/doc/path',
           },
           'list': {
             'arrayValue': {
               'values': [
                 {'integerValue': '2'},
-                {'stringValue': 'item'}
-              ]
-            }
+                {'stringValue': 'item'},
+              ],
+            },
           },
           'nested': {
             'mapValue': {
               'fields': {
-                'nestedKey': {'stringValue': 'much nested'}
-              }
-            }
+                'nestedKey': {'stringValue': 'much nested'},
+              },
+            },
           },
-        }
+        },
       });
     });
   });

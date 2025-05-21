@@ -11,8 +11,8 @@ import 'identitytoolkit/v3.dart';
 /// User?
 Future<UserRecord?> getUser(AuthClient client, String uid) async {
   var request = IdentitytoolkitRelyingpartyGetAccountInfoRequest()
-      //  ..localId = [uid]
-      ;
+  //  ..localId = [uid]
+  ;
   if (debugFirebaseAuthRest) {
     print('getAccountInfoRequest2: ${jsonPretty(request.toJson())}');
   }
@@ -102,12 +102,13 @@ class GoogleAuthOptions {
   String? apiKey;
   String? projectId;
 
-  GoogleAuthOptions(
-      {this.developerKey,
-      this.clientId,
-      this.clientSecret,
-      this.apiKey,
-      this.projectId});
+  GoogleAuthOptions({
+    this.developerKey,
+    this.clientId,
+    this.clientSecret,
+    this.apiKey,
+    this.projectId,
+  });
 
   GoogleAuthOptions.fromMap(Map map) {
     // Web (?)
@@ -123,12 +124,13 @@ class GoogleAuthOptions {
   }
 
   @override
-  String toString() => {
+  String toString() =>
+      {
         'developerKey': developerKey,
         'clientId': clientId,
         'clientSecret': clientSecret,
         'projectId': projectId,
-        'apiKey': apiKey
+        'apiKey': apiKey,
       }.toString();
 }
 

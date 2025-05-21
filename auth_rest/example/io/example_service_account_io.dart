@@ -15,7 +15,8 @@ Future<void> main(List<String> args) async {
     print('currentUser: $currentUser');
     print('projectId: ${context.options!.projectId}');
     print(
-        'applicationDefault: ${firebaseRest.credential.applicationDefault()}');
+      'applicationDefault: ${firebaseRest.credential.applicationDefault()}',
+    );
     await app.delete();
   }
 }

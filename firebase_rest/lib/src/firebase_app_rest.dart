@@ -30,8 +30,11 @@ class AppRestImpl
   late final String name;
 
   /// App rest implementation.
-  AppRestImpl(
-      {required this.firebaseRest, required this.options, String? name}) {
+  AppRestImpl({
+    required this.firebaseRest,
+    required this.options,
+    String? name,
+  }) {
     this.name = name ?? firebaseRestDefaultAppName;
     var options = this.options;
     if (options is AppOptionsRest) {
@@ -84,7 +87,8 @@ extension FirebaseAppRestExt on FirebaseAppRest {
     // print(jsonPretty(response.toJson()));
 
     var ruleset = response.rulesets!.firstWhere(
-        (ruleset) => ruleset.metadata!.services!.contains('cloud.firestore'));
+      (ruleset) => ruleset.metadata!.services!.contains('cloud.firestore'),
+    );
     //print(jsonPretty(ruleset.toJson()));
     var rulesetName = ruleset.name!;
     ruleset = await api.projects.rulesets.get(rulesetName);

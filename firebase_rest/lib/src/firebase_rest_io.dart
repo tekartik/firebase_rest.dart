@@ -26,20 +26,23 @@ class FirebaseAdminCredentialRestImpl implements FirebaseAdminCredentialRest {
 
   /// from service account json string
   factory FirebaseAdminCredentialRestImpl.fromServiceAccountJson(
-          String serviceAccountJson,
-          {List<String>? scopes}) =>
-      FirebaseAdminCredentialRestImpl.fromServiceAccountMap(
-          jsonDecode(serviceAccountJson) as Map,
-          scopes: scopes);
+    String serviceAccountJson, {
+    List<String>? scopes,
+  }) => FirebaseAdminCredentialRestImpl.fromServiceAccountMap(
+    jsonDecode(serviceAccountJson) as Map,
+    scopes: scopes,
+  );
 
   /// from service account map
-  FirebaseAdminCredentialRestImpl.fromServiceAccountMap(Map serviceAccountMap,
-      {List<String>? scopes})
-      : scopes = scopes ?? firebaseBaseScopes {
+  FirebaseAdminCredentialRestImpl.fromServiceAccountMap(
+    Map serviceAccountMap, {
+    List<String>? scopes,
+  }) : scopes = scopes ?? firebaseBaseScopes {
     projectId = serviceAccountMap['project_id'].toString();
 
-    serviceAccountCredentials =
-        ServiceAccountCredentials.fromJson(serviceAccountMap);
+    serviceAccountCredentials = ServiceAccountCredentials.fromJson(
+      serviceAccountMap,
+    );
   }
 
   Future<FirebaseAdminAccessToken>? _accessToken;
@@ -47,12 +50,14 @@ class FirebaseAdminCredentialRestImpl implements FirebaseAdminCredentialRest {
   /// Get the auto refreshing auth client
   @override
   Future<AuthClient> initAuthClient() async {
-    authClient =
-        await clientViaServiceAccount(serviceAccountCredentials, scopes);
+    authClient = await clientViaServiceAccount(
+      serviceAccountCredentials,
+      scopes,
+    );
     appOptions = AppOptionsRest(
-        client: authClient,
-        identifyServiceAccount: FirebaseRestIdentifyServiceAccountImpl())
-      ..projectId = projectId;
+      client: authClient,
+      identifyServiceAccount: FirebaseRestIdentifyServiceAccountImpl(),
+    )..projectId = projectId;
 
     return authClient!;
   }
@@ -62,16 +67,19 @@ class FirebaseAdminCredentialRestImpl implements FirebaseAdminCredentialRest {
       _accessToken ??= () async {
         var client = Client();
         var accessCreds = await obtainAccessCredentialsViaServiceAccount(
-            serviceAccountCredentials, scopes, client);
+          serviceAccountCredentials,
+          scopes,
+          client,
+        );
         var accessToken = accessCreds.accessToken;
         authClient = authenticatedClient(client, accessCreds);
         appOptions = AppOptionsRest(
-            client: authClient,
-            identifyServiceAccount: FirebaseRestIdentifyServiceAccountImpl())
-          ..projectId = projectId;
+          client: authClient,
+          identifyServiceAccount: FirebaseRestIdentifyServiceAccountImpl(),
+        )..projectId = projectId;
         return FirebaseAdminAccessTokenRest(data: accessToken.data);
       }();
-/*
+  /*
 
     var authClient = authenticatedClient(client, accessCreds);
     var appOptions = AppOptionsRest(authClient: authClient)
@@ -92,18 +100,22 @@ class FirebaseAdminCredentialRestImpl implements FirebaseAdminCredentialRest {
 
 /// Create a new firebase admin credential rest from a service account json
 FirebaseAdminCredentialRest firebaseAdminCredentialsFromServiceAccountJson(
-    String serviceAccountJson,
-    {List<String>? scopes}) {
+  String serviceAccountJson, {
+  List<String>? scopes,
+}) {
   return FirebaseAdminCredentialRestImpl.fromServiceAccountJson(
-      serviceAccountJson,
-      scopes: scopes);
+    serviceAccountJson,
+    scopes: scopes,
+  );
 }
 
 /// Create a new firebase admin credential rest from a service account map
 FirebaseAdminCredentialRest firebaseAdminCredentialsFromServiceAccountMap(
-    Map serviceAccountMap,
-    {List<String>? scopes}) {
+  Map serviceAccountMap, {
+  List<String>? scopes,
+}) {
   return FirebaseAdminCredentialRestImpl.fromServiceAccountMap(
-      serviceAccountMap,
-      scopes: scopes);
+    serviceAccountMap,
+    scopes: scopes,
+  );
 }

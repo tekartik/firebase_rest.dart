@@ -6,8 +6,9 @@ import 'package:tekartik_firebase_storage_rest/storage_rest.dart';
 Storage noAuthStorageRest({required String? projectId}) {
   var firebase = firebaseRest;
   var app = firebase.initializeApp(
-      options: AppOptionsRest(client: httpClientFactory.newClient())
-        ..projectId = projectId);
+    options: AppOptionsRest(client: httpClientFactory.newClient())
+      ..projectId = projectId,
+  );
   var storage = storageServiceRest.storage(app);
   return storage;
 }

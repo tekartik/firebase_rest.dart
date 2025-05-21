@@ -20,7 +20,8 @@ Future main() async {
       shellEnvironment['TEKARTIK_FIRESTORE_REST_TEST_ROOT_COLLECTION_PATH'];
   test('env', () {
     print(
-        'TEKARTIK_FIRESTORE_REST_TEST_ROOT_COLLECTION_PATH: $testRootCollectionPath');
+      'TEKARTIK_FIRESTORE_REST_TEST_ROOT_COLLECTION_PATH: $testRootCollectionPath',
+    );
   });
   if (context == null || testRootCollectionPath == null) {
     test('no env setup available', () {});
@@ -37,11 +38,13 @@ Future main() async {
       });
       var firebase = firebaseRest;
       runFirestoreTests(
-          firebase: firebase,
-          firestoreService: firestoreServiceRest,
-          options: context.options,
-          testContext:
-              FirestoreTestContext(rootCollectionPath: testRootCollectionPath));
+        firebase: firebase,
+        firestoreService: firestoreServiceRest,
+        options: context.options,
+        testContext: FirestoreTestContext(
+          rootCollectionPath: testRootCollectionPath,
+        ),
+      );
     });
   }
 }

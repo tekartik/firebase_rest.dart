@@ -50,10 +50,13 @@ class QuerySnapshotRestImpl implements QuerySnapshot {
   List<DocumentSnapshot>? _docs;
 
   @override
-  List<DocumentSnapshot> get docs => _docs ??= () {
+  List<DocumentSnapshot> get docs =>
+      _docs ??= () {
         return response
-            .map((document) =>
-                DocumentSnapshotRestImpl(firestoreRest, document.document))
+            .map(
+              (document) =>
+                  DocumentSnapshotRestImpl(firestoreRest, document.document),
+            )
             .where((snapshot) => isDocumentSnapshot(snapshot))
             .toList(growable: false);
       }();

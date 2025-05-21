@@ -11,8 +11,9 @@ bool get runningOnGithub => platformIo.runningOnGithub;
 /// ubuntu-latest
 bool isGithubActionsUbuntuAndDartStable() {
   return platformIo.environment['TEKARTIK_GITHUB_ACTIONS_DART'] == 'stable' &&
-      (platformIo.environment['TEKARTIK_GITHUB_ACTIONS_OS']
-              ?.startsWith('ubuntu') ??
+      (platformIo.environment['TEKARTIK_GITHUB_ACTIONS_OS']?.startsWith(
+            'ubuntu',
+          ) ??
           false);
 }
 

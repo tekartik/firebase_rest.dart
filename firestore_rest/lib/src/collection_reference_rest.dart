@@ -11,7 +11,7 @@ class CollectionReferenceRestImpl extends QueryRestImpl
     with CollectionReferenceMixin
     implements CollectionReference {
   CollectionReferenceRestImpl(FirestoreRestImpl firestoreRest, String path)
-      : super(firestoreRest, path) {
+    : super(firestoreRest, path) {
     checkCollectionReferencePath(path);
     queryInfo = QueryInfo();
   }

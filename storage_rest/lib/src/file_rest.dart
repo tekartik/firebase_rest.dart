@@ -15,13 +15,17 @@ class FileMetadataRest with FileMetadataMixin implements FileMetadata {
   @override
   final int size;
 
-  FileMetadataRest(
-      {required this.dateUpdated, required this.md5Hash, required this.size});
+  FileMetadataRest({
+    required this.dateUpdated,
+    required this.md5Hash,
+    required this.size,
+  });
 
   factory FileMetadataRest.fromObject(api.Object object) => FileMetadataRest(
-      size: int.parse(object.size!),
-      md5Hash: object.md5Hash!,
-      dateUpdated: object.timeCreated!);
+    size: int.parse(object.size!),
+    md5Hash: object.md5Hash!,
+    dateUpdated: object.timeCreated!,
+  );
 }
 
 class FileRest with FileMixin implements File {

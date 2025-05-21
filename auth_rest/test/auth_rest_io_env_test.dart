@@ -37,15 +37,17 @@ Future main() async {
       });
 
       runAuthTests(
-          firebase: firebase,
-          authService: firebaseAuthServiceRest,
-          options: context.options);
+        firebase: firebase,
+        authService: firebaseAuthServiceRest,
+        options: context.options,
+      );
       group('access_token', () {
         runAuthTests(
-            firebase: firebase,
-            authService: firebaseAuthServiceRest,
-            name: 'access_token',
-            options: context.options);
+          firebase: firebase,
+          authService: firebaseAuthServiceRest,
+          name: 'access_token',
+          options: context.options,
+        );
       });
 
       group('auth', () {
@@ -54,8 +56,9 @@ Future main() async {
 
         setUpAll(() async {
           app = firebase.initializeApp(
-              options: context.options,
-              name: 'auth'); //, options: context?.options);
+            options: context.options,
+            name: 'auth',
+          ); //, options: context?.options);
           auth = firebaseAuthServiceRest.auth(app);
         });
 
@@ -85,8 +88,10 @@ Future main() async {
           var user = auth.currentUser;
           expect(user, isNull);
           if (userId != null) {
-            var userRecords =
-                await auth.getUsers([userId!, 'NX8geaeHWCcibyp2YWeyU7UqEtN2']);
+            var userRecords = await auth.getUsers([
+              userId!,
+              'NX8geaeHWCcibyp2YWeyU7UqEtN2',
+            ]);
             if (userRecords.isNotEmpty) {
               for (var i = 0; i < userRecords.length; i++) {
                 var userRecord = userRecords[i];
@@ -109,10 +114,13 @@ Future main() async {
         test('getUserByEmail', () async {
           try {
             expect(
-                (await auth.getUserByEmail('admin@example.com'))!.displayName,
-                'admin');
-            expect((await auth.getUserByEmail('user@example.com'))!.displayName,
-                'user');
+              (await auth.getUserByEmail('admin@example.com'))!.displayName,
+              'admin',
+            );
+            expect(
+              (await auth.getUserByEmail('user@example.com'))!.displayName,
+              'user',
+            );
             fail('should fail');
           } on UnsupportedError catch (_) {}
         });

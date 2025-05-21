@@ -47,7 +47,7 @@ Future main() async {
       expect(patchDocument.fields!.keys, ['sub']);
       expect(patchDocument.fieldPaths, ['sub.test']);
       expect(readDocument.data, {
-        'sub': {'test': 1}
+        'sub': {'test': 1},
       });
     });
 
@@ -62,8 +62,8 @@ Future main() async {
       expect(readDocument.data, {
         'sub': {
           'test': 1,
-          'sub': {'test': 2}
-        }
+          'sub': {'test': 2},
+        },
       });
     });
     test('setSubfield', () {
@@ -78,9 +78,7 @@ Future main() async {
     });
 
     test('SetMergedDocument', () {
-      var writeDoc = SetMergedDocument(firestoreMock, {
-        'f1': 1,
-      });
+      var writeDoc = SetMergedDocument(firestoreMock, {'f1': 1});
       expect(writeDoc.fieldPaths, ['f1']);
       writeDoc = SetMergedDocument(firestoreMock, {
         'f1': {'f2': 2},
@@ -90,7 +88,7 @@ Future main() async {
         'f1': 1,
         'f2': {'f3': 2},
         'f4': {
-          'f5': {'f6': 6}
+          'f5': {'f6': 6},
         },
       };
       writeDoc = SetMergedDocument(firestoreMock, map);
@@ -122,8 +120,9 @@ Future main() async {
       expect(readDocument.data, data);
     });
     test('patchDelete', () {
-      var patchDocument =
-          UpdateDocument(firestoreMock, {'test': FieldValue.delete});
+      var patchDocument = UpdateDocument(firestoreMock, {
+        'test': FieldValue.delete,
+      });
       expect(patchDocument.fields, isEmpty);
       expect(patchDocument.fieldPaths, ['test']);
 
@@ -132,8 +131,10 @@ Future main() async {
       expect(patchDocument.fields!.keys, ['test2']);
       expect(patchDocument.fieldPaths, ['test2']);
 
-      patchDocument = UpdateDocument(
-          firestoreMock, {'test': FieldValue.delete, 'test2': 1});
+      patchDocument = UpdateDocument(firestoreMock, {
+        'test': FieldValue.delete,
+        'test2': 1,
+      });
       expect(patchDocument.fields!['test2']!.integerValue, '1');
       expect(patchDocument.fieldPaths, ['test', 'test2']);
     });
@@ -142,8 +143,9 @@ Future main() async {
       var patchDocument = UpdateDocument(firestoreMock, {'test.sub': 1});
       // devPrint(jsonPretty(patchDocument.document.toJson()));
       expect(
-          patchDocument.fields!['test']!.mapValue!.fields!['sub']!.integerValue,
-          '1');
+        patchDocument.fields!['test']!.mapValue!.fields!['sub']!.integerValue,
+        '1',
+      );
       expect(patchDocument.fieldPaths, ['test.sub']);
     });
 
@@ -156,9 +158,9 @@ Future main() async {
               'sub': {
                 'mapValue': {
                   'fields': {
-                    'value': {'stringValue': 'b'}
-                  }
-                }
+                    'value': {'stringValue': 'b'},
+                  },
+                },
               },
               'date': {'timestampValue': '1970-01-01T00:00:00.002Z'},
               'value': {'integerValue': '1'},
@@ -166,16 +168,16 @@ Future main() async {
                 'arrayValue': {
                   'values': [
                     {'integerValue': '3'},
-                    {'integerValue': '4'}
-                  ]
-                }
-              }
+                    {'integerValue': '4'},
+                  ],
+                },
+              },
             },
             'name':
                 'projects/tekartik-free-dev/databases/(default)/documents/tests/tekartik_firebase/tests/collection_test/many/one',
-            'updateTime': '2018-10-27T05:34:53.459862Z'
+            'updateTime': '2018-10-27T05:34:53.459862Z',
           },
-          'readTime': '2019-11-02T15:30:32.293753Z'
+          'readTime': '2019-11-02T15:30:32.293753Z',
         },
         {
           'document': {
@@ -184,19 +186,19 @@ Future main() async {
               'sub': {
                 'mapValue': {
                   'fields': {
-                    'value': {'stringValue': 'a'}
-                  }
-                }
+                    'value': {'stringValue': 'a'},
+                  },
+                },
               },
               'date': {'timestampValue': '1970-01-01T00:00:00.001Z'},
-              'value': {'integerValue': '2'}
+              'value': {'integerValue': '2'},
             },
             'name':
                 'projects/tekartik-free-dev/databases/(default)/documents/tests/tekartik_firebase/tests/collection_test/many/two',
-            'updateTime': '2018-10-27T05:34:53.681486Z'
+            'updateTime': '2018-10-27T05:34:53.681486Z',
           },
-          'readTime': '2019-11-02T15:30:32.293753Z'
-        }
+          'readTime': '2019-11-02T15:30:32.293753Z',
+        },
       ];
 
       // ignore: omit_local_variable_types

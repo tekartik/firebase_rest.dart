@@ -20,15 +20,16 @@ Future main() async {
       'auth_uri': 'ccc',
       'token_uri': 'ddd',
       'auth_provider_x509_cert_url': 'eee',
-      'client_x509_cert_url': 'fff'
+      'client_x509_cert_url': 'fff',
     };
     var firebaseAdmin = firebaseRest;
     try {
       firebaseAdmin.credential.setApplicationDefault(
-          FirebaseAdminCredentialRest.fromServiceAccountMap(
-        serviceAccountMap,
-        //    scopes: scopes
-      ));
+        FirebaseAdminCredentialRest.fromServiceAccountMap(
+          serviceAccountMap,
+          //    scopes: scopes
+        ),
+      );
       print(firebaseAdmin.credential.applicationDefault());
       await firebaseAdmin.credential.applicationDefault()?.getAccessToken();
     } catch (_) {}

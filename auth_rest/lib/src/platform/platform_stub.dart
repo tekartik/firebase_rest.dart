@@ -7,9 +7,9 @@ abstract class GoogleAuthProviderRestWeb implements GoogleRestAuthProvider {
 }
 
 abstract class GoogleAuthProviderRestIo implements GoogleRestAuthProvider {
-  factory GoogleAuthProviderRestIo(
-          {required GoogleAuthOptions options,
-          PromptUserForConsentRest? userPrompt,
-          String? credentialPath}) =>
-      throw UnsupportedError('io');
+  factory GoogleAuthProviderRestIo({
+    required GoogleAuthOptions options,
+    PromptUserForConsentRest? userPrompt,
+    String? credentialPath,
+  }) => throw UnsupportedError('io');
 }

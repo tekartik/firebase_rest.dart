@@ -16,10 +16,11 @@ Future main() async {
     if (context != null) {
       var firebase = firebaseRest;
       runFirestoreTests(
-          firebase: firebase,
-          firestoreService: firestoreServiceRest,
-          testContext: FirestoreTestContext()..allowedDelayInReadMs = 3000,
-          options: context.options);
+        firebase: firebase,
+        firestoreService: firestoreServiceRest,
+        testContext: FirestoreTestContext()..allowedDelayInReadMs = 3000,
+        options: context.options,
+      );
     }
   }, skip: context == null);
 }

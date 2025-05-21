@@ -8,11 +8,15 @@ String _basePath(App app) {
   return 'projects/${app.options.projectId}/databases/(default)/documents';
 }
 
-Map<String, Object?> documentDataToJson(App app, DocumentData data,
-    {Map<String, Object?>? map}) {
+Map<String, Object?> documentDataToJson(
+  App app,
+  DocumentData data, {
+  Map<String, Object?>? map,
+}) {
   map ??= <String, Object?>{};
   map['fields'] = (data as DocumentDataMap).map.map<String, Object?>(
-      (key, value) => MapEntry(key, documentDataValueToJson(app, value)));
+    (key, value) => MapEntry(key, documentDataValueToJson(app, value)),
+  );
   return map;
 }
 
@@ -21,7 +25,7 @@ Map<String, Object?>? snapshotToJson(App app, DocumentSnapshot snapshot) {
     return null;
   }
   var map = <String, Object?>{
-    'name': url.join(_basePath(app), snapshot.ref.path)
+    'name': url.join(_basePath(app), snapshot.ref.path),
   };
   map = documentDataToJson(app, DocumentData(snapshot.data), map: map);
   map['createTime'] = snapshot.createTime?.toIso8601String();
@@ -45,15 +49,17 @@ dynamic documentDataValueToJson(App app, dynamic value) {
     return <String, Object?>{
       'arrayValue': {
         'values':
-            value.map((value) => documentDataValueToJson(app, value)).toList()
-      }
+            value.map((value) => documentDataValueToJson(app, value)).toList(),
+      },
     };
   } else if (value is Map) {
     return <String, Object?>{
       'mapValue': {
-        'fields': value.map<String, Object?>((key, value) =>
-            MapEntry(key as String, documentDataValueToJson(app, value)))
-      }
+        'fields': value.map<String, Object?>(
+          (key, value) =>
+              MapEntry(key as String, documentDataValueToJson(app, value)),
+        ),
+      },
     };
   } else if (value is DocumentData) {
     // Handle this that could happen from a map
@@ -64,7 +70,7 @@ dynamic documentDataValueToJson(App app, dynamic value) {
     return <String, Object?>{'timestampValue': value.toIso8601String()};
   } else if (value is DocumentReference) {
     return <String, Object?>{
-      'referenceValue': url.join(_basePath(app), value.path)
+      'referenceValue': url.join(_basePath(app), value.path),
     };
   } else if (value is Blob) {
     return <String, Object?>{'bytesValue': base64.encode(value.data)};
@@ -72,11 +78,14 @@ dynamic documentDataValueToJson(App app, dynamic value) {
     return <String, Object?>{
       'geoPointValue': {
         'latitude': value.latitude,
-        'longitude': value.longitude
-      }
+        'longitude': value.longitude,
+      },
     };
   } else {
-    throw ArgumentError.value(value, '${value.runtimeType}',
-        'Unsupported value for documentDataValueToJson');
+    throw ArgumentError.value(
+      value,
+      '${value.runtimeType}',
+      'Unsupported value for documentDataValueToJson',
+    );
   }
 }

@@ -10,8 +10,8 @@ Future main() async {
       var map = {
         'prefixes': <Object?>[],
         'items': [
-          {'name': 'test.json', 'bucket': 'test.appspot.com'}
-        ]
+          {'name': 'test.json', 'bucket': 'test.appspot.com'},
+        ],
       };
       var response = GsReferenceListResponse()..fromMap(map);
       expect(response.items![0].name, 'test.json');

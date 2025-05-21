@@ -24,29 +24,32 @@ Future main() async {
       test('authClient', () {
         if (firebaseRest is FirebaseAdminRest) {
           expect(
-              (firebaseRest.credential.applicationDefault()
-                      as FirebaseAdminCredentialRest)
-                  .authClient,
-              isNotNull);
+            (firebaseRest.credential.applicationDefault()
+                    as FirebaseAdminCredentialRest)
+                .authClient,
+            isNotNull,
+          );
         }
       });
 
       test('initialize sync and latest', () {
         FirebaseMixin.latestFirebaseInstanceOrNull = null;
         var firebase = firebaseRest;
-        var app =
-            firebase.initializeApp(options: AppOptions(projectId: 'test'));
+        var app = firebase.initializeApp(
+          options: AppOptions(projectId: 'test'),
+        );
         expect(FirebaseMixin.latestFirebaseInstanceOrNull, app);
       });
 
       test('admin', () async {
         if (firebaseRest is FirebaseAdminRest) {
           expect(
-              (await firebaseRest.credential
-                      .applicationDefault()!
-                      .getAccessToken())
-                  .data,
-              isNotNull);
+            (await firebaseRest.credential
+                    .applicationDefault()!
+                    .getAccessToken())
+                .data,
+            isNotNull,
+          );
         }
       });
     });

@@ -10,13 +10,15 @@ export 'package:tekartik_firebase_rest/src/test/test_setup.dart'
         getAppOptionsFromAccessToken;
 
 /// Setup helper
-Future<FirebaseRestTestContext?> firebaseRestSetup(
-    {String? serviceAccountJsonPath,
-    Map? serviceAccountMap,
-    bool? useEnv}) async {
+Future<FirebaseRestTestContext?> firebaseRestSetup({
+  String? serviceAccountJsonPath,
+  Map? serviceAccountMap,
+  bool? useEnv,
+}) async {
   return await firebase.setup(
-      scopes: firebaseBaseScopes,
-      serviceAccountJsonPath: serviceAccountJsonPath,
-      serviceAccountMap: serviceAccountMap,
-      useEnv: useEnv);
+    scopes: firebaseBaseScopes,
+    serviceAccountJsonPath: serviceAccountJsonPath,
+    serviceAccountMap: serviceAccountMap,
+    useEnv: useEnv,
+  );
 }

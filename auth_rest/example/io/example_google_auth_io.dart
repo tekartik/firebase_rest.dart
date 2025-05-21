@@ -10,16 +10,20 @@ import 'package:path/path.dart';
 
 Future<void> main() async {
   var authService = firebaseAuthServiceRest;
-  var options = GoogleAuthOptions.fromMap(loadYaml(
-          await File(join('example', 'local.config_io.yaml')).readAsString())
-      as Map);
+  var options = GoogleAuthOptions.fromMap(
+    loadYaml(await File(join('example', 'local.config_io.yaml')).readAsString())
+        as Map,
+  );
   var app = firebaseRest.initializeApp(
-      options: AppOptionsRest()
-        ..projectId = options.projectId
-        ..apiKey = options.apiKey);
+    options:
+        AppOptionsRest()
+          ..projectId = options.projectId
+          ..apiKey = options.apiKey,
+  );
   var provider = GoogleAuthProviderRestIo(
-      options: options,
-      credentialPath: join('example', 'local.config_io.user.credentials.yaml'));
+    options: options,
+    credentialPath: join('example', 'local.config_io.user.credentials.yaml'),
+  );
   var auth = authService.auth(app);
   auth.addProvider(provider);
   var currentUser = await auth.onCurrentUser.first;

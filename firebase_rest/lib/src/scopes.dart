@@ -9,5 +9,5 @@ const firebaseGoogleApisCloudPlatformScope =
 /// Base scopes for Firebase.
 const firebaseBaseScopes = [
   firebaseGoogleApisCloudPlatformScope,
-  firebaseGoogleApisUserEmailScope
+  firebaseGoogleApisUserEmailScope,
 ];

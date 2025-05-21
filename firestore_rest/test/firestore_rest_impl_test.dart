@@ -29,7 +29,8 @@ Future main() async {
       // curl "https://firestore.googleapis.com/projects/tekartik-free-dev/databases/(default)/documents/tests/data-types"
       // ignore: unused_local_variable
       var data = await firestoreApi.projects.databases.documents.get(
-          'projects/tekartik-free-dev/databases/(default)/documents/tests/data-types');
+        'projects/tekartik-free-dev/databases/(default)/documents/tests/data-types',
+      );
       print(jsonPretty(data.toJson()));
     });
 
@@ -45,8 +46,10 @@ Future main() async {
     var firestore =
         noAuthFirestoreRest(projectId: 'dummy') as FirestoreRestImpl;
     expect(toRestValue(firestore, true).booleanValue, true);
-    expect(toRestValue(firestore, FieldValue.serverTimestamp).timestampValue,
-        isNotNull);
+    expect(
+      toRestValue(firestore, FieldValue.serverTimestamp).timestampValue,
+      isNotNull,
+    );
     try {
       toRestValue(firestore, FieldValue.delete);
       fail('should fail');

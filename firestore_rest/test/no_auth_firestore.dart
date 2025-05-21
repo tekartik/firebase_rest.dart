@@ -6,8 +6,9 @@ import 'package:tekartik_firebase_rest/firebase_rest.dart';
 Firestore noAuthFirestoreRest({required String? projectId}) {
   var firebase = firebaseRest;
   var app = firebase.initializeApp(
-      options: AppOptionsRest(client: httpClientFactory.newClient())
-        ..projectId = projectId);
+    options: AppOptionsRest(client: httpClientFactory.newClient())
+      ..projectId = projectId,
+  );
   var firestore = firestoreServiceRest.firestore(app);
   return firestore;
 }

@@ -31,21 +31,27 @@ abstract class AdminAppOptionsRest implements AppOptionsRest {
 /// Rest extension.
 extension FirebaseAdminRestExtension on FirebaseAdminRest {
   /// Initialize rest with a service account json map.
-  Future<FirebaseApp> initializeAppWithServiceAccountMap(Map map,
-      {List<String>? scopes}) async {
-    var credentials =
-        FirebaseAdminCredentialRest.fromServiceAccountMap(map, scopes: scopes);
+  Future<FirebaseApp> initializeAppWithServiceAccountMap(
+    Map map, {
+    List<String>? scopes,
+  }) async {
+    var credentials = FirebaseAdminCredentialRest.fromServiceAccountMap(
+      map,
+      scopes: scopes,
+    );
     credential.setApplicationDefault(credentials);
     return await initializeAppAsync();
   }
 
   /// Initialize rest with a service account json string.
   Future<FirebaseApp> initializeAppWithServiceAccountString(
-      String serviceAccountString,
-      {List<String>? scopes}) async {
+    String serviceAccountString, {
+    List<String>? scopes,
+  }) async {
     var credentials = FirebaseAdminCredentialRest.fromServiceAccountJson(
-        serviceAccountString,
-        scopes: scopes);
+      serviceAccountString,
+      scopes: scopes,
+    );
     credential.setApplicationDefault(credentials);
     return await initializeAppAsync();
   }
@@ -64,15 +70,16 @@ abstract class FirebaseAppOptionsRest extends AppOptions {
   Client? get client;
 
   /// Create a new options object.
-  factory FirebaseAppOptionsRest(
-          {@Deprecated('Use client') AuthClient? authClient,
-          Client? client,
-          FirebaseRestIdentifyServiceAccount? identifyServiceAccount}) =>
-      AppOptionsRestImpl(
-          // ignore: deprecated_member_use_from_same_package
-          authClient: authClient,
-          client: client,
-          identityServiceAccount: identifyServiceAccount);
+  factory FirebaseAppOptionsRest({
+    @Deprecated('Use client') AuthClient? authClient,
+    Client? client,
+    FirebaseRestIdentifyServiceAccount? identifyServiceAccount,
+  }) => AppOptionsRestImpl(
+    // ignore: deprecated_member_use_from_same_package
+    authClient: authClient,
+    client: client,
+    identityServiceAccount: identifyServiceAccount,
+  );
 }
 
 /// firebase rest instance.
@@ -89,7 +96,6 @@ class AppOptionsRestImpl extends FirebaseAppOptions implements AppOptionsRest {
   @override
   final FirebaseRestIdentifyServiceAccount? identityServiceAccount;
   @Deprecated('Use client')
-
   /// Compat
   AuthClient? get authClient =>
       (client is AuthClient) ? (client as AuthClient?) : null;
@@ -97,11 +103,11 @@ class AppOptionsRestImpl extends FirebaseAppOptions implements AppOptionsRest {
   final Client? client;
 
   /// authClient will be deprecated.
-  AppOptionsRestImpl(
-      {@Deprecated('Use client') AuthClient? authClient,
-      Client? client,
-      this.identityServiceAccount})
-      : client = client ?? authClient {
+  AppOptionsRestImpl({
+    @Deprecated('Use client') AuthClient? authClient,
+    Client? client,
+    this.identityServiceAccount,
+  }) : client = client ?? authClient {
     if (client != null) {
       assert(authClient == null);
     }
@@ -135,7 +141,7 @@ class FirebaseRestImpl with FirebaseMixin implements FirebaseAdminRest {
     }
     // old
     // initialize client
-//        await credential.applicationDefault()?.getAccessToken();
+    //        await credential.applicationDefault()?.getAccessToken();
     var app = initializeApp(options: options, name: name);
     return app;
   }
@@ -221,17 +227,23 @@ abstract class FirebaseAdminCredentialsRest implements FirebaseAdminCredential {
 
   /// from service account json string
   factory FirebaseAdminCredentialsRest.fromServiceAccountJson(
-      String serviceAccountJson,
-      {List<String>? scopes}) {
-    return firebaseAdminCredentialsFromServiceAccountJson(serviceAccountJson,
-        scopes: scopes);
+    String serviceAccountJson, {
+    List<String>? scopes,
+  }) {
+    return firebaseAdminCredentialsFromServiceAccountJson(
+      serviceAccountJson,
+      scopes: scopes,
+    );
   }
 
   /// from service account map
   factory FirebaseAdminCredentialsRest.fromServiceAccountMap(
-      Map serviceAccountMap,
-      {List<String>? scopes}) {
-    return firebaseAdminCredentialsFromServiceAccountMap(serviceAccountMap,
-        scopes: scopes);
+    Map serviceAccountMap, {
+    List<String>? scopes,
+  }) {
+    return firebaseAdminCredentialsFromServiceAccountMap(
+      serviceAccountMap,
+      scopes: scopes,
+    );
   }
 }

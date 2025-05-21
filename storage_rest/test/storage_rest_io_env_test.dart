@@ -33,11 +33,13 @@ Future main() async {
       var firebase = firebaseRest;
       group('all', () {
         runStorageTests(
-            firebase: firebase,
-            storageService: storageServiceRest,
-            options: context.options,
-            storageOptions:
-                TestStorageOptions(bucket: context.options!.storageBucket));
+          firebase: firebase,
+          storageService: storageServiceRest,
+          options: context.options,
+          storageOptions: TestStorageOptions(
+            bucket: context.options!.storageBucket,
+          ),
+        );
       });
     });
   }

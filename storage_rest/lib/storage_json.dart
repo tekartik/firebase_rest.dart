@@ -64,8 +64,11 @@ class UnauthenticatedStorageApi {
 
   // https://firebasestorage.googleapis.com/v0/b/xxxx.appspot.com";
 
-  UnauthenticatedStorageApi(
-      {String? storageBucket, this.appOptions, required this.client}) {
+  UnauthenticatedStorageApi({
+    String? storageBucket,
+    this.appOptions,
+    required this.client,
+  }) {
     _storageBucket = storageBucket;
   }
 
@@ -86,12 +89,16 @@ class UnauthenticatedStorageApi {
 
   Future<GsObjectInfo> getInfo(GsReference ref) async {
     var text = await httpClientRead(
-        client!, httpMethodGet, Uri.parse(getFileUrl(ref.name!)));
+      client!,
+      httpMethodGet,
+      Uri.parse(getFileUrl(ref.name!)),
+    );
     var map = jsonDecode(text) as Map;
     // devPrint(map);
     return GsObjectInfo(
-        contentType: map['contentType']?.toString(),
-        size: parseInt(map['size']));
+      contentType: map['contentType']?.toString(),
+      size: parseInt(map['size']),
+    );
   }
 
   String getMediaUrl(String name, {String? bucket}) {

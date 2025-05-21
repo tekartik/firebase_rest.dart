@@ -184,7 +184,11 @@ class UserRecordRest implements UserRecord {
 
   User toUser() {
     return UserRest(
-        uid: uid, emailVerified: emailVerified, provider: null, client: null)
+        uid: uid,
+        emailVerified: emailVerified,
+        provider: null,
+        client: null,
+      )
       ..email = email
       ..displayName = displayName;
   }
@@ -241,7 +245,10 @@ class UserCredentialEmailPasswordRestImpl implements UserCredentialRest {
   final User user;
 
   UserCredentialEmailPasswordRestImpl(
-      this.signInResponse, this.credential, this.user);
+    this.signInResponse,
+    this.credential,
+    this.user,
+  );
 
   @override
   String toString() => '$user $credential';
@@ -257,11 +264,12 @@ class FirebaseUserRest extends UserInfoRest implements User {
 
   final Client? client;
 
-  FirebaseUserRest(
-      {required this.emailVerified,
-      this.client,
-      required super.uid,
-      required super.provider});
+  FirebaseUserRest({
+    required this.emailVerified,
+    this.client,
+    required super.uid,
+    required super.provider,
+  });
 
   @override
   bool get isAnonymous => false;
@@ -280,13 +288,18 @@ abstract class FirebaseAuthRest implements FirebaseAuth {
   Client? get client;
 
   /// Custom AuthRest
-  factory FirebaseAuthRest(
-      {required FirebaseAuthServiceRest authService,
-      required FirebaseAppRest appRest,
-      String? rootUrl,
-      String? servicePathBase}) {
-    return AuthRestImpl(authService, appRest,
-        rootUrl: rootUrl, servicePathBase: servicePathBase);
+  factory FirebaseAuthRest({
+    required FirebaseAuthServiceRest authService,
+    required FirebaseAppRest appRest,
+    String? rootUrl,
+    String? servicePathBase,
+  }) {
+    return AuthRestImpl(
+      authService,
+      appRest,
+      rootUrl: rootUrl,
+      servicePathBase: servicePathBase,
+    );
   }
 
   void addProviderImpl(AuthProviderRest authProviderRest);
@@ -334,16 +347,20 @@ class AuthRestImpl
   @override
   User? get currentUser => _currentProviderUser?.user;
 
-  IdentityToolkitApi get identitytoolkitApi => _identitytoolkitApi ??= () {
+  IdentityToolkitApi get identitytoolkitApi =>
+      _identitytoolkitApi ??= () {
         if (rootUrl != null || servicePathBase != null) {
           var defaultRootUrl = 'https://www.googleapis.com/';
 
           var defaultServicePath = 'identitytoolkit/v3/relyingparty/';
-          return IdentityToolkitApi(_appRest.client!,
-              servicePath: servicePathBase == null
-                  ? defaultServicePath
-                  : '$servicePathBase/$defaultServicePath',
-              rootUrl: rootUrl ?? defaultRootUrl);
+          return IdentityToolkitApi(
+            _appRest.client!,
+            servicePath:
+                servicePathBase == null
+                    ? defaultServicePath
+                    : '$servicePathBase/$defaultServicePath',
+            rootUrl: rootUrl ?? defaultRootUrl,
+          );
         } else {
           return IdentityToolkitApi(_appRest.client!);
         }
@@ -367,8 +384,12 @@ class AuthRestImpl
 
   final _currentUserInitLock = Lock();
 
-  AuthRestImpl(this.serviceRest, this._appRest,
-      {this.rootUrl, this.servicePathBase}) {
+  AuthRestImpl(
+    this.serviceRest,
+    this._appRest, {
+    this.rootUrl,
+    this.servicePathBase,
+  }) {
     client = _appRest.client;
     if (debugFirebaseAuthRest) {
       _log('AuthRest(client: $client) is this a service account?');
@@ -377,31 +398,38 @@ class AuthRestImpl
 
     var firstCurrentUserCompleter = Completer<_ProviderUser?>();
     // Wait providers to be added.
-    _currentUserInitLock.synchronized(() => Future.value(null).then((_) {
-          // Get initial user
-          var futures = <Future>[];
-          if (debugFirebaseAuthRest) {
-            _log('providers: $providers');
-          }
-          for (var provider in providers) {
-            futures.add(provider.onCurrentUser.first.then((user) {
-              if (user != null) {
-                if (!firstCurrentUserCompleter.isCompleted) {
-                  firstCurrentUserCompleter
-                      .complete(_ProviderUser(provider, user));
-                }
-              }
-            }));
-          }
-          Future.wait(futures).then((_) {
-            if (!firstCurrentUserCompleter.isCompleted) {
-              firstCurrentUserCompleter.complete(null);
+    _currentUserInitLock.synchronized(
+      () => Future.value(null)
+          .then((_) {
+            // Get initial user
+            var futures = <Future>[];
+            if (debugFirebaseAuthRest) {
+              _log('providers: $providers');
             }
-          });
-          return firstCurrentUserCompleter.future;
-        }).then((firstCurrentUser) {
-          _setCurrentProviderUser(firstCurrentUser);
-        }));
+            for (var provider in providers) {
+              futures.add(
+                provider.onCurrentUser.first.then((user) {
+                  if (user != null) {
+                    if (!firstCurrentUserCompleter.isCompleted) {
+                      firstCurrentUserCompleter.complete(
+                        _ProviderUser(provider, user),
+                      );
+                    }
+                  }
+                }),
+              );
+            }
+            Future.wait(futures).then((_) {
+              if (!firstCurrentUserCompleter.isCompleted) {
+                firstCurrentUserCompleter.complete(null);
+              }
+            });
+            return firstCurrentUserCompleter.future;
+          })
+          .then((firstCurrentUser) {
+            _setCurrentProviderUser(firstCurrentUser);
+          }),
+    );
   }
 
   //String get localPath => _appLocal?.localPath;
@@ -418,15 +446,17 @@ class AuthRestImpl
   }
 
   @override
-  Future<ListUsersResult> listUsers(
-      {int? maxResults, String? pageToken}) async {
+  Future<ListUsersResult> listUsers({
+    int? maxResults,
+    String? pageToken,
+  }) async {
     throw UnsupportedError('listUsers');
   }
 
   @override
   Future<UserRecord?> getUser(String uid) async {
-    var request = IdentitytoolkitRelyingpartyGetAccountInfoRequest()
-      ..localId = [uid];
+    var request =
+        IdentitytoolkitRelyingpartyGetAccountInfoRequest()..localId = [uid];
     if (debugFirebaseAuthRest) {
       _log('getAccountInfoRequest: ${jsonPretty(request.toJson())}');
     }
@@ -443,8 +473,8 @@ class AuthRestImpl
 
   @override
   Future<List<UserRecord>> getUsers(List<String> uids) async {
-    var request = IdentitytoolkitRelyingpartyGetAccountInfoRequest()
-      ..localId = uids;
+    var request =
+        IdentitytoolkitRelyingpartyGetAccountInfoRequest()..localId = uids;
     if (debugFirebaseAuthRest) {
       _log('getAccountInfoRequest: ${jsonPretty(request.toJson())}');
     }
@@ -464,8 +494,10 @@ class AuthRestImpl
   }
 
   @override
-  Future<AuthSignInResult> signIn(AuthProvider authProvider,
-      {AuthSignInOptions? options}) async {
+  Future<AuthSignInResult> signIn(
+    AuthProvider authProvider, {
+    AuthSignInOptions? options,
+  }) async {
     if (authProvider is AuthProviderRest) {
       var result = await authProvider.signIn();
       if (result is AuthSignInResultRest) {
@@ -494,8 +526,10 @@ class AuthRestImpl
   String toString() => _appRest.name;
 
   @override
-  Future<DecodedIdToken> verifyIdToken(String idToken,
-      {bool? checkRevoked}) async {
+  Future<DecodedIdToken> verifyIdToken(
+    String idToken, {
+    bool? checkRevoked,
+  }) async {
     throw UnsupportedError('verifyIdToken');
   }
 
@@ -505,36 +539,44 @@ class AuthRestImpl
   }
 
   @override
-  Future<UserCredential> signInWithEmailAndPassword(
-      {required String email, required String password}) async {
+  Future<UserCredential> signInWithEmailAndPassword({
+    required String email,
+    required String password,
+  }) async {
     var client = EmailPasswordLoginClient(apiKey: _appRest.options.apiKey!);
     var apiV3 = identitytoolkit_v3.IdentityToolkitApi(client);
     var response = await apiV3.relyingparty.verifyPassword(
-        identitytoolkit_v3.IdentitytoolkitRelyingpartyVerifyPasswordRequest()
-          ..email = email
-          ..password = password
-          ..returnSecureToken = true);
+      identitytoolkit_v3.IdentitytoolkitRelyingpartyVerifyPasswordRequest()
+        ..email = email
+        ..password = password
+        ..returnSecureToken = true,
+    );
 
     // devPrint('signInWithPassword response: ${jsonEncode(response.toJson())}');
     var userCredential = UserCredentialEmailPasswordRestImpl(
-        response,
-        AuthCredentialRestImpl(),
-        UserRest(
-            client: client,
-            emailVerified: false,
-            provider: EmailPasswordAuthProviderRest(),
-            uid: response.localId!));
+      response,
+      AuthCredentialRestImpl(),
+      UserRest(
+        client: client,
+        emailVerified: false,
+        provider: EmailPasswordAuthProviderRest(),
+        uid: response.localId!,
+      ),
+    );
     // ignore: deprecated_member_use
-    _appRest.client =
-        EmailPasswordLoggedInClient(userCredential: userCredential);
+    _appRest.client = EmailPasswordLoggedInClient(
+      userCredential: userCredential,
+    );
     return UserCredentialEmailPasswordRestImpl(
-        response,
-        AuthCredentialRestImpl(),
-        UserRest(
-            client: client,
-            emailVerified: false,
-            provider: EmailPasswordAuthProviderRest(),
-            uid: response.localId!));
+      response,
+      AuthCredentialRestImpl(),
+      UserRest(
+        client: client,
+        emailVerified: false,
+        provider: EmailPasswordAuthProviderRest(),
+        uid: response.localId!,
+      ),
+    );
   }
 
   @override
@@ -594,7 +636,7 @@ class AuthAccountApi {
 
   AuthAccountApi({required this.apiKey});
 
-//  Future signInWithIdp() {}
+  //  Future signInWithIdp() {}
   void dispose() {
     client.close();
   }
@@ -616,7 +658,9 @@ abstract class AuthProviderRest implements AuthProvider {
 
 UserRecord toUserRecord(api.UserInfo restUserInfo) {
   var userRecord = UserRecordRest(
-      emailVerified: restUserInfo.emailVerified ?? false, disabled: false);
+    emailVerified: restUserInfo.emailVerified ?? false,
+    disabled: false,
+  );
   userRecord.email = restUserInfo.email;
   userRecord.displayName = restUserInfo.displayName;
   userRecord.uid = restUserInfo.localId!;

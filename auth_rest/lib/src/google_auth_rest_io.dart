@@ -30,17 +30,21 @@ class GoogleAuthProviderRestIoImpl
   final String? credentialPath;
   late auth_io.PromptUserForConsent userPrompt;
 
-  GoogleAuthProviderRestIoImpl(final GoogleAuthOptions googleAuthOptions,
-      {List<String>? scopes,
-      auth_io.PromptUserForConsent? userPrompt,
-      this.credentialPath}) {
+  GoogleAuthProviderRestIoImpl(
+    final GoogleAuthOptions googleAuthOptions, {
+    List<String>? scopes,
+    auth_io.PromptUserForConsent? userPrompt,
+    this.credentialPath,
+  }) {
     this.googleAuthOptions = googleAuthOptions;
-    this.userPrompt = userPrompt ??
+    this.userPrompt =
+        userPrompt ??
         (prompt) {
           print('userPrompt: $prompt');
         };
     // devPrint('GoogleAuthProviderRestImpl($googleAuthOptions, $scopes');
-    this.scopes = scopes ??
+    this.scopes =
+        scopes ??
         [
           ...firebaseBaseScopes,
           'https://www.googleapis.com/auth/devstorage.read_write',
@@ -48,7 +52,7 @@ class GoogleAuthProviderRestIoImpl
           // OAuth scope
           // 'https://www.googleapis.com/auth/firebase'
           //'https://www.googleapis.com/auth/contacts.readonly',
-          'https://www.googleapis.com/auth/contacts.readonly'
+          'https://www.googleapis.com/auth/contacts.readonly',
         ];
   }
 
@@ -56,42 +60,47 @@ class GoogleAuthProviderRestIoImpl
   Stream<FirebaseUserRest?> get onCurrentUser {
     late StreamController<FirebaseUserRest?> ctlr;
     if (currentUserController == null) {
-      ctlr = currentUserController ??=
-          StreamController.broadcast(onListen: () async {
-        // Get first client, next will sent through currentUserController
-        try {
-          var client = _authClient;
-          if (client == null) {
-            if (credentialPath != null) {
-              auth_io.AccessCredentials? accessCredentials;
-              var file = File(credentialPath!);
-              if (!file.existsSync()) {
-                stderr.writeln('Credential file not found, logging in');
-              } else {
-                try {
-                  final yaml = jsonDecode(file.readAsStringSync()) as Map;
-                  //devPrint(yaml);
-                  accessCredentials = auth_io.AccessCredentials.fromJson(
-                      yaml.cast<String, Object?>());
-                } catch (e, st) {
-                  stderr.writeln('error $e loading credentials, logging in');
-                  stderr.writeln(st);
-                  // exit(1);
+      ctlr =
+          currentUserController ??= StreamController.broadcast(
+            onListen: () async {
+              // Get first client, next will sent through currentUserController
+              try {
+                var client = _authClient;
+                if (client == null) {
+                  if (credentialPath != null) {
+                    auth_io.AccessCredentials? accessCredentials;
+                    var file = File(credentialPath!);
+                    if (!file.existsSync()) {
+                      stderr.writeln('Credential file not found, logging in');
+                    } else {
+                      try {
+                        final yaml = jsonDecode(file.readAsStringSync()) as Map;
+                        //devPrint(yaml);
+                        accessCredentials = auth_io.AccessCredentials.fromJson(
+                          yaml.cast<String, Object?>(),
+                        );
+                      } catch (e, st) {
+                        stderr.writeln(
+                          'error $e loading credentials, logging in',
+                        );
+                        stderr.writeln(st);
+                        // exit(1);
+                      }
+                    }
+                    if (accessCredentials != null) {
+                      await _initWithAccessCredentials(accessCredentials);
+                      return;
+                    }
+                  }
+                  setCurrentUser(null);
+                } else {
+                  // Handle on init.
+                  setCurrentUser(currentUser);
                 }
-              }
-              if (accessCredentials != null) {
-                await _initWithAccessCredentials(accessCredentials);
-                return;
-              }
-            }
-            setCurrentUser(null);
-          } else {
-            // Handle on init.
-            setCurrentUser(currentUser);
-          }
-        } catch (_) {}
-        setCurrentUser(null);
-      });
+              } catch (_) {}
+              setCurrentUser(null);
+            },
+          );
       return ctlr.stream;
     } else {
       return _onCurrentUser;
@@ -137,13 +146,17 @@ class GoogleAuthProviderRestIoImpl
   }
 
   Future<UserRest> _initWithAccessCredentials(
-      auth_io.AccessCredentials accessCredentials) async {
+    auth_io.AccessCredentials accessCredentials,
+  ) async {
     var clientId = googleAuthOptions.clientId!;
     var httpClient = Client();
     var authClientId = ClientId(clientId, googleAuthOptions.clientSecret);
     // devPrint('accessCredentials: ${accessCredentials.toJson()}');
     var authClient = auth_io.autoRefreshingClient(
-        authClientId, accessCredentials, httpClient);
+      authClientId,
+      accessCredentials,
+      httpClient,
+    );
     /*
       var accessCredentials = await clientViaUserConsent(
           clientId, scopes);
@@ -180,20 +193,21 @@ class GoogleAuthProviderRestIoImpl
     }
     // devPrint(jsonPretty(person.toJson()));
     // devPrint(auth.currentUser);
-    var user = FirebaseUserRest(
-        client: authClient,
-        emailVerified: person.verifiedEmail ?? false,
-        uid: person.id!,
-        provider: this)
-      ..email = person.email
-      ..displayName = person.name
-      ..accessCredentials = accessCredentials;
+    var user =
+        FirebaseUserRest(
+            client: authClient,
+            emailVerified: person.verifiedEmail ?? false,
+            uid: person.id!,
+            provider: this,
+          )
+          ..email = person.email
+          ..displayName = person.name
+          ..accessCredentials = accessCredentials;
 
     () async {
       // devPrint('adding user $user ($currentUserController)');
       setCurrentUser(user);
-    }()
-        .unawait();
+    }().unawait();
     return user;
   }
 
@@ -219,15 +233,22 @@ class GoogleAuthProviderRestIoImpl
 
       var httpClient = Client();
 
-      var accessCredentials =
-          await auth_io.obtainAccessCredentialsViaUserConsent(
-              authClientId, scopes, httpClient, userPrompt);
+      var accessCredentials = await auth_io
+          .obtainAccessCredentialsViaUserConsent(
+            authClientId,
+            scopes,
+            httpClient,
+            userPrompt,
+          );
 
       var user = await _initWithAccessCredentials(accessCredentials);
-      var result = AuthSignInResultRest(client: _authClient!, provider: this)
-        ..hasInfo = true
-        ..credential = UserCredentialRestImpl(
-            AuthCredentialRestImpl(providerId: providerId), user);
+      var result =
+          AuthSignInResultRest(client: _authClient!, provider: this)
+            ..hasInfo = true
+            ..credential = UserCredentialRestImpl(
+              AuthCredentialRestImpl(providerId: providerId),
+              user,
+            );
       return result;
     } catch (e) {
       // devPrint('error $e');
@@ -245,10 +266,13 @@ class GoogleAuthProviderRestIoImpl
 
 /// Rest IO provider (manual login)
 abstract class GoogleAuthProviderRestIo implements GoogleRestAuthProvider {
-  factory GoogleAuthProviderRestIo(
-          {required GoogleAuthOptions options,
-          PromptUserForConsentRest? userPrompt,
-          String? credentialPath}) =>
-      GoogleAuthProviderRestIoImpl(options,
-          userPrompt: userPrompt, credentialPath: credentialPath);
+  factory GoogleAuthProviderRestIo({
+    required GoogleAuthOptions options,
+    PromptUserForConsentRest? userPrompt,
+    String? credentialPath,
+  }) => GoogleAuthProviderRestIoImpl(
+    options,
+    userPrompt: userPrompt,
+    credentialPath: credentialPath,
+  );
 }
