@@ -203,17 +203,15 @@ Value toRestValue(FirestoreRestImpl firestore, dynamic value) {
   } else if (value is double) {
     restValue = Value()..doubleValue = value;
   } else if (value is GeoPoint) {
-    var geoPointValue =
-        LatLng()
-          ..latitude = value.latitude.toDouble()
-          ..longitude = value.longitude.toDouble();
+    var geoPointValue = LatLng()
+      ..latitude = value.latitude.toDouble()
+      ..longitude = value.longitude.toDouble();
     restValue = Value()..geoPointValue = geoPointValue;
   } else if (value is Timestamp) {
     restValue = Value()..timestampValue = value.toString();
   } else if (value is DateTime) {
-    restValue =
-        Value()
-          ..timestampValue = Timestamp.fromDateTime(value).toIso8601String();
+    restValue = Value()
+      ..timestampValue = Timestamp.fromDateTime(value).toIso8601String();
   } else if (value is Map) {
     restValue = _mapToRestValue(firestore, value);
   } else if (value is Iterable) {
@@ -469,10 +467,9 @@ class FirestoreRestImpl
   Filter whereToFilter(WhereInfo whereInfo) {
     if (whereInfo.isNull == true) {
       return Filter()
-        ..unaryFilter =
-            (UnaryFilter()
-              ..field = (FieldReference()..fieldPath = whereInfo.fieldPath)
-              ..op = 'IS_NULL');
+        ..unaryFilter = (UnaryFilter()
+          ..field = (FieldReference()..fieldPath = whereInfo.fieldPath)
+          ..op = 'IS_NULL');
     }
     // Operator
     //A field filter operator.
@@ -515,11 +512,10 @@ class FirestoreRestImpl
     }
     if (op != null && value != null) {
       return Filter()
-        ..fieldFilter =
-            (FieldFilter()
-              ..field = (FieldReference()..fieldPath = whereInfo.fieldPath)
-              ..op = op
-              ..value = toRestValue(this, value));
+        ..fieldFilter = (FieldFilter()
+          ..field = (FieldReference()..fieldPath = whereInfo.fieldPath)
+          ..op = op
+          ..value = toRestValue(this, value));
     }
     throw UnsupportedError('where $whereInfo');
   }
@@ -533,14 +529,14 @@ class FirestoreRestImpl
     } else if (aggregateField is AggregateFieldSum) {
       return Aggregation(
         alias: alias,
-        sum:
-            Sum()..field = (FieldReference()..fieldPath = aggregateField.field),
+        sum: Sum()
+          ..field = (FieldReference()..fieldPath = aggregateField.field),
       );
     } else if (aggregateField is AggregateFieldAverage) {
       return Aggregation(
         alias: alias,
-        avg:
-            Avg()..field = (FieldReference()..fieldPath = aggregateField.field),
+        avg: Avg()
+          ..field = (FieldReference()..fieldPath = aggregateField.field),
       );
     }
     throw ArgumentError(aggregateField);
@@ -551,8 +547,8 @@ class FirestoreRestImpl
   ) {
     var queryRest = aggregateQueryRest.queryRest;
     var structuredQuery = toStructuredQuery(queryRest);
-    var structuredAggregationQuery =
-        StructuredAggregationQuery()..structuredQuery = structuredQuery;
+    var structuredAggregationQuery = StructuredAggregationQuery()
+      ..structuredQuery = structuredQuery;
     structuredAggregationQuery.aggregations = aggregateQueryRest.fields.indexed
         .map((e) => toAggregation(e.$1, e.$2))
         .toList(growable: false);
@@ -571,25 +567,22 @@ class FirestoreRestImpl
 
     // Support select
     if (queryInfo.selectKeyPaths != null) {
-      structuredQuery.select =
-          Projection()
-            ..fields = queryInfo.selectKeyPaths!
-                .map((key) => FieldReference()..fieldPath = key)
-                .toList(growable: false);
+      structuredQuery.select = Projection()
+        ..fields = queryInfo.selectKeyPaths!
+            .map((key) => FieldReference()..fieldPath = key)
+            .toList(growable: false);
     }
     // Support where
     if (queryInfo.wheres.isNotEmpty) {
       if (queryInfo.wheres.length == 1) {
         structuredQuery.where = whereToFilter(queryInfo.wheres.first);
       } else {
-        structuredQuery.where =
-            Filter()
-              ..compositeFilter =
-                  (CompositeFilter()
-                    ..op = 'AND'
-                    ..filters = queryInfo.wheres
-                        .map((whereInfo) => whereToFilter(whereInfo))
-                        .toList(growable: false));
+        structuredQuery.where = Filter()
+          ..compositeFilter = (CompositeFilter()
+            ..op = 'AND'
+            ..filters = queryInfo.wheres
+                .map((whereInfo) => whereToFilter(whereInfo))
+                .toList(growable: false));
       }
     }
 
@@ -617,25 +610,22 @@ class FirestoreRestImpl
     // TODO support startAt
     if (queryInfo.startLimit != null) {
       // StartAt/StartAfter
-      structuredQuery.startAt =
-          Cursor()
-            ..before = queryInfo.startLimit!.inclusive
-            ..values = toRestValues(queryInfo.startLimit!.values!);
+      structuredQuery.startAt = Cursor()
+        ..before = queryInfo.startLimit!.inclusive
+        ..values = toRestValues(queryInfo.startLimit!.values!);
     }
     if (queryInfo.endLimit != null) {
       // StartAt/StartAfter
-      structuredQuery.endAt =
-          Cursor()
-            ..before = !queryInfo.endLimit!.inclusive
-            ..values = toRestValues(queryInfo.endLimit!.values!);
+      structuredQuery.endAt = Cursor()
+        ..before = !queryInfo.endLimit!.inclusive
+        ..values = toRestValues(queryInfo.endLimit!.values!);
     }
 
     structuredQuery.orderBy = queryInfo.orderBys
         .map(
-          (info) =>
-              Order()
-                ..field = (FieldReference()..fieldPath = info.fieldPath)
-                ..direction = toRestDirection(info.ascending),
+          (info) => Order()
+            ..field = (FieldReference()..fieldPath = info.fieldPath)
+            ..direction = toRestDirection(info.ascending),
         )
         .toList(growable: false);
 
@@ -659,11 +649,10 @@ class FirestoreRestImpl
     AggregateQueryRest aggregateQueryRest,
   ) async {
     var queryRest = aggregateQueryRest.queryRest;
-    var request =
-        RunAggregationQueryRequest()
-          ..structuredAggregationQuery = toStructuredAggregationQuery(
-            aggregateQueryRest,
-          );
+    var request = RunAggregationQueryRequest()
+      ..structuredAggregationQuery = toStructuredAggregationQuery(
+        aggregateQueryRest,
+      );
 
     var parent = url.dirname(getDocumentName(queryRest.path));
     try {
@@ -741,12 +730,10 @@ class FirestoreRestImpl
 
   Future<String?> beginTransaction({bool? readOnly}) async {
     readOnly ??= false;
-    var beginTransactionRequest =
-        BeginTransactionRequest()
-          ..options =
-              (TransactionOptions()
-                ..readWrite = readOnly ? null : ReadWrite()
-                ..readOnly = readOnly ? ReadOnly() : null);
+    var beginTransactionRequest = BeginTransactionRequest()
+      ..options = (TransactionOptions()
+        ..readWrite = readOnly ? null : ReadWrite()
+        ..readOnly = readOnly ? ReadOnly() : null);
     var database = getDatabaseName();
     BeginTransactionResponse beginTransactionResponse;
     try {
@@ -837,8 +824,8 @@ class FirestoreRestImpl
 
   Future commitBatch(WriteBatchRestImpl writeBatchRestImpl) async {
     // begin it needed
-    var transactionId =
-        writeBatchRestImpl.transactionId ??= await beginTransaction();
+    var transactionId = writeBatchRestImpl.transactionId ??=
+        await beginTransaction();
     try {
       for (var operation in writeBatchRestImpl.operations) {
         // Somehow we need unawait here as write operation are blocked until
@@ -904,18 +891,18 @@ class FirestoreRestImpl
         }
         // devPrint('commitRequest: ${jsonPretty(request.toJson())}');
 
-        var parent =
-            path != null ? getDocumentName(path) : getDocumentRootName();
+        var parent = path != null
+            ? getDocumentName(path)
+            : getDocumentRootName();
         // ignore: unused_local_variable
         var response = await firestoreApi.projects.databases.documents
             .listCollectionIds(request, parent);
         if (debugRest) {
           logDebug('response: ${jsonPretty(response.toJson())}');
         }
-        var stepCollections =
-            (response.collectionIds ?? <String>[])
-                .map((e) => collection(path == null ? e : url.join(path, e)))
-                .toList();
+        var stepCollections = (response.collectionIds ?? <String>[])
+            .map((e) => collection(path == null ? e : url.join(path, e)))
+            .toList();
         if (stepCollections.isEmpty) {
           break;
         }

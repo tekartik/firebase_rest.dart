@@ -15,10 +15,9 @@ Future<void> main() async {
         as Map,
   );
   var app = firebaseRest.initializeApp(
-    options:
-        AppOptionsRest()
-          ..projectId = options.projectId
-          ..apiKey = options.apiKey,
+    options: AppOptionsRest()
+      ..projectId = options.projectId
+      ..apiKey = options.apiKey,
   );
   var provider = GoogleAuthProviderRestIo(
     options: options,

@@ -60,47 +60,44 @@ class GoogleAuthProviderRestIoImpl
   Stream<FirebaseUserRest?> get onCurrentUser {
     late StreamController<FirebaseUserRest?> ctlr;
     if (currentUserController == null) {
-      ctlr =
-          currentUserController ??= StreamController.broadcast(
-            onListen: () async {
-              // Get first client, next will sent through currentUserController
-              try {
-                var client = _authClient;
-                if (client == null) {
-                  if (credentialPath != null) {
-                    auth_io.AccessCredentials? accessCredentials;
-                    var file = File(credentialPath!);
-                    if (!file.existsSync()) {
-                      stderr.writeln('Credential file not found, logging in');
-                    } else {
-                      try {
-                        final yaml = jsonDecode(file.readAsStringSync()) as Map;
-                        //devPrint(yaml);
-                        accessCredentials = auth_io.AccessCredentials.fromJson(
-                          yaml.cast<String, Object?>(),
-                        );
-                      } catch (e, st) {
-                        stderr.writeln(
-                          'error $e loading credentials, logging in',
-                        );
-                        stderr.writeln(st);
-                        // exit(1);
-                      }
-                    }
-                    if (accessCredentials != null) {
-                      await _initWithAccessCredentials(accessCredentials);
-                      return;
-                    }
-                  }
-                  setCurrentUser(null);
+      ctlr = currentUserController ??= StreamController.broadcast(
+        onListen: () async {
+          // Get first client, next will sent through currentUserController
+          try {
+            var client = _authClient;
+            if (client == null) {
+              if (credentialPath != null) {
+                auth_io.AccessCredentials? accessCredentials;
+                var file = File(credentialPath!);
+                if (!file.existsSync()) {
+                  stderr.writeln('Credential file not found, logging in');
                 } else {
-                  // Handle on init.
-                  setCurrentUser(currentUser);
+                  try {
+                    final yaml = jsonDecode(file.readAsStringSync()) as Map;
+                    //devPrint(yaml);
+                    accessCredentials = auth_io.AccessCredentials.fromJson(
+                      yaml.cast<String, Object?>(),
+                    );
+                  } catch (e, st) {
+                    stderr.writeln('error $e loading credentials, logging in');
+                    stderr.writeln(st);
+                    // exit(1);
+                  }
                 }
-              } catch (_) {}
+                if (accessCredentials != null) {
+                  await _initWithAccessCredentials(accessCredentials);
+                  return;
+                }
+              }
               setCurrentUser(null);
-            },
-          );
+            } else {
+              // Handle on init.
+              setCurrentUser(currentUser);
+            }
+          } catch (_) {}
+          setCurrentUser(null);
+        },
+      );
       return ctlr.stream;
     } else {
       return _onCurrentUser;
@@ -242,13 +239,12 @@ class GoogleAuthProviderRestIoImpl
           );
 
       var user = await _initWithAccessCredentials(accessCredentials);
-      var result =
-          AuthSignInResultRest(client: _authClient!, provider: this)
-            ..hasInfo = true
-            ..credential = UserCredentialRestImpl(
-              AuthCredentialRestImpl(providerId: providerId),
-              user,
-            );
+      var result = AuthSignInResultRest(client: _authClient!, provider: this)
+        ..hasInfo = true
+        ..credential = UserCredentialRestImpl(
+          AuthCredentialRestImpl(providerId: providerId),
+          user,
+        );
       return result;
     } catch (e) {
       // devPrint('error $e');

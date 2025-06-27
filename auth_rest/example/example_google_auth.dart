@@ -28,10 +28,9 @@ Future<void> main() async {
   }
   late FirebaseAuthRest auth;
   var app = firebaseRest.initializeApp(
-    options:
-        AppOptionsRest()
-          ..projectId = options.projectId
-          ..apiKey = options.apiKey,
+    options: AppOptionsRest()
+      ..projectId = options.projectId
+      ..apiKey = options.apiKey,
   );
   googleAuthProviderRestWeb = GoogleAuthProviderRestWeb(options: options);
   auth = firebaseAuthServiceRest.auth(app);
@@ -53,13 +52,12 @@ Future<void> main() async {
       var _identitytoolkitApi = IdentityToolkitApi(auth.client!);
       //var _identitytoolkitApi = (auth as AuthRestImpl)
       //  .identitytoolkitApi; //IdentityToolkitApi(auth.client!);
-      final request =
-          IdentitytoolkitRelyingpartyVerifyAssertionRequest()
-            ..returnSecureToken = true
-            ..autoCreate = true
-            ..returnIdpCredential = true
-            ..requestUri = Uri.base.toString()
-            ..returnRefreshToken;
+      final request = IdentitytoolkitRelyingpartyVerifyAssertionRequest()
+        ..returnSecureToken = true
+        ..autoCreate = true
+        ..returnIdpCredential = true
+        ..requestUri = Uri.base.toString()
+        ..returnRefreshToken;
       var providerId = 'google.com';
       var authToken = (auth.client as AuthClient).credentials.accessToken.data;
       request.postBody =
@@ -317,11 +315,10 @@ Future<void> main() async {
     var userInfo = await oauth2.userinfo.get();
     write(jsonPretty(userInfo.toJson()));
     // devPrint(auth.currentUser);
-    var request =
-        IdentitytoolkitRelyingpartyGetAccountInfoRequest()
-          ..idToken =
-              //  ..localId = [auth.currentUser!.uid]
-              '';
+    var request = IdentitytoolkitRelyingpartyGetAccountInfoRequest()
+      ..idToken =
+          //  ..localId = [auth.currentUser!.uid]
+          '';
     //devWarning;
 
     print('getAccountInfoRequest: ${jsonPretty(request.toJson())}');

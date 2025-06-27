@@ -72,8 +72,9 @@ class ServiceAccount {
 Future<AccessToken> getAccessToken(Client client) async {
   var serviceAccountJsonPath = join('test', 'local.service_account.json');
 
-  var serviceAccountJsonString =
-      File(serviceAccountJsonPath).readAsStringSync();
+  var serviceAccountJsonString = File(
+    serviceAccountJsonPath,
+  ).readAsStringSync();
 
   var creds = ServiceAccountCredentials.fromJson(serviceAccountJsonString);
 
@@ -134,12 +135,11 @@ Future<FirebaseRestTestContext> getContext(
 
   var appOptions = credentials.appOptions;
 
-  var context =
-      FirebaseRestTestContext()
-        ..client = client
-        //..accessToken = accessToken
-        ..authClient = authClient
-        ..options = appOptions;
+  var context = FirebaseRestTestContext()
+    ..client = client
+    //..accessToken = accessToken
+    ..authClient = authClient
+    ..options = appOptions;
   return context;
 }
 
@@ -155,12 +155,11 @@ Future<FirebaseRestTestContext> getContextFromAccessCredentials(
   var authClient = authenticatedClient(client, accessCredentials);
   var appOptions = AppOptionsRest(client: authClient);
   // ..projectId = jsonData['project_id']?.toString();
-  var context =
-      FirebaseRestTestContext()
-        ..client = client
-        //..accessToken = accessToken
-        ..authClient = authClient
-        ..options = appOptions;
+  var context = FirebaseRestTestContext()
+    ..client = client
+    //..accessToken = accessToken
+    ..authClient = authClient
+    ..options = appOptions;
   return context;
 }
 
@@ -239,8 +238,9 @@ Future<FirebaseRest?> firebaseRestSetup({
   try {
     serviceAccountJsonPath ??= join(dir, 'local.service_account.json');
 
-    var serviceAccountJsonString =
-        File(serviceAccountJsonPath).readAsStringSync();
+    var serviceAccountJsonString = File(
+      serviceAccountJsonPath,
+    ).readAsStringSync();
     firebaseRest.credential.setApplicationDefault(
       FirebaseAdminCredentialRest.fromServiceAccountJson(
         serviceAccountJsonString,

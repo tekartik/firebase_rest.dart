@@ -48,8 +48,9 @@ dynamic documentDataValueToJson(App app, dynamic value) {
   } else if (value is List) {
     return <String, Object?>{
       'arrayValue': {
-        'values':
-            value.map((value) => documentDataValueToJson(app, value)).toList(),
+        'values': value
+            .map((value) => documentDataValueToJson(app, value))
+            .toList(),
       },
     };
   } else if (value is Map) {

@@ -93,10 +93,9 @@ class StorageRestImpl
     String? path,
     Uint8List bytes,
   ) async {
-    var object =
-        api.Object()
-          ..name = path
-          ..bucket = bucket.name;
+    var object = api.Object()
+      ..name = path
+      ..bucket = bucket.name;
     object = await storageApi.objects.insert(
       object,
       bucket.name,
@@ -127,25 +126,22 @@ class StorageRestImpl
       nextQuery = GetFilesOptions(
         prefix: options.prefix,
         autoPaginate: options.autoPaginate,
-        maxResults:
-            options.maxResults != null
-                ? options.maxResults! - items.length
-                : null,
+        maxResults: options.maxResults != null
+            ? options.maxResults! - items.length
+            : null,
         pageToken: pageToken,
       );
     }
-    var response =
-        GetFilesResponseRest()
-          ..files =
-              items.map((object) {
-                // devPrint(object.toJson());
-                return FileRest(
-                  bucket,
-                  object.name,
-                  FileMetadataRest.fromObject(object),
-                );
-              }).toList()
-          ..nextQuery = nextQuery;
+    var response = GetFilesResponseRest()
+      ..files = items.map((object) {
+        // devPrint(object.toJson());
+        return FileRest(
+          bucket,
+          object.name,
+          FileMetadataRest.fromObject(object),
+        );
+      }).toList()
+      ..nextQuery = nextQuery;
 
     return response;
   }

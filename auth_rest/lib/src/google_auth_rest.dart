@@ -124,14 +124,13 @@ class GoogleAuthOptions {
   }
 
   @override
-  String toString() =>
-      {
-        'developerKey': developerKey,
-        'clientId': clientId,
-        'clientSecret': clientSecret,
-        'projectId': projectId,
-        'apiKey': apiKey,
-      }.toString();
+  String toString() => {
+    'developerKey': developerKey,
+    'clientId': clientId,
+    'clientSecret': clientSecret,
+    'projectId': projectId,
+    'apiKey': apiKey,
+  }.toString();
 }
 
 class AuthSignInResultRest implements AuthSignInResult {

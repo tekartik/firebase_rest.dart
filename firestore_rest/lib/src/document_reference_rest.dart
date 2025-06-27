@@ -55,11 +55,9 @@ class DocumentSnapshotRestImpl
 
   /// Never null if it exists.
   @override
-  Map<String, Object?> get data =>
-      exists
-          ? (mapFromFields(firestoreRestImpl, impl!.fields) ??
-              <String, Object?>{})
-          : throw StateError('no data');
+  Map<String, Object?> get data => exists
+      ? (mapFromFields(firestoreRestImpl, impl!.fields) ?? <String, Object?>{})
+      : throw StateError('no data');
 
   /// Sometimes in get we have a Document will all fields null.
   @override

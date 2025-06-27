@@ -347,24 +347,22 @@ class AuthRestImpl
   @override
   User? get currentUser => _currentProviderUser?.user;
 
-  IdentityToolkitApi get identitytoolkitApi =>
-      _identitytoolkitApi ??= () {
-        if (rootUrl != null || servicePathBase != null) {
-          var defaultRootUrl = 'https://www.googleapis.com/';
+  IdentityToolkitApi get identitytoolkitApi => _identitytoolkitApi ??= () {
+    if (rootUrl != null || servicePathBase != null) {
+      var defaultRootUrl = 'https://www.googleapis.com/';
 
-          var defaultServicePath = 'identitytoolkit/v3/relyingparty/';
-          return IdentityToolkitApi(
-            _appRest.client!,
-            servicePath:
-                servicePathBase == null
-                    ? defaultServicePath
-                    : '$servicePathBase/$defaultServicePath',
-            rootUrl: rootUrl ?? defaultRootUrl,
-          );
-        } else {
-          return IdentityToolkitApi(_appRest.client!);
-        }
-      }();
+      var defaultServicePath = 'identitytoolkit/v3/relyingparty/';
+      return IdentityToolkitApi(
+        _appRest.client!,
+        servicePath: servicePathBase == null
+            ? defaultServicePath
+            : '$servicePathBase/$defaultServicePath',
+        rootUrl: rootUrl ?? defaultRootUrl,
+      );
+    } else {
+      return IdentityToolkitApi(_appRest.client!);
+    }
+  }();
 
   void _setCurrentProviderUser(_ProviderUser? providerUser) {
     _currentProviderUser = providerUser;
@@ -455,8 +453,8 @@ class AuthRestImpl
 
   @override
   Future<UserRecord?> getUser(String uid) async {
-    var request =
-        IdentitytoolkitRelyingpartyGetAccountInfoRequest()..localId = [uid];
+    var request = IdentitytoolkitRelyingpartyGetAccountInfoRequest()
+      ..localId = [uid];
     if (debugFirebaseAuthRest) {
       _log('getAccountInfoRequest: ${jsonPretty(request.toJson())}');
     }
@@ -473,8 +471,8 @@ class AuthRestImpl
 
   @override
   Future<List<UserRecord>> getUsers(List<String> uids) async {
-    var request =
-        IdentitytoolkitRelyingpartyGetAccountInfoRequest()..localId = uids;
+    var request = IdentitytoolkitRelyingpartyGetAccountInfoRequest()
+      ..localId = uids;
     if (debugFirebaseAuthRest) {
       _log('getAccountInfoRequest: ${jsonPretty(request.toJson())}');
     }

@@ -202,8 +202,9 @@ Future main() async {
       ];
 
       // ignore: omit_local_variable_types
-      RunQueryResponse response =
-          json.map((e) => RunQueryResponseElement.fromJson(e)).toList();
+      RunQueryResponse response = json
+          .map((e) => RunQueryResponseElement.fromJson(e))
+          .toList();
       expect(response.length, 2);
     });
   });

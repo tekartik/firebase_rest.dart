@@ -13,7 +13,6 @@ TestStorageOptions getStorageOptionsFromEnv(Map<String, String> env) {
 }
 
 /// Get storage option from env on node, dummy on io
-TestStorageOptions get storageOptionsFromEnv =>
-    _storageOptionsFromEnv ??= () {
-      return getStorageOptionsFromEnv(_env);
-    }();
+TestStorageOptions get storageOptionsFromEnv => _storageOptionsFromEnv ??= () {
+  return getStorageOptionsFromEnv(_env);
+}();
