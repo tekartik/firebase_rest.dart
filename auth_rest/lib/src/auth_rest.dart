@@ -134,7 +134,7 @@ class AuthCredentialImpl implements AuthCredential {
   String toString() => 'AuthCredential($providerId)';
 }
 
-class UserRecordRest implements UserRecord {
+class UserRecordRest with FirebaseUserRecordDefaultMixin implements UserRecord {
   UserRecordRest({required this.disabled, required this.emailVerified});
 
   @override
