@@ -14,7 +14,6 @@ dependencies:
     git:
       url: https://github.com/tekartik/firebase.dart
       path: firebase
-      ref: dart3a
     version: '>=0.7.3'
   googleapis_auth: '>=1.4.1'
   googleapis:
@@ -25,12 +24,10 @@ dependencies:
     git:
       url: https://github.com/tekartik/platform.dart
       path: platform_io
-      ref: dart3a
     version: '>=0.2.1'
   tekartik_platform:
     git:
       url: https://github.com/tekartik/platform.dart
-      ref: dart3a
       path: platform
   process_run: ">=1.2.1+1"
 dev_dependencies:
@@ -40,12 +37,10 @@ dev_dependencies:
     git:
       url: https://github.com/tekartik/firebase.dart
       path: firebase_test
-      ref: dart3a
     version: '>=0.3.9'
   tekartik_app_http:
     git:
       url: https://github.com/tekartik/app_common_utils.dart
-      ref: dart3a
       path: app_http
     version: '>=0.1.0'
   build_runner: ">=2.4.13"

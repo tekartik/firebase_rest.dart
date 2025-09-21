@@ -10,6 +10,5 @@ dependencies:
     git:
       url: https://github.com/tekartik/firebase_rest.dart
       path: storage_rest
-      ref: dart3a
     version: '>=0.7.2'
 ```

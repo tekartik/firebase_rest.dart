@@ -14,13 +14,11 @@ dependencies:
     git:
       url: https://github.com/tekartik/firebase_storage.dart
       path: storage
-      ref: dart3a
     version: '>=0.8.0'
   tekartik_firebase_rest:
     git:
       url: https://github.com/tekartik/firebase_rest.dart
       path: firebase_rest
-      ref: dart3a
     version: '>=0.8.4'
   googleapis:
   googleapis_auth:
@@ -28,21 +26,18 @@ dependencies:
     git:
       url: https://github.com/tekartik/http.dart
       path: http
-      ref: dart3a
     version: '>=0.2.0+2'
   path: ">=1.9.0"
   http:
   tekartik_firebase:
     git:
       url: https://github.com/tekartik/firebase.dart
-      ref: dart3a
       path: firebase
 dev_dependencies:
   tekartik_firebase_local:
     git:
       url: https://github.com/tekartik/firebase.dart
       path: firebase_local
-      ref: dart3a
     version: '>=0.3.7'
   test: ">=1.24.0"
   build_runner: ">=2.4.13"
@@ -51,20 +46,17 @@ dev_dependencies:
     git:
       url: https://github.com/tekartik/firebase_storage.dart
       path: storage_test
-      ref: dart3a
     version: '>=0.4.1'
   process_run: ">=1.2.1+1"
   tekartik_app_http:
     git:
       url: https://github.com/tekartik/app_common_utils.dart
-      ref: dart3a
       path: app_http
     version: '>=0.1.0'
 
   tekartik_common_utils:
     git:
       url: https://github.com/tekartik/common_utils.dart
-      ref: dart3a
 
 resolution: workspace
   # tekartik_firebase_storage:

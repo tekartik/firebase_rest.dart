@@ -13,20 +13,17 @@ dependencies:
     git:
       url: https://github.com/tekartik/firebase_auth.dart
       path: auth
-      ref: dart3a
     version: '>=0.9.0'
   tekartik_firebase_rest:
     git:
       url: https://github.com/tekartik/firebase_rest.dart
       path: firebase_rest
-      ref: dart3a
     version: '>=0.8.3'
   googleapis_auth: '>=1.4.0'
   googleapis:
   tekartik_common_utils:
     git:
       url: https://github.com/tekartik/common_utils.dart
-      ref: dart3a
   http:
   yaml: ">=3.1.2"
   fs_shim: ">=2.3.3+1"
@@ -37,7 +34,6 @@ dev_dependencies:
     git:
       url: https://github.com/tekartik/firebase_auth.dart
       path: auth_test
-      ref: dart3a
     version: '>=0.8.0'
   build_runner: ">=2.4.13"
   build_test: ">=0.10.9+1"
@@ -47,13 +43,11 @@ dev_dependencies:
   tekartik_io_auth_utils:
     git:
       url: https://github.com/tekartik/io_auth_utils.dart
-      ref: dart3a
     version: '>=0.3.0'
 
   tekartik_firebase:
     git:
       url: https://github.com/tekartik/firebase.dart
-      ref: dart3a
       path: firebase
 
 resolution: workspace
