@@ -360,7 +360,7 @@ class AuthRestImpl
         rootUrl: rootUrl ?? defaultRootUrl,
       );
     } else {
-      return IdentityToolkitApi(_appRest.client!);
+      return IdentityToolkitApi(_appRest.apiClient);
     }
   }();
 
@@ -515,6 +515,8 @@ class AuthRestImpl
   Future signOut() async {
     try {
       await signInResultRest?.provider.signOut();
+      // ignore: deprecated_member_use
+      _appRest.client = null;
     } catch (e) {
       print('signOut error $e');
     }

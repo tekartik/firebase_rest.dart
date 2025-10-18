@@ -253,8 +253,9 @@ class FirestoreRestImpl
     if (_firestoreApi != null && _lastApiClient == appImpl.client) {
       return _firestoreApi!;
     } else {
-      _lastApiClient = appImpl.client;
-      return _firestoreApi = FirestoreApi(appImpl.client!);
+      var apiClient = appImpl.apiClient;
+      _lastApiClient = apiClient;
+      return _firestoreApi = FirestoreApi(apiClient);
     }
   }
 
@@ -318,7 +319,10 @@ class FirestoreRestImpl
         logDebug('documentGet: ${jsonPretty(document.toJson())}');
       }
       return DocumentSnapshotRestImpl(this, document);
-    } catch (e) {
+    } catch (e, st) {
+      if (debugRest) {
+        logDebug('getDocument error: $e\n$st');
+      }
       if (e is api.DetailedApiRequestError) {
         // devPrint(e.status);
         if (e.status == httpStatusCodeNotFound) {

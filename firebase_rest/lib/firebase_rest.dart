@@ -46,4 +46,7 @@ abstract class FirebaseAppRest implements FirebaseApp {
 
   @Deprecated('Only implementation should call that')
   set client(Client? client);
+
+  /// Never null
+  Client get apiClient;
 }

@@ -49,7 +49,7 @@ class StorageRestImpl
   late final StorageServiceRest serviceRest;
   late final FirebaseAppRest appRest;
 
-  Client get authClient => _authClient ??= appRest.client!;
+  Client get authClient => _authClient ?? appRest.apiClient;
   Client? _authClient;
   api.StorageApi? _storageApi;
 

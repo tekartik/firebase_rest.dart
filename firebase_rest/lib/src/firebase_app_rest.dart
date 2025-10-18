@@ -75,6 +75,9 @@ class AppRestImpl
   String toString() {
     return 'FirebaseAppRest($client)';
   }
+
+  @override
+  Client get apiClient => client ??= Client();
 }
 
 /// Public extension
