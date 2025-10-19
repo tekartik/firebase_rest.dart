@@ -10,11 +10,14 @@ FirebaseAppOptionsRest getAppOptionsFromAccessCredentials(
   AccessCredentials accessCredentials, {
   List<String>? scopes,
   String? projectId,
+  required FirebaseAppOptions? originalOptions,
 }) {
   var authClient = authenticatedClient(client, accessCredentials);
   var appOptions = AppOptionsRest(
     client: authClient,
     identifyServiceAccount: FirebaseRestIdentifyServiceAccountImpl(),
+    apiKey: originalOptions?.apiKey,
+    storageBucket: originalOptions?.storageBucket,
   )..projectId = projectId;
   return appOptions;
 }
@@ -25,6 +28,7 @@ FirebaseAppOptions getAppOptionsFromAccessToken(
   String token, {
   required String projectId,
   required List<String> scopes,
+  required FirebaseAppOptions? originalOptions,
 }) {
   // expiry is ignored in request
   var accessToken = AccessToken('Bearer', token, DateTime.now().toUtc());
@@ -33,5 +37,6 @@ FirebaseAppOptions getAppOptionsFromAccessToken(
     client,
     accessCredentials,
     projectId: projectId,
+    originalOptions: originalOptions,
   );
 }

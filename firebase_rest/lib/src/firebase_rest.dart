@@ -1,9 +1,11 @@
+import 'package:cv/cv.dart';
 import 'package:googleapis_auth/auth_io.dart';
 import 'package:googleapis_auth/googleapis_auth.dart';
 import 'package:http/http.dart';
 import 'package:tekartik_firebase/firebase_admin.dart';
 import 'package:tekartik_firebase/src/firebase_mixin.dart'; // ignore: implementation_imports
 import 'package:tekartik_firebase_rest/firebase_rest.dart';
+
 import 'firebase_app_rest.dart';
 import 'firebase_rest_io.dart';
 
@@ -33,19 +35,26 @@ extension FirebaseAdminRestExtension on FirebaseAdminRest {
   /// Initialize rest with a service account json map.
   Future<FirebaseApp> initializeAppWithServiceAccountMap(
     Map map, {
+
+    /// Overriden options (storage bucket, database url, ...)
+    FirebaseAppOptions? options,
     List<String>? scopes,
   }) async {
     var credentials = FirebaseAdminCredentialRest.fromServiceAccountMap(
       map,
+
       scopes: scopes,
     );
     credential.setApplicationDefault(credentials);
-    return await initializeAppAsync();
+    return await initializeAppAsync(options: options);
   }
 
   /// Initialize rest with a service account json string.
   Future<FirebaseApp> initializeAppWithServiceAccountString(
     String serviceAccountString, {
+
+    /// Overriden options (storage bucket, database url, ...)
+    FirebaseAppOptions? options,
     List<String>? scopes,
   }) async {
     var credentials = FirebaseAdminCredentialRest.fromServiceAccountJson(
@@ -53,7 +62,7 @@ extension FirebaseAdminRestExtension on FirebaseAdminRest {
       scopes: scopes,
     );
     credential.setApplicationDefault(credentials);
-    return await initializeAppAsync();
+    return await initializeAppAsync(options: options);
   }
 }
 
@@ -74,10 +83,14 @@ abstract class FirebaseAppOptionsRest extends AppOptions {
     @Deprecated('Use client') AuthClient? authClient,
     Client? client,
     FirebaseRestIdentifyServiceAccount? identifyServiceAccount,
+    String? apiKey,
+    String? storageBucket,
   }) => AppOptionsRestImpl(
     // ignore: deprecated_member_use_from_same_package
     authClient: authClient,
     client: client,
+    apiKey: apiKey,
+    storageBucket: storageBucket,
     identityServiceAccount: identifyServiceAccount,
   );
 }
@@ -106,6 +119,9 @@ class AppOptionsRestImpl extends FirebaseAppOptions implements AppOptionsRest {
   AppOptionsRestImpl({
     @Deprecated('Use client') AuthClient? authClient,
     Client? client,
+    super.projectId,
+    super.apiKey,
+    super.storageBucket,
     this.identityServiceAccount,
   }) : client = client ?? authClient {
     if (client != null) {
@@ -121,12 +137,20 @@ class FirebaseRestImpl with FirebaseMixin implements FirebaseAdminRest {
   App initializeApp({AppOptions? options, String? name}) {
     name ??= firebaseRestDefaultAppName;
     AppRestImpl app;
+    var credentialsRest = credential
+        .applicationDefault()
+        ?.anyAs<FirebaseAdminCredentialRest?>();
+    var restOptions = credentialsRest?.appOptions;
     if (options == null) {
-      var credentialsRest =
-          credential.applicationDefault() as FirebaseAdminCredentialRest;
-      options = (credentialsRest.appOptions)!;
-      app = AppRestImpl(name: name, firebaseRest: this, options: options);
+      app = AppRestImpl(name: name, firebaseRest: this, options: restOptions!);
     } else {
+      if (options.projectId == null) {
+        options = AppOptionsRestImpl(
+          projectId: restOptions?.projectId,
+          apiKey: options.apiKey,
+          storageBucket: options.storageBucket,
+        );
+      }
       app = AppRestImpl(name: name, firebaseRest: this, options: options);
     }
     _apps[app.name] = FirebaseMixin.latestFirebaseInstanceOrNull = app;

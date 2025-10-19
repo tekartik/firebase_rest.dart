@@ -10,6 +10,7 @@ environment:
 
 dependencies:
   uuid: '>=1.0.0'
+  cv:
   tekartik_firebase:
     git:
       url: https://github.com/tekartik/firebase.dart
