@@ -92,6 +92,7 @@ class StorageRestImpl
     BucketRest bucket,
     String? path,
     Uint8List bytes,
+    StorageUploadFileOptions? options,
   ) async {
     var object = api.Object()
       ..name = path
@@ -102,7 +103,11 @@ class StorageRestImpl
       name: path,
       predefinedAcl: 'publicRead',
       uploadOptions: api.UploadOptions(),
-      uploadMedia: api.Media(Stream.fromIterable([bytes]), bytes.length),
+      uploadMedia: api.Media(
+        Stream.fromIterable([bytes]),
+        bytes.length,
+        contentType: options?.contentType ?? 'application/octet-stream',
+      ),
     );
   }
 

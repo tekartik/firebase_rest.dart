@@ -15,16 +15,21 @@ class FileMetadataRest with FileMetadataMixin implements FileMetadata {
   @override
   final int size;
 
+  @override
+  final String? contentType;
+
   FileMetadataRest({
     required this.dateUpdated,
     required this.md5Hash,
     required this.size,
+    required this.contentType,
   });
 
   factory FileMetadataRest.fromObject(api.Object object) => FileMetadataRest(
     size: int.parse(object.size!),
     md5Hash: object.md5Hash!,
     dateUpdated: object.timeCreated!,
+    contentType: object.contentType,
   );
 }
 
@@ -43,7 +48,15 @@ class FileRest with FileMixin implements File {
 
   @override
   Future<void> writeAsBytes(Uint8List bytes) async {
-    await impl.writeFile(bucketRest, path, bytes);
+    await impl.writeFile(bucketRest, path, bytes, null);
+  }
+
+  @override
+  Future<void> upload(
+    Uint8List bytes, {
+    StorageUploadFileOptions? options,
+  }) async {
+    await impl.writeFile(bucketRest, path, bytes, options);
   }
 
   @override
