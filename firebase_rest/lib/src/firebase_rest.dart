@@ -93,6 +93,9 @@ abstract class FirebaseAppOptionsRest extends AppOptions {
     storageBucket: storageBucket,
     identityServiceAccount: identifyServiceAccount,
   );
+
+  /// Create a copy with modified values.
+  FirebaseAppOptionsRest copyWith({String? apiKey, String? storageBucket});
 }
 
 /// firebase rest instance.
@@ -129,6 +132,18 @@ class AppOptionsRestImpl extends FirebaseAppOptions implements AppOptionsRest {
     }
     // assert(this.client != null);
   }
+
+  @override
+  AppOptionsRestImpl copyWith({String? apiKey, String? storageBucket}) {
+    return AppOptionsRestImpl(
+      client: client,
+      projectId: projectId,
+      apiKey: apiKey ?? this.apiKey,
+      storageBucket: storageBucket ?? this.storageBucket,
+
+      identityServiceAccount: identityServiceAccount,
+    );
+  }
 }
 
 /// Rest implementation.
@@ -144,9 +159,8 @@ class FirebaseRestImpl with FirebaseMixin implements FirebaseAdminRest {
     if (options == null) {
       app = AppRestImpl(name: name, firebaseRest: this, options: restOptions!);
     } else {
-      if (options.projectId == null) {
-        options = AppOptionsRestImpl(
-          projectId: restOptions?.projectId,
+      if (restOptions != null) {
+        options = restOptions.copyWith(
           apiKey: options.apiKey,
           storageBucket: options.storageBucket,
         );
