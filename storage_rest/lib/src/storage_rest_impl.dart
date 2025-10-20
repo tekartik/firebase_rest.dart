@@ -2,9 +2,11 @@ import 'dart:typed_data';
 
 import 'package:googleapis/bigquery/v2.dart';
 import 'package:googleapis/storage/v1.dart' as api;
+import 'package:path/path.dart';
 import 'package:tekartik_firebase/firebase_mixin.dart';
 import 'package:tekartik_firebase_rest/firebase_rest.dart';
 import 'package:tekartik_firebase_storage/storage.dart';
+import 'package:tekartik_firebase_storage/utils/content_type.dart';
 import 'package:tekartik_firebase_storage_rest/src/bucket_rest.dart';
 import 'package:tekartik_firebase_storage_rest/src/file_rest.dart';
 import 'package:tekartik_http/http.dart';
@@ -90,24 +92,28 @@ class StorageRestImpl
 
   Future<void> writeFile(
     BucketRest bucket,
-    String? path,
+    String path,
     Uint8List bytes,
     StorageUploadFileOptions? options,
   ) async {
     var object = api.Object()
       ..name = path
       ..bucket = bucket.name;
+    var contentType =
+        options?.contentType ??
+        firebaseStorageContentTypeFromFilename(url.basename(path));
+    var stream = Stream.fromIterable([bytes]);
+    var media = contentType != null
+        ? api.Media(stream, bytes.length, contentType: contentType)
+        : api.Media(stream, bytes.length);
+
     object = await storageApi.objects.insert(
       object,
       bucket.name,
       name: path,
       predefinedAcl: 'publicRead',
       uploadOptions: api.UploadOptions(),
-      uploadMedia: api.Media(
-        Stream.fromIterable([bytes]),
-        bytes.length,
-        contentType: options?.contentType ?? 'application/octet-stream',
-      ),
+      uploadMedia: media,
     );
   }
 
@@ -142,7 +148,7 @@ class StorageRestImpl
         // devPrint(object.toJson());
         return FileRest(
           bucket,
-          object.name,
+          object.name!,
           FileMetadataRest.fromObject(object),
         );
       }).toList()
