@@ -1,9 +1,13 @@
 import 'package:http/http.dart';
 import 'package:tekartik_firebase_auth_rest/src/auth_rest.dart';
 
+import 'identitytoolkit/v3.dart' as identitytoolkit_v3;
+
+/// Internal request implementation
 class RequestImpl extends BaseRequest {
   final Stream<List<int>> _stream;
 
+  /// Create request
   RequestImpl(super.method, super.url, [Stream<List<int>>? stream])
     : _stream = stream ?? const Stream.empty();
 
@@ -14,11 +18,16 @@ class RequestImpl extends BaseRequest {
   }
 }
 
-class EmailPasswordLoginClient extends BaseClient {
+/// Api key client
+class ApiKeyClientClient extends BaseClient {
+  /// The api key
   final String apiKey;
+
+  /// The inner client
   final Client inner;
 
-  EmailPasswordLoginClient({Client? inner, required this.apiKey})
+  /// Create api key client
+  ApiKeyClientClient({Client? inner, required this.apiKey})
     : inner = inner ?? Client();
 
   @override
@@ -40,11 +49,15 @@ class EmailPasswordLoginClient extends BaseClient {
 }
 
 /// Authenticated client
-class EmailPasswordLoggedInClient extends BaseClient {
-  final UserCredentialEmailPasswordRestImpl userCredential;
+class LoggedInClient extends BaseClient {
+  /// The user credential
+  final UserCredentialRestImpl userCredential;
+
+  /// The inner client
   final Client inner;
 
-  EmailPasswordLoggedInClient({Client? inner, required this.userCredential})
+  /// Create logged in client
+  LoggedInClient({Client? inner, required this.userCredential})
     : inner = inner ?? Client();
 
   @override
@@ -70,9 +83,27 @@ class EmailPasswordLoggedInClient extends BaseClient {
     var stream = existing.finalize();
     var newRequest = RequestImpl(existing.method, existing.url, stream);
     newRequest.headers.addAll(existing.headers);
-    newRequest.headers['Authorization'] =
-        'Bearer ${userCredential.signInResponse.idToken}';
+    newRequest.headers['Authorization'] = 'Bearer ${userCredential.idToken}';
 
     return inner.send(newRequest);
   }
+}
+
+/// User credential email password implementation
+class UserCredentialEmailPasswordRestImpl extends UserCredentialRestImpl {
+  /// The sign in response
+  final identitytoolkit_v3.VerifyPasswordResponse signInResponse;
+
+  /// Create user credential
+  UserCredentialEmailPasswordRestImpl(
+    this.signInResponse,
+    super.credential,
+    super.user,
+  );
+
+  @override
+  String toString() => '$user $credential';
+
+  @override
+  String get idToken => signInResponse.idToken!;
 }

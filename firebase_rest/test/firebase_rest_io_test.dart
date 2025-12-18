@@ -36,6 +36,7 @@ Future main() async {
         FirebaseMixin.latestFirebaseInstanceOrNull = null;
         var firebase = firebaseRest;
         var app = firebase.initializeApp(
+          name: 'initialize_sync_and_latest',
           options: AppOptions(projectId: 'test'),
         );
         expect(FirebaseMixin.latestFirebaseInstanceOrNull, app);

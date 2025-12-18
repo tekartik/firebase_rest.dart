@@ -1,3 +1,5 @@
+// ignore_for_file: avoid_print
+
 import 'package:tekartik_common_utils/out_buffer.dart';
 import 'package:web/web.dart';
 

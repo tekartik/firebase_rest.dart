@@ -10,10 +10,12 @@ import 'package:tekartik_firebase_auth/auth.dart';
 import 'package:tekartik_firebase_auth_rest/src/auth_rest.dart';
 import 'package:tekartik_firebase_rest/firebase_rest.dart';
 
+import 'auth_rest_provider.dart';
 import 'google_auth_rest.dart';
 
+/// Google auth provider rest io implementation
 class GoogleAuthProviderRestIoImpl
-    with GoogleRestAuthProviderMixin
+    with AuthProviderRestMixin, GoogleRestAuthProviderMixin
     implements GoogleAuthProviderRestIo {
   AuthClient? _authClient;
 
@@ -28,8 +30,11 @@ class GoogleAuthProviderRestIoImpl
 
   /// Optional io path for saving credentials.
   final String? credentialPath;
+
+  /// Prompt user
   late auth_io.PromptUserForConsent userPrompt;
 
+  /// Constructor
   GoogleAuthProviderRestIoImpl(
     final GoogleAuthOptions googleAuthOptions, {
     List<String>? scopes,
@@ -40,6 +45,7 @@ class GoogleAuthProviderRestIoImpl
     this.userPrompt =
         userPrompt ??
         (prompt) {
+          // ignore: avoid_print
           print('userPrompt: $prompt');
         };
     // devPrint('GoogleAuthProviderRestImpl($googleAuthOptions, $scopes');
@@ -57,59 +63,41 @@ class GoogleAuthProviderRestIoImpl
   }
 
   @override
-  Stream<FirebaseUserRest?> get onCurrentUser {
-    late StreamController<FirebaseUserRest?> ctlr;
-    if (currentUserController == null) {
-      ctlr = currentUserController ??= StreamController.broadcast(
-        onListen: () async {
-          // Get first client, next will sent through currentUserController
-          try {
-            var client = _authClient;
-            if (client == null) {
-              if (credentialPath != null) {
-                auth_io.AccessCredentials? accessCredentials;
-                var file = File(credentialPath!);
-                if (!file.existsSync()) {
-                  stderr.writeln('Credential file not found, logging in');
-                } else {
-                  try {
-                    final yaml = jsonDecode(file.readAsStringSync()) as Map;
-                    //devPrint(yaml);
-                    accessCredentials = auth_io.AccessCredentials.fromJson(
-                      yaml.cast<String, Object?>(),
-                    );
-                  } catch (e, st) {
-                    stderr.writeln('error $e loading credentials, logging in');
-                    stderr.writeln(st);
-                    // exit(1);
-                  }
-                }
-                if (accessCredentials != null) {
-                  await _initWithAccessCredentials(accessCredentials);
-                  return;
-                }
-              }
-              setCurrentUser(null);
-            } else {
-              // Handle on init.
-              setCurrentUser(currentUser);
+  Future<UserCredentialRest?> restore() async {
+    // Get first client, next will sent through currentUserController
+    try {
+      var client = _authClient;
+      if (client == null) {
+        if (credentialPath != null) {
+          auth_io.AccessCredentials? accessCredentials;
+          var file = File(credentialPath!);
+          if (!file.existsSync()) {
+            stderr.writeln('Credential file not found, logging in');
+          } else {
+            try {
+              final yaml = jsonDecode(file.readAsStringSync()) as Map;
+              //devPrint(yaml);
+              accessCredentials = auth_io.AccessCredentials.fromJson(
+                yaml.cast<String, Object?>(),
+              );
+            } catch (e, st) {
+              stderr.writeln('error $e loading credentials, logging in');
+              stderr.writeln(st);
+              // exit(1);
             }
-          } catch (_) {}
-          setCurrentUser(null);
-        },
-      );
-      return ctlr.stream;
-    } else {
-      return _onCurrentUser;
-    }
-  }
-
-  Stream<FirebaseUserRest?> get _onCurrentUser async* {
-    yield currentUser;
-    yield* currentUserController!.stream;
+          }
+          if (accessCredentials != null) {
+            var user = await _initWithAccessCredentials(accessCredentials);
+            return user;
+          }
+        }
+      }
+    } catch (_) {}
+    return null;
   }
 
   //Future<String> getIdToken() async {}
+  /// Get user me
   Future<UserRest?> getUserMe() async {
     return null;
     /*
@@ -142,7 +130,7 @@ class GoogleAuthProviderRestIoImpl
     _authClient = null;
   }
 
-  Future<UserRest> _initWithAccessCredentials(
+  Future<UserCredentialRest> _initWithAccessCredentials(
     auth_io.AccessCredentials accessCredentials,
   ) async {
     var clientId = googleAuthOptions.clientId!;
@@ -196,16 +184,18 @@ class GoogleAuthProviderRestIoImpl
             emailVerified: person.verifiedEmail ?? false,
             uid: person.id!,
             provider: this,
+            isAnonymous: false,
           )
           ..email = person.email
           ..displayName = person.name
           ..accessCredentials = accessCredentials;
 
-    () async {
-      // devPrint('adding user $user ($currentUserController)');
-      setCurrentUser(user);
-    }().unawait();
-    return user;
+    var userCredential = UserCredentialGoogleRestImpl(
+      AuthCredentialRestImpl(providerId: providerId),
+      user,
+      idToken: accessCredentials.idToken!,
+    );
+    return userCredential;
   }
 
   @override
@@ -238,12 +228,14 @@ class GoogleAuthProviderRestIoImpl
             userPrompt,
           );
 
-      var user = await _initWithAccessCredentials(accessCredentials);
+      var userCredential = await _initWithAccessCredentials(accessCredentials);
+      var user = userCredential.user as FirebaseUserRest;
       var result = AuthSignInResultRest(client: _authClient!, provider: this)
         ..hasInfo = true
-        ..credential = UserCredentialRestImpl(
+        ..credential = UserCredentialGoogleRestImpl(
           AuthCredentialRestImpl(providerId: providerId),
           user,
+          idToken: accessCredentials.idToken!,
         );
       return result;
     } catch (e) {
@@ -255,13 +247,14 @@ class GoogleAuthProviderRestIoImpl
 
   @override
   Future<void> signOut() async {
-    setCurrentUser(null);
+    await setCurrentUserCredential(null);
     _closeClient();
   }
 }
 
 /// Rest IO provider (manual login)
 abstract class GoogleAuthProviderRestIo implements GoogleRestAuthProvider {
+  /// Constructor
   factory GoogleAuthProviderRestIo({
     required GoogleAuthOptions options,
     PromptUserForConsentRest? userPrompt,

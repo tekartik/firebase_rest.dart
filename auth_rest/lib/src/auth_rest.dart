@@ -1,7 +1,7 @@
-import 'package:googleapis/identitytoolkit/v3.dart' as identitytoolkit_v3;
 import 'package:googleapis_auth/googleapis_auth.dart';
 import 'package:http/http.dart';
 import 'package:tekartik_common_utils/common_utils_import.dart';
+import 'package:tekartik_common_utils/stream/stream_join.dart';
 import 'package:tekartik_firebase_auth/auth.dart';
 import 'package:tekartik_firebase_auth/src/auth_mixin.dart'; // ignore: implementation_imports
 import 'package:tekartik_firebase_auth_rest/src/identitytoolkit/v3.dart'
@@ -9,32 +9,23 @@ import 'package:tekartik_firebase_auth_rest/src/identitytoolkit/v3.dart'
 import 'package:tekartik_firebase_auth_rest/src/identitytoolkit/v3.dart' as api;
 import 'package:tekartik_firebase_rest/firebase_rest.dart';
 
-import 'email_password_auth_rest.dart';
+import 'auth_rest_built_in_provider.dart';
+import 'auth_rest_provider.dart';
+import 'auth_service_rest.dart';
 import 'google_auth_rest.dart';
 import 'import.dart';
 
 /// Debug rest (to move to firebase rest)
-//bool debugRest = false; // devWarning(true); // false
 var debugFirebaseAuthRest = false; // devWarning(true);
+// var debugFirebaseAuthRest = devWarning(true);
 
 void _log(Object? message) {
+  // ignore: avoid_print
   print(message);
 }
 
-@Deprecated('Use AuthProviderRest')
-abstract class AuthRestProvider implements AuthProvider {
-  factory AuthRestProvider() {
-    return AuthLocalProviderImpl();
-  }
-}
-
+/// Local provider id
 const localProviderId = '_local';
-
-// ignore: deprecated_member_use_from_same_package
-class AuthLocalProviderImpl implements AuthRestProvider {
-  @override
-  String get providerId => localProviderId;
-}
 
 /*
 class AuthLocalSignInOptions implements AuthSignInOptions {
@@ -45,38 +36,7 @@ class AuthLocalSignInOptions implements AuthSignInOptions {
 
  */
 
-class EmailPasswordAuthProviderRest implements AuthProviderRest {
-  @override
-  // TODO: implement currentAuthClient
-  AuthClient get currentAuthClient => throw UnimplementedError();
-
-  @override
-  Future<String> getIdToken({bool? forceRefresh}) {
-    // TODO: implement getIdToken
-    throw UnimplementedError();
-  }
-
-  @override
-  // TODO: implement onCurrentUser
-  Stream<FirebaseUserRest?> get onCurrentUser => throw UnimplementedError();
-
-  @override
-  // TODO: implement providerId
-  String get providerId => throw UnimplementedError();
-
-  @override
-  Future<AuthSignInResult> signIn() {
-    // TODO: implement signIn
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<void> signOut() {
-    // TODO: implement signOut
-    throw UnimplementedError();
-  }
-}
-
+/// List users result implementation
 class ListUsersResultRest implements ListUsersResult {
   @override
   final String pageToken;
@@ -84,58 +44,91 @@ class ListUsersResultRest implements ListUsersResult {
   @override
   final List<UserRecord> users;
 
+  /// Create list users result
   ListUsersResultRest({required this.pageToken, required this.users});
 }
 
+/// Sign in result implementation
 class AuthSignInResultImpl implements AuthSignInResult {
   @override
   final UserCredential credential;
 
+  /// Create auth sign in result
   AuthSignInResultImpl(this.credential);
 
   @override
   bool get hasInfo => true;
 }
 
+/// Rest provider id
 const restProviderId = '_rest';
 
+/// Auth credential rest implementation
 abstract class AuthCredentialRest implements AuthCredential {}
 
+/// Auth credential rest implementation
 class AuthCredentialRestImpl implements AuthCredentialRest {
   @override
   final String providerId;
 
+  /// Create auth credential
   AuthCredentialRestImpl({this.providerId = restProviderId});
 
   @override
   String toString() => 'AuthCredentialRest($providerId)';
 }
 
-class UserCredentialRestImpl implements UserCredential {
+/// User credential rest implementation
+abstract class UserCredentialRestImpl implements UserCredentialRest {
   @override
   final AuthCredentialRestImpl credential;
 
   @override
   final UserRest user;
 
+  /// Create user credential
   UserCredentialRestImpl(this.credential, this.user);
 
   @override
   String toString() => '$user $credential';
 }
 
+/// User credential google rest implementation
+class UserCredentialGoogleRestImpl extends UserCredentialRestImpl {
+  /// Create user credential google
+  UserCredentialGoogleRestImpl(
+    super.credential,
+    super.user, {
+    required this.idToken,
+  });
+
+  @override
+  String toString() => '$user $credential';
+
+  @override
+  final String idToken;
+}
+
+/// Auth credential implementation
 class AuthCredentialImpl implements AuthCredential {
   @override
   final String providerId;
 
+  /// Create auth credential
   AuthCredentialImpl({this.providerId = localProviderId});
 
   @override
   String toString() => 'AuthCredential($providerId)';
 }
 
+/// User record REST implementation
 class UserRecordRest with FirebaseUserRecordDefaultMixin implements UserRecord {
-  UserRecordRest({required this.disabled, required this.emailVerified});
+  /// Create user record
+  UserRecordRest({
+    required this.disabled,
+    required this.emailVerified,
+    required this.isAnonymous,
+  });
 
   @override
   dynamic get customClaims => null;
@@ -151,6 +144,9 @@ class UserRecordRest with FirebaseUserRecordDefaultMixin implements UserRecord {
 
   @override
   final bool emailVerified;
+
+  @override
+  final bool isAnonymous;
 
   @override
   UserMetadata? get metadata => null;
@@ -176,18 +172,21 @@ class UserRecordRest with FirebaseUserRecordDefaultMixin implements UserRecord {
   @override
   late String uid;
 
+  /// Convert to user info
   UserInfo toUserInfo() {
     return UserInfoRest(uid: uid, provider: null)
       ..email = email
       ..displayName = displayName;
   }
 
+  /// Convert to user
   User toUser() {
     return UserRest(
         uid: uid,
         emailVerified: emailVerified,
         provider: null,
         client: null,
+        isAnonymous: false,
       )
       ..email = email
       ..displayName = displayName;
@@ -199,8 +198,11 @@ class UserRecordRest with FirebaseUserRecordDefaultMixin implements UserRecord {
   }
 }
 
+/// User info rest implementation
 class UserInfoRest implements UserInfo, UserInfoWithIdToken {
+  /// Access credentials
   AccessCredentials? accessCredentials; // For current user only
+  /// Provider
   final AuthProviderRest? provider;
   @override
   String? displayName;
@@ -208,6 +210,7 @@ class UserInfoRest implements UserInfo, UserInfoWithIdToken {
   @override
   String? email;
 
+  /// Create user info
   UserInfoRest({required this.uid, this.provider});
 
   @override
@@ -234,24 +237,40 @@ class UserInfoRest implements UserInfo, UserInfoWithIdToken {
   }
 }
 
-abstract class UserCredentialRest implements UserCredential {}
+/// User credential rest implementation
+abstract class UserCredentialRest implements UserCredential {
+  /// The id token
+  String get idToken;
 
-class UserCredentialEmailPasswordRestImpl implements UserCredentialRest {
-  final identitytoolkit_v3.VerifyPasswordResponse signInResponse;
+  /// Create user credential
+  factory UserCredentialRest({
+    required AuthCredential credential,
+    required FirebaseUser user,
+    required String idToken,
+  }) {
+    return _UserCredentialRestLive(
+      credential: credential,
+      user: user,
+      idToken: idToken,
+    );
+  }
+}
+
+class _UserCredentialRestLive implements UserCredentialRest {
   @override
   final AuthCredential credential;
 
   @override
   final User user;
 
-  UserCredentialEmailPasswordRestImpl(
-    this.signInResponse,
-    this.credential,
-    this.user,
-  );
-
   @override
-  String toString() => '$user $credential';
+  final String idToken;
+
+  _UserCredentialRestLive({
+    required this.credential,
+    required this.user,
+    required this.idToken,
+  });
 }
 
 /// Compat
@@ -260,23 +279,27 @@ typedef UserRest = FirebaseUserRest;
 /// Top level class
 class FirebaseUserRest extends UserInfoRest implements User {
   @override
+  /// Whether the email is verified
   final bool emailVerified;
 
+  /// The client
   final Client? client;
 
+  @override
+  final bool isAnonymous;
+
+  /// Create firebase user
   FirebaseUserRest({
     required this.emailVerified,
     this.client,
+    required this.isAnonymous,
     required super.uid,
     required super.provider,
   });
 
   @override
-  bool get isAnonymous => false;
-
-  @override
   String toString() {
-    return '${super.toString()}, emailVerified: $emailVerified';
+    return '${super.toString()}, emailVerified: $emailVerified${isAnonymous ? ', anonymous' : ''}';
   }
 }
 
@@ -285,6 +308,7 @@ typedef AuthRest = FirebaseAuthRest;
 
 /// Custom auth rest
 abstract class FirebaseAuthRest implements FirebaseAuth {
+  /// The client
   Client? get client;
 
   /// Custom AuthRest
@@ -294,29 +318,36 @@ abstract class FirebaseAuthRest implements FirebaseAuth {
     String? rootUrl,
     String? servicePathBase,
   }) {
-    return AuthRestImpl(
+    return FirebaseAuthRestImpl(
       authService,
       appRest,
       rootUrl: rootUrl,
       servicePathBase: servicePathBase,
     );
   }
-
-  void addProviderImpl(AuthProviderRest authProviderRest);
 }
 
 /// Rest specific helper for adding a provider.
-extension AuthRestExt on FirebaseAuth {
+extension FirebaseAuthRestExt on FirebaseAuth {
+  /// Add a provider
   void addProvider(AuthProviderRest authProviderRest) =>
-      (this as FirebaseAuthRest).addProviderImpl(authProviderRest);
+      impl.addProviderImpl(authProviderRest);
+}
+
+/// Private extension
+extension FirebaseAuthRestPrvExt on FirebaseAuth {
+  /// Service rest
+  FirebaseAuthServiceRest get serviceRest => service as FirebaseAuthServiceRest;
+
+  /// Impl access
+  FirebaseAuthRestImpl get impl => this as FirebaseAuthRestImpl;
 }
 
 /// Common management
-mixin AuthRestMixin {
-  final providers = <AuthProviderRest>[];
-
+mixin FirebaseAuthRestMixin implements FirebaseAuthRest {
+  /// Add a provider
   void addProviderImpl(AuthProviderRest authProviderRest) {
-    providers.add(authProviderRest);
+    impl.providers.add(authProviderRest);
   }
 }
 
@@ -327,40 +358,102 @@ class _ProviderUser {
   _ProviderUser(this.provider, this.user);
 }
 
-class AuthRestImpl
-    with FirebaseAppProductMixin<FirebaseAuth>, AuthMixin, AuthRestMixin
+/// Auth rest implementation
+class FirebaseAuthRestImpl
+    with FirebaseAppProductMixin<FirebaseAuth>, AuthMixin, FirebaseAuthRestMixin
     implements FirebaseAuthRest {
+  /// Service
   final FirebaseAuthServiceRest serviceRest;
+
+  /// Providers
+  late final providers = () {
+    var providers = serviceRest.prv.providersCallback();
+    for (var provider in providers) {
+      provider.mixin.init(this);
+    }
+    return providers;
+  }();
+
+  /// Built-in provider
+  late final builtInProvider = providers
+      .whereType<BuiltInAuthProviderRest>()
+      .first;
+
   @override
+  // Client
   Client? client;
 
-  final _providerUserController = StreamController<_ProviderUser?>.broadcast();
-  _ProviderUser? _currentProviderUser;
+  StreamSubscription? _providerCurrentUserChangesSubscription;
+  final _authReadyCompleter = Completer<bool>();
 
+  /// Auth ready future to use before signIn,out,currentUser...
+  late final authReady = () {
+    _trackCurrentUserChanges();
+    return _authReadyCompleter.future;
+  }();
+
+  void _trackCurrentUserChanges() {
+    _providerCurrentUserChangesSubscription ??= () {
+      var providers = this.providers.toList();
+      var streams = providers.map((p) => p.onCurrentUser).toList();
+      _providerCurrentUserChangesSubscription = streamJoinAll(streams).listen((
+        users,
+      ) {
+        try {
+          var index = users.indexWhere((user) => user != null);
+          if (index >= 0) {
+            var provider = providers[index];
+            var user = users[index]!;
+            _setCurrentProviderUser(_ProviderUser(provider, user));
+            return;
+          }
+
+          /// Take first non null user
+          _setCurrentProviderUser(null);
+        } finally {
+          _authReadyCompleter.safeComplete(true);
+        }
+      });
+    }();
+  }
+
+  _ProviderUser? _currentProviderUser;
+  final _providerUserController = StreamController<_ProviderUser?>.broadcast(
+    sync: true,
+  );
+
+  /// Sign in result
   AuthSignInResultRest? signInResultRest;
-  final FirebaseAppRest _appRest;
+
+  /// App rest
+  final FirebaseAppRest appRest;
 
   IdentityToolkitApi? _identitytoolkitApi;
+
+  /// Root url
   String? rootUrl;
+
+  /// Service path base
   String? servicePathBase;
 
   @override
   User? get currentUser => _currentProviderUser?.user;
 
+  /// Identity toolkit api
   IdentityToolkitApi get identitytoolkitApi => _identitytoolkitApi ??= () {
     if (rootUrl != null || servicePathBase != null) {
       var defaultRootUrl = 'https://www.googleapis.com/';
 
       var defaultServicePath = 'identitytoolkit/v3/relyingparty/';
       return IdentityToolkitApi(
-        _appRest.client!,
+        appRest.client!,
         servicePath: servicePathBase == null
             ? defaultServicePath
             : '$servicePathBase/$defaultServicePath',
         rootUrl: rootUrl ?? defaultRootUrl,
       );
     } else {
-      return IdentityToolkitApi(_appRest.apiClient);
+      return IdentityToolkitApi(appRest.apiClient);
     }
   }();
 
@@ -368,66 +461,42 @@ class AuthRestImpl
     _currentProviderUser = providerUser;
     _providerUserController.sink.add(providerUser);
 
-    if (providerUser?.user != null) {
-      // Needed?
-      client = (providerUser!.provider as AuthProviderRest).currentAuthClient;
-    } else if (providerUser != null) {
-      if (_currentProviderUser?.provider == providerUser.provider) {
-        client = null;
+    Client? client;
+    if (providerUser != null) {
+      if (providerUser.user != null) {
+        // Needed?
+        client = (providerUser.provider as AuthProviderRest).currentAuthClient;
+      } else {
+        if (_currentProviderUser?.provider == providerUser.provider) {
+          client = null;
+        }
       }
     }
     // ignore: deprecated_member_use
-    _appRest.client = client;
+    appRest.client = client;
   }
 
-  final _currentUserInitLock = Lock();
-
-  AuthRestImpl(
+  /// Create auth rest
+  FirebaseAuthRestImpl(
     this.serviceRest,
-    this._appRest, {
+    this.appRest, {
     this.rootUrl,
     this.servicePathBase,
   }) {
-    client = _appRest.client;
+    client = appRest.client;
     if (debugFirebaseAuthRest) {
       _log('AuthRest(client: $client) is this a service account?');
     }
     // Copy auth client upon connection
+    return;
+  }
 
-    var firstCurrentUserCompleter = Completer<_ProviderUser?>();
-    // Wait providers to be added.
-    _currentUserInitLock.synchronized(
-      () => Future.value(null)
-          .then((_) {
-            // Get initial user
-            var futures = <Future>[];
-            if (debugFirebaseAuthRest) {
-              _log('providers: $providers');
-            }
-            for (var provider in providers) {
-              futures.add(
-                provider.onCurrentUser.first.then((user) {
-                  if (user != null) {
-                    if (!firstCurrentUserCompleter.isCompleted) {
-                      firstCurrentUserCompleter.complete(
-                        _ProviderUser(provider, user),
-                      );
-                    }
-                  }
-                }),
-              );
-            }
-            Future.wait(futures).then((_) {
-              if (!firstCurrentUserCompleter.isCompleted) {
-                firstCurrentUserCompleter.complete(null);
-              }
-            });
-            return firstCurrentUserCompleter.future;
-          })
-          .then((firstCurrentUser) {
-            _setCurrentProviderUser(firstCurrentUser);
-          }),
-    );
+  @override
+  void dispose() {
+    _providerCurrentUserChangesSubscription?.cancel();
+    _providerUserController.close();
+    _currentProviderUser = null;
+    super.dispose();
   }
 
   //String get localPath => _appLocal?.localPath;
@@ -435,7 +504,7 @@ class AuthRestImpl
   // Take first provider
   @override
   Stream<User?> get onCurrentUser async* {
-    await _currentUserInitLock.synchronized(() {});
+    await authReady;
     yield _currentProviderUser?.user;
 
     await for (var providerUser in _providerUserController.stream) {
@@ -502,7 +571,7 @@ class AuthRestImpl
         client = result.client;
         // Set in global too.
         // ignore: deprecated_member_use
-        _appRest.client = client;
+        appRest.client = client;
         signInResultRest = result;
       }
       return result;
@@ -513,17 +582,14 @@ class AuthRestImpl
 
   @override
   Future signOut() async {
-    try {
-      await signInResultRest?.provider.signOut();
-      // ignore: deprecated_member_use
-      _appRest.client = null;
-    } catch (e) {
-      print('signOut error $e');
-    }
+    await authReady;
+    await _currentProviderUser?.provider.mixin.signOut();
+    // ignore: deprecated_member_use
+    appRest.client = null;
   }
 
   @override
-  String toString() => _appRest.name;
+  String toString() => appRest.name;
 
   @override
   Future<DecodedIdToken> verifyIdToken(
@@ -539,127 +605,65 @@ class AuthRestImpl
   }
 
   @override
+  Future<UserCredential> signInAnonymously() async {
+    await authReady;
+    return builtInProvider.signInAnonymously();
+  }
+
+  @override
   Future<UserCredential> signInWithEmailAndPassword({
     required String email,
     required String password,
   }) async {
-    var client = EmailPasswordLoginClient(apiKey: _appRest.options.apiKey!);
-    var apiV3 = identitytoolkit_v3.IdentityToolkitApi(client);
-    var response = await apiV3.relyingparty.verifyPassword(
-      identitytoolkit_v3.IdentitytoolkitRelyingpartyVerifyPasswordRequest()
-        ..email = email
-        ..password = password
-        ..returnSecureToken = true,
-    );
-
-    // devPrint('signInWithPassword response: ${jsonEncode(response.toJson())}');
-    var userCredential = UserCredentialEmailPasswordRestImpl(
-      response,
-      AuthCredentialRestImpl(),
-      UserRest(
-        client: client,
-        emailVerified: false,
-        provider: EmailPasswordAuthProviderRest(),
-        uid: response.localId!,
-      ),
-    );
-    // ignore: deprecated_member_use
-    _appRest.client = EmailPasswordLoggedInClient(
-      userCredential: userCredential,
-    );
-    return UserCredentialEmailPasswordRestImpl(
-      response,
-      AuthCredentialRestImpl(),
-      UserRest(
-        client: client,
-        emailVerified: false,
-        provider: EmailPasswordAuthProviderRest(),
-        uid: response.localId!,
-      ),
+    await authReady;
+    return builtInProvider.signInWithEmailAndPassword(
+      email: email,
+      password: password,
     );
   }
 
   @override
-  FirebaseApp get app => _appRest;
+  FirebaseApp get app => appRest;
 
   @override
   FirebaseAuthService get service => serviceRest;
 }
 
+/// Decoded ID token local implementation
 class DecodedIdTokenLocal implements DecodedIdToken {
   @override
   final String uid;
 
+  /// Create decoded id token local
   DecodedIdTokenLocal({required this.uid});
 }
 
-class FirebaseAuthServiceRest
-    with FirebaseProductServiceMixin<FirebaseAuth>
-    implements FirebaseAuthService {
-  @override
-  bool get supportsListUsers => false;
-
-  @override
-  FirebaseAuthRest auth(App app) {
-    return getInstance(app, () {
-      assert(app is FirebaseAppRest, 'invalid app type - not AppLocal');
-      final appRest = app as FirebaseAppRest;
-      // final appLocal = app as AppLocal;
-      return AuthRestImpl(this, appRest);
-    });
-  }
-
-  @override
-  bool get supportsCurrentUser => true;
-}
-
-FirebaseAuthServiceRest? _authServiceRest;
-
-FirebaseAuthServiceRest get _firebaseAuthServiceRest =>
-    _authServiceRest ??= FirebaseAuthServiceRest();
-
-/// Compat
-FirebaseAuthServiceRest get authServiceRest => _firebaseAuthServiceRest;
-
-/// auth service
-FirebaseAuthServiceRest get firebaseAuthServiceRest =>
-    _firebaseAuthServiceRest; //firebaseAuthServiceRest;
-
-/// Compat
-typedef AuthServiceRest = FirebaseAuthServiceRest;
-//
 //FirebaseAuthServiceRest get authService => authServiceLocal;
 
+/// Rest account api
 class AuthAccountApi {
+  /// The api key
   final String apiKey;
+
+  /// The client
   var client = Client();
 
+  /// Create auth account api
   AuthAccountApi({required this.apiKey});
 
   //  Future signInWithIdp() {}
+  /// Dispose
   void dispose() {
     client.close();
   }
 }
 
-/// Extra rest information
-abstract class AuthProviderRest implements AuthProvider {
-  Future<AuthSignInResult> signIn();
-
-  Stream<FirebaseUserRest?> get onCurrentUser;
-
-  Future<String> getIdToken({bool? forceRefresh});
-
-  Future<void> signOut();
-
-  /// Current auto client
-  AuthClient get currentAuthClient;
-}
-
+/// Convert [api.UserInfo] to [UserRecord]
 UserRecord toUserRecord(api.UserInfo restUserInfo) {
   var userRecord = UserRecordRest(
     emailVerified: restUserInfo.emailVerified ?? false,
     disabled: false,
+    isAnonymous: false,
   );
   userRecord.email = restUserInfo.email;
   userRecord.displayName = restUserInfo.displayName;
@@ -668,4 +672,5 @@ UserRecord toUserRecord(api.UserInfo restUserInfo) {
   return userRecord;
 }
 
+/// Prompt user for consent callback
 typedef PromptUserForConsentRest = void Function(String uri);

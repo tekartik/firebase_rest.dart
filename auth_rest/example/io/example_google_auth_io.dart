@@ -1,4 +1,4 @@
-// ignore_for_file: directives_ordering
+// ignore_for_file: directives_ordering, avoid_print
 
 import 'dart:io';
 

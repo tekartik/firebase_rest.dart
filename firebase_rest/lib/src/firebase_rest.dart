@@ -151,6 +151,9 @@ class FirebaseRestImpl with FirebaseMixin implements FirebaseAdminRest {
   @override
   App initializeApp({AppOptions? options, String? name}) {
     name ??= firebaseRestDefaultAppName;
+    if (_apps.containsKey(name)) {
+      throw StateError('Firebase app named "$name" already exists');
+    }
     AppRestImpl app;
     var credentialsRest = credential
         .applicationDefault()
@@ -190,6 +193,11 @@ class FirebaseRestImpl with FirebaseMixin implements FirebaseAdminRest {
   App app({String? name}) {
     name ??= firebaseRestDefaultAppName;
     return _apps[name]!;
+  }
+
+  /// Clear app by name.
+  Future<void> clearAppByName(String name) async {
+    _apps.remove(name);
   }
 
   FirebaseAdminCredentialServiceRest? _credentialServiceRest;

@@ -59,6 +59,8 @@ class AppRestImpl
   Future<void> delete() async {
     deleted = true;
     await closeServices();
+    // So that init can be called again
+    await firebaseRest.clearAppByName(name);
   }
 
   @override

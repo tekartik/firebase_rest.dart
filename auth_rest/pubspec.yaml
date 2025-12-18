@@ -7,6 +7,7 @@ environment:
   sdk: ^3.9.0
 
 dependencies:
+  cv:
   uuid: '>=1.0.0'
   path: ">=1.9.0"
   tekartik_firebase_auth:
@@ -27,14 +28,16 @@ dependencies:
   http:
   yaml: ">=3.1.2"
   fs_shim: ">=2.3.3+1"
+  tekartik_browser_utils:
+    git: https://github.com/tekartik/browser_utils.dart
+
 dev_dependencies:
-  web: '>=0.5.0'
-  test: ">=1.24.0"
   tekartik_firebase_auth_test:
     git:
       url: https://github.com/tekartik/firebase_auth.dart
       path: auth_test
-    version: '>=0.8.0'
+  web: '>=0.5.0'
+  test: ">=1.24.0"
   build_runner: ">=2.4.13"
   build_test: ">=0.10.9+1"
   build_web_compilers: ">=4.0.11"
