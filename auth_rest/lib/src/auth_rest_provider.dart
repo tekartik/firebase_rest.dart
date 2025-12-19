@@ -4,6 +4,7 @@ import 'package:tekartik_firebase_auth_rest/auth_rest_io.dart';
 
 import 'auth_rest.dart';
 import 'auth_service_rest.dart';
+import 'email_password_auth_rest.dart';
 
 /// Extra rest information
 abstract class AuthProviderRest implements AuthProvider {
@@ -71,7 +72,11 @@ mixin AuthProviderRestMixin implements AuthProviderRest {
     UserCredentialRest? userCredential, {
     bool noSave = false,
   }) async {
-    currentAuthClient = null;
+    if (userCredential != null) {
+      currentAuthClient = LoggedInClient(userCredential: userCredential);
+    } else {
+      currentAuthClient = null;
+    }
     currentUserCredential = userCredential;
     var userRest = userCredential?.user as UserRest?;
     var ctlr = currentUserController;

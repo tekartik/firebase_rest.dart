@@ -1,5 +1,5 @@
 import 'package:googleapis/identitytoolkit/v3.dart' as identitytoolkit_v3;
-import 'package:tekartik_firebase_auth_rest/src/auth_rest.dart';
+import 'package:tekartik_firebase_auth_rest/src/user_credential_rest.dart';
 
 /// Anonymous user credential implementation for REST API.
 class UserCredentialAnonymousRestImpl extends UserCredentialRestImpl {

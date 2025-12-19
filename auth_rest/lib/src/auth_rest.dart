@@ -78,49 +78,6 @@ class AuthCredentialRestImpl implements AuthCredentialRest {
   String toString() => 'AuthCredentialRest($providerId)';
 }
 
-/// User credential rest implementation
-abstract class UserCredentialRestImpl implements UserCredentialRest {
-  @override
-  final AuthCredentialRestImpl credential;
-
-  @override
-  final UserRest user;
-
-  /// Create user credential
-  UserCredentialRestImpl(this.credential, this.user);
-
-  @override
-  String toString() => '$user $credential';
-}
-
-/// User credential google rest implementation
-class UserCredentialGoogleRestImpl extends UserCredentialRestImpl {
-  /// Create user credential google
-  UserCredentialGoogleRestImpl(
-    super.credential,
-    super.user, {
-    required this.idToken,
-  });
-
-  @override
-  String toString() => '$user $credential';
-
-  @override
-  final String idToken;
-}
-
-/// Auth credential implementation
-class AuthCredentialImpl implements AuthCredential {
-  @override
-  final String providerId;
-
-  /// Create auth credential
-  AuthCredentialImpl({this.providerId = localProviderId});
-
-  @override
-  String toString() => 'AuthCredential($providerId)';
-}
-
 /// User record REST implementation
 class UserRecordRest with FirebaseUserRecordDefaultMixin implements UserRecord {
   /// Create user record
@@ -211,7 +168,7 @@ class UserInfoRest implements UserInfo, UserInfoWithIdToken {
   String? email;
 
   /// Create user info
-  UserInfoRest({required this.uid, this.provider});
+  UserInfoRest({required this.uid, this.provider, this.email});
 
   @override
   String? get phoneNumber => null;
@@ -292,6 +249,7 @@ class FirebaseUserRest extends UserInfoRest implements User {
   FirebaseUserRest({
     required this.emailVerified,
     this.client,
+    super.email,
     required this.isAnonymous,
     required super.uid,
     required super.provider,
@@ -308,9 +266,6 @@ typedef AuthRest = FirebaseAuthRest;
 
 /// Custom auth rest
 abstract class FirebaseAuthRest implements FirebaseAuth {
-  /// The client
-  Client? get client;
-
   /// Custom AuthRest
   factory FirebaseAuthRest({
     required FirebaseAuthServiceRest authService,
@@ -352,8 +307,11 @@ mixin FirebaseAuthRestMixin implements FirebaseAuthRest {
 }
 
 class _ProviderUser {
-  final AuthProvider provider;
+  final AuthProviderRest provider;
   final UserRest? user;
+  @override
+  String toString() =>
+      'ProviderUser(provider: ${provider.providerId}, user: $user)';
 
   _ProviderUser(this.provider, this.user);
 }
@@ -378,10 +336,6 @@ class FirebaseAuthRestImpl
   late final builtInProvider = providers
       .whereType<BuiltInAuthProviderRest>()
       .first;
-
-  @override
-  // Client
-  Client? client;
 
   StreamSubscription? _providerCurrentUserChangesSubscription;
   final _authReadyCompleter = Completer<bool>();
@@ -465,7 +419,7 @@ class FirebaseAuthRestImpl
     if (providerUser != null) {
       if (providerUser.user != null) {
         // Needed?
-        client = (providerUser.provider as AuthProviderRest).currentAuthClient;
+        client = providerUser.provider.currentAuthClient;
       } else {
         if (_currentProviderUser?.provider == providerUser.provider) {
           client = null;
@@ -482,14 +436,7 @@ class FirebaseAuthRestImpl
     this.appRest, {
     this.rootUrl,
     this.servicePathBase,
-  }) {
-    client = appRest.client;
-    if (debugFirebaseAuthRest) {
-      _log('AuthRest(client: $client) is this a service account?');
-    }
-    // Copy auth client upon connection
-    return;
-  }
+  });
 
   @override
   void dispose() {
@@ -568,7 +515,7 @@ class FirebaseAuthRestImpl
     if (authProvider is AuthProviderRest) {
       var result = await authProvider.signIn();
       if (result is AuthSignInResultRest) {
-        client = result.client;
+        var client = result.client;
         // Set in global too.
         // ignore: deprecated_member_use
         appRest.client = client;

@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:tekartik_firebase_auth_rest/auth_rest_io.dart';
+import 'package:tekartik_firebase_auth_rest/src/user_credential_rest.dart';
 
 import 'auth_rest.dart';
 import 'auth_rest_persistence.dart';
@@ -85,8 +86,9 @@ class MockBuiltInAuthProviderRest extends BuiltInAuthProviderRest {
     if (persistence != null) {
       if (user != null) {
         var credentials =
-            FirebaseRestAuthPersistenceAccessCredentials.fromUserCredential(
-              user,
+            FirebaseRestAuthPersistenceAccessCredentialsUserCredential(
+              providerId: providerId,
+              user: user,
               //      accessToken: user.accessToken!,
               //     refreshToken: user.refreshToken!,
               //    expiry: user.accessTokenExpiry!,

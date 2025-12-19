@@ -19,8 +19,13 @@ class BuiltInAuthProviderRest extends AuthProviderRestBase {
     if (persistence != null) {
       var credentials = await persistence!.get(projectId);
       if (credentials != null) {
-        var user = await _initWithAccessCredentials(credentials);
-        return user;
+        var providerId = credentials.providerId;
+        if (providerId == this.providerId) {
+          var user = await _initWithAccessCredentials(
+            credentials as FirebaseRestAuthPersistenceAccessCredentialsMap,
+          );
+          return user;
+        }
       }
     }
     return null;
@@ -33,7 +38,7 @@ class BuiltInAuthProviderRest extends AuthProviderRestBase {
     // 3. Prepare the request
     final request =
         identitytoolkit_v3.IdentitytoolkitRelyingpartySignupNewUserRequest();
-    var client = ApiKeyClientClient(apiKey: authRest.app.options.apiKey!);
+    var client = ApiKeyClient(apiKey: authRest.app.options.apiKey!);
     var apiV3 = identitytoolkit_v3.IdentityToolkitApi(client);
     // 4. Call the signUp method (Anonymous sign-in is a signUp with no email/password)
     // The '$fields' or custom query params can be used to pass the key
@@ -53,7 +58,7 @@ class BuiltInAuthProviderRest extends AuthProviderRestBase {
     );
     // Here we set the global client to be used for requests
     // ignore: deprecated_member_use
-    currentAuthClient = LoggedInClient(userCredential: userCredential);
+
     await setCurrentUserCredential(userCredential);
     return userCredential;
   }
@@ -65,7 +70,7 @@ class BuiltInAuthProviderRest extends AuthProviderRestBase {
   }) async {
     await authReady;
     var appRest = authRest.impl.appRest;
-    var client = ApiKeyClientClient(apiKey: appRest.options.apiKey!);
+    var client = ApiKeyClient(apiKey: appRest.options.apiKey!);
     var apiV3 = identitytoolkit_v3.IdentityToolkitApi(client);
     var response = await apiV3.relyingparty.verifyPassword(
       identitytoolkit_v3.IdentitytoolkitRelyingpartyVerifyPasswordRequest()
@@ -80,6 +85,7 @@ class BuiltInAuthProviderRest extends AuthProviderRestBase {
       AuthCredentialRestImpl(),
       UserRest(
         client: client,
+        email: response.email,
         emailVerified: false,
         provider: this,
         uid: response.localId!,
@@ -87,7 +93,7 @@ class BuiltInAuthProviderRest extends AuthProviderRestBase {
       ),
     );
     // ignore: deprecated_member_use
-    appRest.client = LoggedInClient(userCredential: userCredential);
+
     await setCurrentUserCredential(userCredential);
     return userCredential;
   }
@@ -97,8 +103,9 @@ class BuiltInAuthProviderRest extends AuthProviderRestBase {
     if (persistence != null) {
       if (user != null) {
         var credentials =
-            FirebaseRestAuthPersistenceAccessCredentials.fromUserCredential(
-              user,
+            FirebaseRestAuthPersistenceAccessCredentialsUserCredential(
+              providerId: providerId,
+              user: user,
             );
         await persistence!.set(projectId, credentials);
       } else {
@@ -108,9 +115,14 @@ class BuiltInAuthProviderRest extends AuthProviderRestBase {
   }
 
   Future<UserCredentialRest?> _initWithAccessCredentials(
-    FirebaseRestAuthPersistenceAccessCredentials credentials,
+    FirebaseRestAuthPersistenceAccessCredentialsMap credentials,
   ) async {
-    return null;
+    // var appRest = authRest.impl.appRest;
+    // var client = ApiKeyClient(apiKey: appRest.options.apiKey!);
+
+    // devPrint('signInWithPassword response: ${jsonEncode(response.toJson())}');
+    var userCredential = credentials.getCredential(this);
+    return userCredential;
   }
 
   @override

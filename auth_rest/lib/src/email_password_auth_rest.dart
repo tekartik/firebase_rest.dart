@@ -1,5 +1,6 @@
 import 'package:http/http.dart';
 import 'package:tekartik_firebase_auth_rest/src/auth_rest.dart';
+import 'package:tekartik_firebase_auth_rest/src/user_credential_rest.dart';
 
 import 'identitytoolkit/v3.dart' as identitytoolkit_v3;
 
@@ -19,7 +20,7 @@ class RequestImpl extends BaseRequest {
 }
 
 /// Api key client
-class ApiKeyClientClient extends BaseClient {
+class ApiKeyClient extends BaseClient {
   /// The api key
   final String apiKey;
 
@@ -27,7 +28,7 @@ class ApiKeyClientClient extends BaseClient {
   final Client inner;
 
   /// Create api key client
-  ApiKeyClientClient({Client? inner, required this.apiKey})
+  ApiKeyClient({Client? inner, required this.apiKey})
     : inner = inner ?? Client();
 
   @override
@@ -51,7 +52,7 @@ class ApiKeyClientClient extends BaseClient {
 /// Authenticated client
 class LoggedInClient extends BaseClient {
   /// The user credential
-  final UserCredentialRestImpl userCredential;
+  final UserCredentialRest userCredential;
 
   /// The inner client
   final Client inner;

@@ -8,6 +8,7 @@ import 'package:http/http.dart';
 import 'package:tekartik_common_utils/common_utils_import.dart';
 import 'package:tekartik_firebase_auth/auth.dart';
 import 'package:tekartik_firebase_auth_rest/src/auth_rest.dart';
+import 'package:tekartik_firebase_auth_rest/src/user_credential_rest.dart';
 import 'package:tekartik_firebase_rest/firebase_rest.dart';
 
 import 'auth_rest_provider.dart';

@@ -11,7 +11,7 @@ import 'package:test/test.dart';
 
 Future main() async {
   var firebase = firebaseRest;
-  var firebaseAuthServiceRest = FirebaseAuthServiceRest(
+  var authService = FirebaseAuthServiceRest(
     persistence: FirebaseRestAuthPersistenceMemory(),
     providers: () => [MockBuiltInAuthProviderRest()],
   );
@@ -22,7 +22,7 @@ Future main() async {
     late FirebaseAuthRest auth;
     setUpAll(() async {
       app = firebase.initializeApp(options: options);
-      auth = firebaseAuthServiceRest.auth(app);
+      auth = authService.auth(app);
     });
     tearDownAll(() async {
       await app.delete();
@@ -44,7 +44,7 @@ Future main() async {
       var userId = auth.currentUser!.uid;
       await app.delete();
       app = firebase.initializeApp(options: options);
-      auth = firebaseAuthServiceRest.auth(app);
+      auth = authService.auth(app);
       expect(auth.currentUser, isNull); // not ready yet
       var fbUser = (await auth.onCurrentUser.first);
       print('fbUser: $fbUser');

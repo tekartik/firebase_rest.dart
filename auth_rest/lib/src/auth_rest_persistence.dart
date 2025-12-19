@@ -1,15 +1,28 @@
 import 'package:cv/cv_json.dart';
 import 'package:fs_shim/fs_shim.dart';
 import 'package:fs_shim/utils/read_write.dart';
+import 'package:path/path.dart';
 import 'package:tekartik_browser_utils/storage_utils.dart';
 import 'package:tekartik_firebase_auth_rest/auth_rest.dart';
 
 import 'auth_rest.dart';
 
+/// Access credentials from map
+abstract class FirebaseRestAuthPersistenceAccessCredentialsMap
+    implements FirebaseRestAuthPersistenceAccessCredentials {
+  /// Get user credential
+  UserCredentialRest getCredential(AuthProviderRest provider);
+
+  /// Create from map
+  factory FirebaseRestAuthPersistenceAccessCredentialsMap(Map map) {
+    return _FirebaseRestAuthPersistenceAccessCredentials._(asModel(map));
+  }
+}
+
 /// Access credentials
 class _FirebaseRestAuthPersistenceAccessCredentials
     with FirebaseRestAuthPersistenceAccessCredentialsMixin
-    implements FirebaseRestAuthPersistenceAccessCredentials {
+    implements FirebaseRestAuthPersistenceAccessCredentialsMap {
   final Model? _map;
 
   /// Convert to map
@@ -23,44 +36,88 @@ class _FirebaseRestAuthPersistenceAccessCredentials
   @override
   late String providerId;
 
+  @override
+  late final bool emailVerified;
+
+  @override
+  late final bool isAnonymous;
+
+  @override
+  late final String? email;
+
+  @override
+  late final String idToken;
+
   /// Default constructor
   _FirebaseRestAuthPersistenceAccessCredentials._(this._map) {
     uid = _map!['uid'] as String;
     providerId = _map['providerId'] as String;
+    emailVerified = _map['emailVerified'] as bool? ?? false;
+    isAnonymous = _map['isAnonymous'] as bool? ?? false;
+    email = _map['email'] as String?;
+    idToken = _map['idToken'] as String? ?? '';
   }
 
+  /// Get user credential for provider
+  @override
   UserCredentialRest getCredential(AuthProviderRest provider) {
-    var uid = _map!['uid'] as String;
-
     var userCredential = UserCredentialRest(
       credential: AuthCredentialRestImpl(),
       user: UserRest(
-        emailVerified: false,
-        isAnonymous: false,
+        emailVerified: emailVerified,
+        isAnonymous: isAnonymous,
         uid: uid,
         provider: provider,
-      ),
-      idToken: '',
+      )..email = email,
+      idToken: idToken,
     );
     return userCredential;
+  }
+}
+
+/// Access credentials from user credential
+abstract class FirebaseRestAuthPersistenceAccessCredentialsUserCredential
+    implements FirebaseRestAuthPersistenceAccessCredentials {
+  /// Create from user credential
+  factory FirebaseRestAuthPersistenceAccessCredentialsUserCredential({
+    required String providerId,
+    required UserCredentialRest user,
+  }) {
+    return _UserCredentialFirebaseRestAuthPersistenceAccessCredentials._(
+      providerId,
+      user,
+    );
   }
 }
 
 /// Access credentials
 class _UserCredentialFirebaseRestAuthPersistenceAccessCredentials
     with FirebaseRestAuthPersistenceAccessCredentialsMixin
-    implements FirebaseRestAuthPersistenceAccessCredentials {
+    implements FirebaseRestAuthPersistenceAccessCredentialsUserCredential {
   final UserCredentialRest _userCredential;
 
   @override
   String get uid => _userCredential.user.uid;
   @override
-  String get providerId => _userCredential.credential.providerId;
+  final String providerId;
+
+  @override
+  String get idToken => _userCredential.idToken;
 
   /// Default constructor
   _UserCredentialFirebaseRestAuthPersistenceAccessCredentials._(
+    this.providerId,
     this._userCredential,
   );
+
+  @override
+  String? get email => _userCredential.user.email;
+
+  @override
+  bool get emailVerified => _userCredential.user.emailVerified;
+
+  @override
+  bool get isAnonymous => _userCredential.user.isAnonymous;
 }
 
 /// Mixin for access credentials
@@ -75,7 +132,14 @@ mixin FirebaseRestAuthPersistenceAccessCredentialsMixin
   /// Convert to map
   @override
   Model toMap() {
-    return {'uid': uid, 'providerId': providerId};
+    return {
+      'uid': uid,
+      'providerId': providerId,
+      'emailVerified': emailVerified,
+      'isAnonymous': isAnonymous,
+      'email': email,
+      'idToken': idToken,
+    };
   }
 
   @override
@@ -86,45 +150,26 @@ mixin FirebaseRestAuthPersistenceAccessCredentialsMixin
 
 /// Access credentials
 abstract class FirebaseRestAuthPersistenceAccessCredentials {
+  /// Email verified
+  bool get emailVerified;
+
+  /// Is anonymous
+  bool get isAnonymous;
+
+  /// Email if any
+  String? get email;
+
   /// User id
   String get uid;
 
   /// Provider id
   String get providerId;
 
+  /// Id token
+  String get idToken;
+
   /// Convert to map
   Model toMap();
-
-  /// Create from user credential
-  factory FirebaseRestAuthPersistenceAccessCredentials.fromUserCredential(
-    UserCredentialRest user,
-  ) {
-    return _UserCredentialFirebaseRestAuthPersistenceAccessCredentials._(user);
-  }
-
-  /// Create from map, catch exception here needed!
-  factory FirebaseRestAuthPersistenceAccessCredentials.fromMap(Map map) {
-    return _FirebaseRestAuthPersistenceAccessCredentials._(asModel(map));
-    /*
-    var uid = map['uid'] as String;
-    var providerId = map['providerId'] as String?;
-    // var providerId = map['providerId'] as String?;
-    //
-    // var provider = providerId != null ? providers[providerId] : null;
-    var userCredential = UserCredentialRest(
-      credential: AuthCredentialRestImpl(),
-      user: UserRest(
-        emailVerified: false,
-        isAnonymous: false,
-        uid: uid,
-        provider: provider,
-      ),
-      idToken: '',
-    );
-    return FirebaseRestAuthPersistenceAccessCredentials(
-      credential: userCredential,
-    );*/
-  }
 
   @override
   String toString() {
@@ -164,7 +209,7 @@ class FirebaseRestAuthPersistenceWeb implements FirebaseRestAuthPersistence {
     try {
       var map = webLocalStorageGet(_key(projectId))?.jsonToMap();
       if (map != null) {
-        return FirebaseRestAuthPersistenceAccessCredentials.fromMap(map);
+        return FirebaseRestAuthPersistenceAccessCredentialsMap(map);
       }
       // Implement web-specific persistence retrieval logic here
     } catch (e) {
@@ -195,7 +240,7 @@ class FirebaseRestAuthPersistenceFile implements FirebaseRestAuthPersistence {
   final FileSystem fs;
 
   /// Optional file system path for saving credentials.
-  final String? directoryPath;
+  final String directoryPath;
   static const _directoryPathDefault = '.local';
   static const String _storageFilePrefix =
       'tekartik_firebase_auth_rest_access_credentials_';
@@ -208,7 +253,8 @@ class FirebaseRestAuthPersistenceFile implements FirebaseRestAuthPersistence {
   }) : fs = fs ?? fileSystemDefault,
        directoryPath = directoryPath ?? _directoryPathDefault;
 
-  File _file(String projectId) => fs.file('$_storageFilePrefix$projectId.json');
+  File _file(String projectId) =>
+      fs.file(join(directoryPath, '$_storageFilePrefix$projectId.json'));
 
   @override
   Future<FirebaseRestAuthPersistenceAccessCredentials?> get(
@@ -219,7 +265,7 @@ class FirebaseRestAuthPersistenceFile implements FirebaseRestAuthPersistence {
       if (await file.exists()) {
         var json = await file.readAsString();
         var map = json.jsonToMap();
-        return FirebaseRestAuthPersistenceAccessCredentials.fromMap(map);
+        return FirebaseRestAuthPersistenceAccessCredentialsMap(map);
       }
     } catch (e) {
       // ignore: avoid_print
@@ -257,13 +303,17 @@ class FirebaseRestAuthPersistenceFile implements FirebaseRestAuthPersistence {
 
 /// File implementation (cross platform)
 class FirebaseRestAuthPersistenceMemory implements FirebaseRestAuthPersistence {
-  final _map = <String, FirebaseRestAuthPersistenceAccessCredentials>{};
+  final _map = <String, Model>{};
 
   @override
   Future<FirebaseRestAuthPersistenceAccessCredentials?> get(
     String projectId,
   ) async {
-    return _map[projectId];
+    var map = _map[projectId];
+    if (map == null) {
+      return null;
+    }
+    return FirebaseRestAuthPersistenceAccessCredentialsMap(map);
   }
 
   @override
@@ -274,7 +324,7 @@ class FirebaseRestAuthPersistenceMemory implements FirebaseRestAuthPersistence {
     if (credentials == null) {
       _map.remove(projectId);
     } else {
-      _map[projectId] = credentials;
+      _map[projectId] = credentials.toMap();
     }
   }
 }
