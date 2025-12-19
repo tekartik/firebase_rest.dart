@@ -6,11 +6,11 @@ publish_to: none
 #author: alex <email@example.com>
 
 environment:
-  sdk: ^3.9.0
+  sdk: ^3.10.0
 
 dependencies:
   uuid: '>=1.0.0'
-  cv:
+  cv: ">=1.1.0+4"
   tekartik_firebase:
     git:
       url: https://github.com/tekartik/firebase.dart
