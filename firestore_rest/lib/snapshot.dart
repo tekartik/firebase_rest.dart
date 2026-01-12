@@ -8,6 +8,7 @@ String _basePath(App app) {
   return 'projects/${app.options.projectId}/databases/(default)/documents';
 }
 
+/// Document data to json.
 Map<String, Object?> documentDataToJson(
   App app,
   DocumentData data, {
@@ -20,6 +21,7 @@ Map<String, Object?> documentDataToJson(
   return map;
 }
 
+/// Snapshot to json.
 Map<String, Object?>? snapshotToJson(App app, DocumentSnapshot snapshot) {
   if (!snapshot.exists) {
     return null;
@@ -33,9 +35,11 @@ Map<String, Object?>? snapshotToJson(App app, DocumentSnapshot snapshot) {
   return map;
 }
 
+/// Document data from snapshot
 DocumentData? documentDataFromSnapshot(DocumentSnapshot snapshot) =>
     snapshot.exists ? DocumentData(snapshot.data) : null;
 
+/// Document value to json.
 dynamic documentDataValueToJson(App app, dynamic value) {
   if (value is String) {
     return <String, Object?>{'stringValue': value};

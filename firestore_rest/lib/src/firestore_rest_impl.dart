@@ -21,14 +21,19 @@ import 'firestore/v1.dart';
 import 'import.dart';
 import 'import_firestore.dart';
 
+/// Rest null value.
 const restNullValue = 'NULL_VALUE';
+
+/// Rest request time.
 const restRequestTime = 'REQUEST_TIME';
 
+/// Log debug message.
 void logDebug(Object? message) {
   // ignore: avoid_print
   print(message);
 }
 
+/// Debug flag.
 bool get debugRest => debugFirestoreRest; // devWarning(true); // false
 
 /// Exported for strict debugging
@@ -36,6 +41,7 @@ var debugFirestoreRest = false; // devWarning(true);
 
 bool _isDigit(String chr) => (chr.codeUnitAt(0) ^ 0x30) <= 9;
 
+/// Escape rest key.
 String restEscapeKey(String key) {
   if (key.isNotEmpty && _isDigit(key[0])) {
     return '`$key`';
@@ -43,6 +49,7 @@ String restEscapeKey(String key) {
   return escapeKey(key);
 }
 
+/// Date or timestamp value.
 dynamic dateOrTimestampValue(
   FirestoreDocumentContext firestore,
   String timestampValue,
@@ -58,6 +65,7 @@ dynamic dateOrTimestampValue(
   return timestamp;
 }
 
+/// Convert from rest value.
 Object? fromRestValue(FirestoreDocumentContext firestore, Value restValue) {
   if (restValue.nullValue == restNullValue) {
     return null;
@@ -103,6 +111,7 @@ Object? fromRestValue(FirestoreDocumentContext firestore, Value restValue) {
   }
 }
 
+/// Rest value to string.
 String? restValueToString(FirestoreDocumentContext firestore, Value restValue) {
   if (restValue.nullValue == restNullValue) {
     return restValue.nullValue;
@@ -146,6 +155,7 @@ Map<String, Value> _mapToFields(FirestoreRestImpl firestore, Map map) {
   return fields;
 }
 
+/// Map from map value.
 Map<String, Object?>? mapFromMapValue(
   FirestoreDocumentContext firestore,
   MapValue? mapValue,
@@ -156,6 +166,7 @@ Map<String, Object?>? mapFromMapValue(
   return null;
 }
 
+/// Map from fields.
 Map<String, Object?>? mapFromFields(
   FirestoreDocumentContext firestore,
   Map<String, Value>? fields,
@@ -174,6 +185,7 @@ Value _listToRestValue(FirestoreRestImpl firestore, Iterable list) {
   return Value()..arrayValue = arrayValue;
 }
 
+/// List to rest values.
 List<Value> listToRestValues(FirestoreRestImpl firestore, Iterable list) {
   return list
       .map((value) => toRestValue(firestore, value))
@@ -190,6 +202,7 @@ List<Object?> _listFromArrayValue(
   return list ?? <Object?>[];
 }
 
+/// To rest value.
 Value toRestValue(FirestoreRestImpl firestore, dynamic value) {
   Value restValue;
   if (value == null) {
@@ -237,18 +250,24 @@ Value toRestValue(FirestoreRestImpl firestore, dynamic value) {
   return restValue;
 }
 
+/// Firestore rest implementation.
 class FirestoreRestImpl
     with
         FirebaseAppProductMixin<Firestore>,
         FirestoreDefaultMixin,
         FirestoreMixin
     implements Firestore, FirestoreDocumentContext {
+  /// Service.
   @override
   final FirestoreServiceRestImpl service;
+
+  /// App implementation.
   final FirebaseAppRest appImpl;
   api.FirestoreApi? _firestoreApi;
 
   http.Client? _lastApiClient;
+
+  /// Firestore api.
   api.FirestoreApi get firestoreApi {
     if (_firestoreApi != null && _lastApiClient == appImpl.client) {
       return _firestoreApi!;
@@ -259,8 +278,10 @@ class FirestoreRestImpl
     }
   }
 
+  /// Project id.
   String? get projectId => appImpl.options.projectId;
 
+  /// Constructor.
   FirestoreRestImpl(this.service, this.appImpl) {
     assert(projectId != null);
   }
@@ -279,6 +300,7 @@ class FirestoreRestImpl
     return url.join(getDocumentRootName(), path);
   }
 
+  /// Get document root name.
   String getDocumentRootName() {
     return url.join(getDatabaseName(), 'documents');
   }
@@ -291,6 +313,8 @@ class FirestoreRestImpl
   }
 
   // 'projects/${projectId}/databases/(default)';
+
+  /// Get database name.
   String getDatabaseName() {
     return url.join('projects', projectId, 'databases', '(default)');
   }
@@ -300,6 +324,7 @@ class FirestoreRestImpl
     return DocumentReferenceRestImpl(this, path);
   }
 
+  /// Get a document.
   Future<DocumentSnapshot> getDocument(
     String path, {
     String? transactionId,
@@ -333,6 +358,7 @@ class FirestoreRestImpl
     }
   }
 
+  /// Delete a document.
   Future deleteDocument(String path) async {
     if (debugRest) {
       logDebug('delete $path');
@@ -365,13 +391,16 @@ class FirestoreRestImpl
     return result;
   }
 
+  /// Base uri.
   String get baseUri =>
       'https://firestore.googleapis.com/v1beta1/$projectId/tekartik-free-dev/databases/(default)';
 
+  /// Get uri path.
   String getUriPath(String path) {
     return url.join(baseUri, path);
   }
 
+  /// Create a document.
   Future<DocumentReference> createDocument(
     String path,
     Map<String, Object?> data,
@@ -396,6 +425,7 @@ class FirestoreRestImpl
     return DocumentReferenceRestImpl(this, document.name!);
   }
 
+  /// Write a document.
   Future<DocumentReference> writeDocument(
     String path,
     Map<String, Object?> data, {
@@ -434,6 +464,7 @@ class FirestoreRestImpl
     return DocumentReferenceRestImpl(this, path);
   }
 
+  /// Update a document.
   Future<DocumentReference> updateDocument(
     String path,
     Map<String, Object?> data,
@@ -468,6 +499,7 @@ class FirestoreRestImpl
     return DocumentReferenceRestImpl(this, path);
   }
 
+  /// Convert where info to filter.
   Filter whereToFilter(WhereInfo whereInfo) {
     if (whereInfo.isNull == true) {
       return Filter()
@@ -524,8 +556,13 @@ class FirestoreRestImpl
     throw UnsupportedError('where $whereInfo');
   }
 
+  /// Index alias.
   String indexAlias(int index) => 'field_$index';
+
+  /// Alias index.
   int aliasIndex(String alias) => int.parse(alias.substring('field_'.length));
+
+  /// To aggregation.
   Aggregation toAggregation(int index, AggregateField aggregateField) {
     var alias = indexAlias(index);
     if (aggregateField is AggregateFieldCount) {
@@ -546,6 +583,7 @@ class FirestoreRestImpl
     throw ArgumentError(aggregateField);
   }
 
+  /// To structured aggregation query.
   StructuredAggregationQuery toStructuredAggregationQuery(
     AggregateQueryRest aggregateQueryRest,
   ) {
@@ -559,6 +597,7 @@ class FirestoreRestImpl
     return structuredAggregationQuery;
   }
 
+  /// To structured query.
   StructuredQuery toStructuredQuery(QueryRestImpl queryRestImpl) {
     var queryInfo = queryRestImpl.queryInfo;
     var collectionPath = queryRestImpl.path;
@@ -636,6 +675,7 @@ class FirestoreRestImpl
     return structuredQuery;
   }
 
+  /// To rest direction.
   String toRestDirection(bool? ascending) {
     /// 'DIRECTION_UNSPECIFIED';
     /// 'ASCENDING' : Ascending.
@@ -649,6 +689,7 @@ class FirestoreRestImpl
     }
   }
 
+  /// Run aggregation query.
   Future<AggregateQuerySnapshotRest> runAggregationQuery(
     AggregateQueryRest aggregateQueryRest,
   ) async {
@@ -699,6 +740,7 @@ class FirestoreRestImpl
     }
   }
 
+  /// Run query.
   Future<QuerySnapshot> runQuery(QueryRestImpl queryRestImpl) async {
     var structuredQuery = toStructuredQuery(queryRestImpl);
 
@@ -732,6 +774,7 @@ class FirestoreRestImpl
   @override
   FirestoreRestImpl get impl => this;
 
+  /// Begin a transaction.
   Future<String?> beginTransaction({bool? readOnly}) async {
     readOnly ??= false;
     var beginTransactionRequest = BeginTransactionRequest()
@@ -826,6 +869,7 @@ class FirestoreRestImpl
     }
   }
 
+  /// Commit a batch.
   Future commitBatch(WriteBatchRestImpl writeBatchRestImpl) async {
     // begin it needed
     var transactionId = writeBatchRestImpl.transactionId ??=
@@ -933,6 +977,7 @@ class FirestoreRestImpl
     return await _listCollections(null);
   }
 
+  /// List document collections.
   Future<List<CollectionReference>> listDocumentCollections(String path) async {
     return _listCollections(path);
   }
@@ -941,6 +986,7 @@ class FirestoreRestImpl
   FirebaseApp get app => appImpl;
 }
 
+/// Firestore service rest implementation.
 class FirestoreServiceRestImpl
     with FirebaseProductServiceMixin<Firestore>, FirestoreServiceDefaultMixin
     implements FirestoreServiceRest {

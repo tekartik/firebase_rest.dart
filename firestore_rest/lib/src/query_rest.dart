@@ -9,6 +9,7 @@ import 'package:tekartik_firebase_firestore_rest/src/firestore_rest_impl.dart';
 
 import 'aggregate_query_rest.dart';
 
+/// Query implementation.
 class QueryRestImpl
     with
         QueryDefaultMixin,
@@ -18,6 +19,7 @@ class QueryRestImpl
         PathReferenceRestMixin,
         FirestoreQueryExecutorMixin
     implements Query {
+  /// Constructor.
   QueryRestImpl(FirestoreRestImpl firestoreRest, String path) {
     init(firestoreRest, path);
   }
@@ -41,10 +43,15 @@ class QueryRestImpl
   }
 }
 
+/// Query snapshot implementation.
 class QuerySnapshotRestImpl implements QuerySnapshot {
+  /// Firestore implementation.
   final FirestoreRestImpl firestoreRest;
+
+  /// Native response.
   final RunQueryResponse response;
 
+  /// Constructor.
   QuerySnapshotRestImpl(this.firestoreRest, this.response);
 
   List<DocumentSnapshot>? _docs;

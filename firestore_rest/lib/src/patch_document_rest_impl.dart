@@ -6,11 +6,15 @@ import 'package:tekartik_firebase_firestore_rest/src/firestore_rest_impl.dart';
 
 import 'firestore/v1.dart';
 
+/// Set document.
 class SetDocument extends WriteDocument {
+  /// Constructor.
   SetDocument(super.firestore, super.data) : super(merge: false);
 }
 
+/// Set merged document.
 class SetMergedDocument extends WriteDocument {
+  /// Constructor.
   SetMergedDocument(super.firestore, super.data) : super(merge: false);
 
   @override
@@ -63,7 +67,9 @@ class SetMergedDocument extends WriteDocument {
   }
 }
 
+/// Update document.
 class UpdateDocument extends WriteDocument {
+  /// Constructor.
   UpdateDocument(super.firestore, super.data) : super(merge: true);
 
   @override
@@ -118,21 +124,29 @@ class UpdateDocument extends WriteDocument {
   }
 }
 
+/// Write document.
 class WriteDocument with DocumentContext {
+  /// firestore context.
   @override
   final FirestoreDocumentContext firestore;
+
+  /// Merge option.
   bool merge;
+
+  /// Native document.
   final document = Document();
 
   /// Computed initially in merged.
   List<String>? fieldPaths;
   Map<String, Value>? _fields;
 
+  /// Constructor.
   WriteDocument(this.firestore, Map data, {required this.merge}) {
     _fromMap(data);
     document.fields = _fields;
   }
 
+  /// Fields.
   Map<String, Value>? get fields => document.fields;
 
   void _fromMap(Map map) {
@@ -142,6 +156,7 @@ class WriteDocument with DocumentContext {
 
   String? _currentParent;
 
+  /// Patch to rest value.
   Value patchToRestValue(String key, dynamic value) {
     var me = _currentParent == null ? key : url.join(_currentParent!, key);
 
@@ -197,6 +212,7 @@ class WriteDocument with DocumentContext {
     return 'doc: $fieldsToString $fieldPaths';
   }
 
+  /// Fields to string.
   String get fieldsToString {
     var sb = StringBuffer();
     fields?.forEach((key, value) {

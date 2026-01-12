@@ -26,6 +26,7 @@ abstract class AuthProviderRest implements AuthProvider {
 
 /// Auth provider rest mixin
 mixin AuthProviderRestMixin implements AuthProviderRest {
+  /// Auth ready completer.
   final _authReadyCompleter = Completer<bool>();
 
   /// Current user credential
@@ -113,12 +114,14 @@ extension AuthProviderRestPrv on AuthProvider {
 abstract class AuthProviderRestBase
     with AuthProviderRestMixin
     implements AuthProviderRest {
+  /// Get id token.
   @override
   Future<String> getIdToken({bool? forceRefresh}) {
     // TODO: implement getIdToken
     throw UnimplementedError();
   }
 
+  /// Sign in.
   @override
   Future<AuthSignInResult> signIn() {
     // TODO: implement signIn

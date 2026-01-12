@@ -4,10 +4,14 @@ import 'package:tekartik_firebase_rest/firebase_rest.dart';
 import '../auth_rest.dart';
 import 'auth_rest.dart';
 
+/// Firebase auth service rest implementation.
 class _FirebaseAuthServiceRest
     with FirebaseProductServiceMixin<FirebaseAuth>
     implements FirebaseAuthServiceRest {
+  /// Providers callback.
   List<AuthProviderRest> Function() providersCallback;
+
+  /// Persistence.
   final FirebaseRestAuthPersistence? persistence;
 
   /// Constructor
@@ -19,6 +23,7 @@ class _FirebaseAuthServiceRest
   /// Whether list users is supported
   bool get supportsListUsers => false;
 
+  /// Get auth instance.
   @override
   FirebaseAuthRest auth(App app) {
     return getInstance(app, () {
@@ -29,6 +34,7 @@ class _FirebaseAuthServiceRest
     });
   }
 
+  /// Whether current user is supported.
   @override
   bool get supportsCurrentUser => true;
 }
@@ -49,6 +55,7 @@ abstract class FirebaseAuthServiceRest implements FirebaseAuthService {
   }) =>
       _FirebaseAuthServiceRest(persistence: persistence, providers: providers);
 
+  /// Get auth instance.
   @override
   FirebaseAuthRest auth(App app);
 }
@@ -63,7 +70,7 @@ FirebaseAuthServiceRest get authServiceRest => _firebaseAuthServiceRest;
 
 /// auth service
 FirebaseAuthServiceRest get firebaseAuthServiceRest =>
-    _firebaseAuthServiceRest; //firebaseAuthServiceRest;
+    _firebaseAuthServiceRest; //firebaseAuthServiceRest
 
 /// Compat
 typedef AuthServiceRest = FirebaseAuthServiceRest;

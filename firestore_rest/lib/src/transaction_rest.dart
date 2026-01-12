@@ -2,7 +2,9 @@ import 'package:tekartik_firebase_firestore/firestore.dart';
 import 'package:tekartik_firebase_firestore_rest/src/import.dart';
 import 'package:tekartik_firebase_firestore_rest/src/write_batch.dart';
 
+/// Transaction implementation.
 class TransactionRestImpl extends WriteBatchRestImpl implements Transaction {
+  /// Constructor.
   TransactionRestImpl(super.firestoreRest);
 
   @override

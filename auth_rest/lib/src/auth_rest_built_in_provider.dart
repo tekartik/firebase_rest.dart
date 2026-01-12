@@ -14,6 +14,7 @@ class BuiltInAuthProviderRest extends AuthProviderRestBase {
   /// Create built-in auth provider
   BuiltInAuthProviderRest();
 
+  /// Restore user credential.
   @override
   Future<UserCredentialRest?> restore() async {
     if (persistence != null) {
@@ -98,6 +99,7 @@ class BuiltInAuthProviderRest extends AuthProviderRestBase {
     return userCredential;
   }
 
+  /// Save user credential.
   @override
   Future<void> saveUser(UserCredentialRest? user) async {
     if (persistence != null) {
@@ -114,6 +116,7 @@ class BuiltInAuthProviderRest extends AuthProviderRestBase {
     }
   }
 
+  /// Initialize with access credentials
   Future<UserCredentialRest?> _initWithAccessCredentials(
     FirebaseRestAuthPersistenceAccessCredentialsMap credentials,
   ) async {
@@ -125,6 +128,7 @@ class BuiltInAuthProviderRest extends AuthProviderRestBase {
     return userCredential;
   }
 
+  /// Provider ID.
   @override
   String get providerId => 'built_in';
 }

@@ -6,16 +6,18 @@ class UserCredentialAnonymousRestImpl extends UserCredentialRestImpl {
   /// Signup new user response.
   final identitytoolkit_v3.SignupNewUserResponse signUpResponse;
 
-  /// Anonymous user credential implementation for REST API.
+  /// Constructor.
   UserCredentialAnonymousRestImpl(
     this.signUpResponse,
     super.credential,
     super.user,
   );
 
+  /// To string.
   @override
   String toString() => '$user $credential';
 
+  /// Get id token.
   @override
   String get idToken => signUpResponse.idToken!;
 }

@@ -5,6 +5,7 @@ import 'package:tekartik_firebase_firestore_rest/src/collection_reference_rest.d
 import 'package:tekartik_firebase_firestore_rest/src/firestore/v1.dart' as api;
 import 'package:tekartik_firebase_firestore_rest/src/firestore_rest_impl.dart';
 
+/// Document reference implementation.
 class DocumentReferenceRestImpl
     with
         DocumentReferenceDefaultMixin,
@@ -13,6 +14,7 @@ class DocumentReferenceRestImpl
         PathReferenceMixin,
         PathReferenceRestMixin
     implements DocumentReference {
+  /// Constructor.
   DocumentReferenceRestImpl(FirestoreRestImpl firestoreRest, String path) {
     init(firestoreRest, path);
     checkDocumentReferencePath(this.path);
@@ -42,12 +44,17 @@ class DocumentReferenceRestImpl
   }
 }
 
+/// Document snapshot implementation.
 class DocumentSnapshotRestImpl
     with DocumentSnapshotMixin
     implements DocumentSnapshot {
+  /// Firestore implementation.
   final FirestoreRestImpl firestoreRestImpl;
+
+  /// Native implementation.
   final api.Document? impl;
 
+  /// Constructor.
   DocumentSnapshotRestImpl(this.firestoreRestImpl, this.impl);
 
   @override

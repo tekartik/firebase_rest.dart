@@ -15,17 +15,22 @@ class _UserCredentialRestMockImpl extends UserCredentialRestImpl {
     required this.idToken,
   });
 
+  /// To string.
   @override
   String toString() => '$user $credential';
 
+  /// Get id token.
   @override
   final String idToken;
 }
 
 /// Mock built in auth provider rest implementation
 class MockBuiltInAuthProviderRest extends BuiltInAuthProviderRest {
+  /// Provider ID.
   @override
   String get providerId => 'mock_built_in';
+
+  /// Restore user credential.
   @override
   Future<UserCredentialRest?> restore() async {
     if (persistence != null) {
@@ -38,6 +43,7 @@ class MockBuiltInAuthProviderRest extends BuiltInAuthProviderRest {
     return null;
   }
 
+  /// Sign in with email and password.
   @override
   Future<UserCredential> signInWithEmailAndPassword({
     required String email,
@@ -60,6 +66,7 @@ class MockBuiltInAuthProviderRest extends BuiltInAuthProviderRest {
     return userCredential;
   }
 
+  /// Sign in anonymously.
   @override
   Future<UserCredential> signInAnonymously() async {
     // Just create a mock user
@@ -81,6 +88,7 @@ class MockBuiltInAuthProviderRest extends BuiltInAuthProviderRest {
     return userCredential;
   }
 
+  /// Save user credential.
   @override
   Future<void> saveUser(UserCredentialRest? user) async {
     if (persistence != null) {
@@ -100,6 +108,7 @@ class MockBuiltInAuthProviderRest extends BuiltInAuthProviderRest {
     }
   }
 
+  /// Initialize with access credentials
   Future<UserCredentialRest?> _initWithAccessCredentials(
     FirebaseRestAuthPersistenceAccessCredentials credentials,
   ) async {
