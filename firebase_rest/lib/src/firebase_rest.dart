@@ -147,13 +147,13 @@ class AppOptionsRestImpl extends FirebaseAppOptions implements AppOptionsRest {
 }
 
 /// Rest implementation.
-class FirebaseRestImpl with FirebaseMixin implements FirebaseAdminRest {
+class FirebaseRestImpl
+    with FirebaseWithAppsMixin, FirebaseMixin
+    implements FirebaseAdminRest {
   @override
   App initializeApp({AppOptions? options, String? name}) {
     name ??= firebaseRestDefaultAppName;
-    if (_apps.containsKey(name)) {
-      throw StateError('Firebase app named "$name" already exists');
-    }
+    checkAppNameUninitialized(name);
     AppRestImpl app;
     var credentialsRest = credential
         .applicationDefault()
@@ -170,8 +170,7 @@ class FirebaseRestImpl with FirebaseMixin implements FirebaseAdminRest {
       }
       app = AppRestImpl(name: name, firebaseRest: this, options: options);
     }
-    _apps[app.name] = FirebaseMixin.latestFirebaseInstanceOrNull = app;
-    return app;
+    return addApp(app);
   }
 
   @override
@@ -185,19 +184,6 @@ class FirebaseRestImpl with FirebaseMixin implements FirebaseAdminRest {
     //        await credential.applicationDefault()?.getAccessToken();
     var app = initializeApp(options: options, name: name);
     return app;
-  }
-
-  final _apps = <String?, AppRestImpl>{};
-
-  @override
-  App app({String? name}) {
-    name ??= firebaseRestDefaultAppName;
-    return _apps[name]!;
-  }
-
-  /// Clear app by name.
-  Future<void> clearAppByName(String name) async {
-    _apps.remove(name);
   }
 
   FirebaseAdminCredentialServiceRest? _credentialServiceRest;

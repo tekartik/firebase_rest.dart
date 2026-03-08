@@ -60,7 +60,7 @@ class AppRestImpl
     deleted = true;
     await closeServices();
     // So that init can be called again
-    await firebaseRest.clearAppByName(name);
+    (firebaseRest as FirebaseWithAppsMixin).uninitializeApp(this);
   }
 
   @override
