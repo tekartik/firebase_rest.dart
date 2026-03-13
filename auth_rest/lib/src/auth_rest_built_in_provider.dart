@@ -99,23 +99,6 @@ class BuiltInAuthProviderRest extends AuthProviderRestBase {
     return userCredential;
   }
 
-  /// Save user credential.
-  @override
-  Future<void> saveUser(UserCredentialRest? user) async {
-    if (persistence != null) {
-      if (user != null) {
-        var credentials =
-            FirebaseRestAuthPersistenceAccessCredentialsUserCredential(
-              providerId: providerId,
-              user: user,
-            );
-        await persistence!.set(projectId, credentials);
-      } else {
-        await persistence!.remove(projectId);
-      }
-    }
-  }
-
   /// Initialize with access credentials
   Future<UserCredentialRest?> _initWithAccessCredentials(
     FirebaseRestAuthPersistenceAccessCredentialsMap credentials,

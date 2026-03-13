@@ -230,6 +230,7 @@ class GoogleAuthProviderRestIoImpl
           );
 
       var userCredential = await _initWithAccessCredentials(accessCredentials);
+      await setCurrentUserCredential(userCredential);
       var user = userCredential.user as FirebaseUserRest;
       var result = AuthSignInResultRest(client: _authClient!, provider: this)
         ..hasInfo = true

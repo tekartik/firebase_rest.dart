@@ -377,6 +377,7 @@ class FirebaseAuthRestImpl
   );
 
   /// Sign in result
+  @Deprecated('do no use')
   AuthSignInResultRest? signInResultRest;
 
   /// App rest
@@ -513,13 +514,19 @@ class FirebaseAuthRestImpl
     AuthSignInOptions? options,
   }) async {
     if (authProvider is AuthProviderRest) {
+      /// Needed, initialize providers!
+      // ignore: unnecessary_statements
+      providers;
       var result = await authProvider.signIn();
       if (result is AuthSignInResultRest) {
+        /*
+        var credential = result.credential;
         var client = result.client;
         // Set in global too.
         // ignore: deprecated_member_use
         appRest.client = client;
-        signInResultRest = result;
+        // ignore: deprecated_member_use
+        signInResultRest = result;*/
       }
       return result;
     } else {

@@ -4,7 +4,6 @@ import 'package:tekartik_firebase_auth_rest/auth_rest_io.dart';
 import 'package:tekartik_firebase_auth_rest/src/user_credential_rest.dart';
 
 import 'auth_rest.dart';
-import 'auth_rest_persistence.dart';
 
 /// User credential google rest implementation
 class _UserCredentialRestMockImpl extends UserCredentialRestImpl {
@@ -86,26 +85,6 @@ class MockBuiltInAuthProviderRest extends BuiltInAuthProviderRest {
     await setCurrentUserCredential(userCredential);
     // save()
     return userCredential;
-  }
-
-  /// Save user credential.
-  @override
-  Future<void> saveUser(UserCredentialRest? user) async {
-    if (persistence != null) {
-      if (user != null) {
-        var credentials =
-            FirebaseRestAuthPersistenceAccessCredentialsUserCredential(
-              providerId: providerId,
-              user: user,
-              //      accessToken: user.accessToken!,
-              //     refreshToken: user.refreshToken!,
-              //    expiry: user.accessTokenExpiry!,
-            );
-        await persistence!.set(projectId, credentials);
-      } else {
-        await persistence!.remove(projectId);
-      }
-    }
   }
 
   /// Initialize with access credentials

@@ -1,6 +1,7 @@
 import 'package:http/http.dart';
 import 'package:tekartik_common_utils/common_utils_import.dart';
 import 'package:tekartik_firebase_auth_rest/auth_rest_io.dart';
+import 'package:tekartik_firebase_auth_rest/src/auth_rest_persistence.dart';
 
 import 'auth_rest.dart';
 import 'auth_service_rest.dart';
@@ -94,8 +95,21 @@ mixin AuthProviderRestMixin implements AuthProviderRest {
     return null;
   }
 
-  /// Save user credential
-  Future<void> saveUser(UserCredentialRest? user) async {}
+  /// Save user credential.
+  Future<void> saveUser(UserCredentialRest? user) async {
+    if (persistence != null) {
+      if (user != null) {
+        var credentials =
+            FirebaseRestAuthPersistenceAccessCredentialsUserCredential(
+              providerId: providerId,
+              user: user,
+            );
+        await persistence!.set(projectId, credentials);
+      } else {
+        await persistence!.remove(projectId);
+      }
+    }
+  }
 
   @override
   Stream<FirebaseUserRest?> get onCurrentUser async* {
