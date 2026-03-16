@@ -1,4 +1,4 @@
-import 'package:googleapis_auth/googleapis_auth.dart';
+import 'package:googleapis_auth/auth_io.dart';
 import 'package:tekartik_common_utils/common_utils_import.dart';
 import 'package:tekartik_firebase_auth/auth.dart';
 import 'package:tekartik_firebase_auth_rest/src/auth_rest.dart';
@@ -86,6 +86,9 @@ mixin GoogleRestAuthProviderMixin implements GoogleRestAuthProvider {
 abstract class GoogleRestAuthProvider implements AuthProviderRest {
   /// Add scope
   void addScope(String scope);
+
+  /// Allow overriding of user prompt
+  set userPrompt(PromptUserForConsent userPrompt);
 }
 
 /// Google auth options

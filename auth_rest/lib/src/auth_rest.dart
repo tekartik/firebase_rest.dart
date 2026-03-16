@@ -287,6 +287,9 @@ extension FirebaseAuthRestExt on FirebaseAuth {
   /// Add a provider
   void addProvider(AuthProviderRest authProviderRest) =>
       impl.addProviderImpl(authProviderRest);
+
+  /// Get the list of providers
+  List<AuthProviderRest> get providers => impl.providers;
 }
 
 /// Private extension
@@ -554,8 +557,14 @@ class FirebaseAuthRestImpl
   }
 
   @override
-  Future<User> reloadCurrentUser() {
-    throw UnsupportedError('reloadCurrentUser');
+  Future<User> reloadCurrentUser() async {
+    await authReady;
+    var currentUser = this.currentUser! as FirebaseUserRest;
+    if (currentUser.providerId == builtInProvider.providerId) {
+      return builtInProvider.reloadCurrentUser();
+    } else {
+      throw UnsupportedError('reloadCurrentUser');
+    }
   }
 
   @override

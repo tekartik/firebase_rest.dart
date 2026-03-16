@@ -18,7 +18,7 @@ export 'package:tekartik_firebase_auth_rest/src/auth_rest_provider.dart'
 export 'package:tekartik_firebase_auth_rest/src/auth_service_rest.dart'
     show firebaseAuthServiceRest, FirebaseAuthServiceRest, authServiceRest;
 export 'package:tekartik_firebase_auth_rest/src/google_auth_rest.dart'
-    show GoogleAuthOptions;
+    show GoogleAuthOptions, GoogleRestAuthProvider;
 
 export 'src/auth_rest_persistence.dart'
     show

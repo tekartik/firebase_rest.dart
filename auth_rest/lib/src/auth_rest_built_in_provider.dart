@@ -64,6 +64,31 @@ class BuiltInAuthProviderRest extends AuthProviderRestBase {
     return userCredential;
   }
 
+  /// Reload the current rest user
+  Future<FirebaseUserRest> reloadCurrentUser() async {
+    await authReady;
+    var appRest = authRest.impl.appRest;
+    var client = ApiKeyClient(apiKey: appRest.options.apiKey!);
+    var apiV3 = identitytoolkit_v3.IdentityToolkitApi(client);
+    var response = await apiV3.relyingparty.getAccountInfo(
+      identitytoolkit_v3.IdentitytoolkitRelyingpartyGetAccountInfoRequest()
+        ..localId = [currentUserCredential!.user.uid],
+    );
+    if (response.users?.isNotEmpty ?? false) {
+      var restUserInfo = response.users!.first;
+      var userRest = FirebaseUserRest(
+        emailVerified: restUserInfo.emailVerified ?? false,
+        client: client,
+        email: restUserInfo.email,
+        isAnonymous: restUserInfo.email == null,
+        uid: restUserInfo.localId!,
+        provider: this,
+      );
+      return userRest;
+    }
+    throw StateError('no account found');
+  }
+
   /// Sign in with email and password
   Future<UserCredential> signInWithEmailAndPassword({
     required String email,
