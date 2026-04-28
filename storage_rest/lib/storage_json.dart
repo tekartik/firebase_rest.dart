@@ -1,5 +1,6 @@
 import 'package:path/path.dart';
 import 'package:tekartik_firebase/firebase.dart';
+import 'package:tekartik_firebase_storage/utils/link.dart';
 import 'package:tekartik_firebase_storage_rest/src/storage_json_impl.dart';
 import 'package:tekartik_http/http.dart';
 import 'package:tekartik_http/http_client.dart';
@@ -65,11 +66,12 @@ class UnauthenticatedStorageApi {
   // https://firebasestorage.googleapis.com/v0/b/xxxx.appspot.com";
 
   UnauthenticatedStorageApi({
+    // compat
     String? storageBucket,
     this.appOptions,
     required this.client,
   }) {
-    _storageBucket = storageBucket;
+    _storageBucket = storageBucket ?? appOptions?.storageBucket;
   }
 
   // prefix: folder/
@@ -99,6 +101,10 @@ class UnauthenticatedStorageApi {
       contentType: map['contentType']?.toString(),
       size: parseInt(map['size']),
     );
+  }
+
+  String getDownloadUrl(StorageFileRef fileRef) {
+    return getMediaUrl(fileRef.path, bucket: fileRef.bucket);
   }
 
   String getMediaUrl(String name, {String? bucket}) {

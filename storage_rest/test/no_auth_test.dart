@@ -1,5 +1,7 @@
+import 'package:http/http.dart' as http;
 import 'package:path/path.dart';
 import 'package:process_run/shell.dart';
+import 'package:tekartik_firebase_storage/utils/link.dart';
 import 'package:test/test.dart';
 
 import 'no_auth_storage_rest.dart';
@@ -16,7 +18,21 @@ void main() {
   print('projectId: $projectId');
   print('bucket: $bucketName');
   print('rootPath: $rootPath');
-  group('firestore', () {
+  test('getDownloadUrl', () async {
+    var storage = noAuthStorageRest(projectId: 'test1');
+    var bucket = 'bucket1';
+    var path = 'path1/path2/file.txt';
+    var downloadUrl = await storage
+        .ref(StorageFileRef(bucket, path).toLink().toString())
+        .getDownloadUrl();
+    expect(
+      downloadUrl,
+      'https://firebasestorage.googleapis.com/v0/b/bucket1/o/path1%2Fpath2%2Ffile.txt?alt=media',
+    );
+
+    storage.dispose();
+  });
+  group('storage', () {
     /// For this test specify both env variable and create a new document at rootPath
     test('rootPath', () async {
       var storage = noAuthStorageRest(projectId: projectId);
@@ -25,6 +41,12 @@ void main() {
       var path = url.join(rootPath!, 'simple_file.txt');
       var content = await bucket.file(path).readAsString();
       expect(content, isNotNull);
+      if (bucketName != null) {
+        var downloadUrl = await storage
+            .ref(StorageFileRef(bucketName, path).toLink().toString())
+            .getDownloadUrl();
+        expect(http.read(Uri.parse(downloadUrl)), content);
+      }
       //devPrint(content);
       // No!
       /*
@@ -38,6 +60,7 @@ void main() {
           storageOptions: storageOptionsFromEnv);
 
        */
+      storage.dispose();
     });
   }, skip: (projectId == null || rootPath == null || bucketName == null));
 }

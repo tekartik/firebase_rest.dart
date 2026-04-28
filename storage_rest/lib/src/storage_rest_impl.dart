@@ -7,8 +7,10 @@ import 'package:tekartik_firebase/firebase_mixin.dart';
 import 'package:tekartik_firebase_rest/firebase_rest.dart';
 import 'package:tekartik_firebase_storage/storage.dart';
 import 'package:tekartik_firebase_storage/utils/content_type.dart';
+import 'package:tekartik_firebase_storage/utils/link.dart';
 import 'package:tekartik_firebase_storage_rest/src/bucket_rest.dart';
 import 'package:tekartik_firebase_storage_rest/src/file_rest.dart';
+import 'package:tekartik_firebase_storage_rest/src/reference_rest.dart';
 import 'package:tekartik_http/http.dart';
 
 import 'import.dart';
@@ -200,6 +202,18 @@ class StorageRestImpl
       }
       rethrow;
     }
+  }
+
+  @override
+  Reference ref([String? path]) {
+    var uri = Uri.tryParse(path ?? '');
+    if (uri == null || uri.scheme.isEmpty) {
+      var fileRef = StorageFileRef(appRest.options.storageBucket!, path ?? '');
+      return ReferenceRestImpl(storage: this, fileRef: fileRef);
+    }
+
+    var fileRef = StorageFileRef.fromLink(uri);
+    return ReferenceRestImpl(storage: this, fileRef: fileRef);
   }
 
   @override
