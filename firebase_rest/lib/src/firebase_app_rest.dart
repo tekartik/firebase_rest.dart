@@ -57,10 +57,8 @@ class AppRestImpl
 
   @override
   Future<void> delete() async {
+    await super.delete();
     deleted = true;
-    await closeServices();
-    // So that init can be called again
-    (firebaseRest as FirebaseWithAppsMixin).uninitializeApp(this);
   }
 
   @override
