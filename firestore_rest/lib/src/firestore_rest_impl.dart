@@ -1028,6 +1028,9 @@ class FirestoreServiceRestImpl
 
   @override
   bool get supportsVectorValue => false; // Not yet
+
+  @override
+  bool get supportsBlobs => true;
 }
 
 /// Join ignoring null but not both!
