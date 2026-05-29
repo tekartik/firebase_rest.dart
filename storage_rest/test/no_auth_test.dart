@@ -1,3 +1,5 @@
+// ignore_for_file: avoid_print
+
 import 'package:http/http.dart' as http;
 import 'package:path/path.dart';
 import 'package:process_run/shell.dart';
