@@ -8,5 +8,4 @@ dependencies:
     git:
       url: https://github.com/tekartik/firebase_firestore_rest.dart
       path: firestore_rest
-    version: '>=0.8.0'
 ```

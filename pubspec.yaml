@@ -8,3 +8,4 @@ workspace:
   - firestore_rest
   - repo_support
   - storage_rest
+  - functions_call_rest
