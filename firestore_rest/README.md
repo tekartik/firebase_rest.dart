@@ -6,6 +6,6 @@ In `pubspec.yaml`:
 dependencies:
   tekartik_firebase_firestore_rest:
     git:
-      url: https://github.com/tekartik/firebase_firestore_rest.dart
+      url: https://github.com/tekartik/firebase_rest.dart
       path: firestore_rest
 ```
