@@ -1,12 +1,9 @@
 import 'package:googleapis/firestore/v1.dart';
-import 'package:tekartik_firebase_firestore/firestore.dart';
 import 'package:tekartik_firebase_firestore_rest/src/firestore/v1.dart';
 import 'package:tekartik_firebase_firestore_rest/src/firestore_rest_impl.dart'; // ignore: implementation_imports
 export 'package:tekartik_firebase_firestore/firestore.dart';
-export 'src/firestore_rest_impl.dart' show debugFirestoreRest;
-
-/// Rest firestore service.
-abstract class FirestoreServiceRest extends FirestoreService {}
+export 'src/firestore_rest_impl.dart'
+    show debugFirestoreRest, FirestoreRest, FirestoreServiceRest;
 
 /// Global service.
 FirestoreServiceRest firestoreServiceRest = FirestoreServiceRestImpl();

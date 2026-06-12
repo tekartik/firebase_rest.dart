@@ -62,5 +62,13 @@ dev_dependencies:
       url: https://github.com/tekartik/app_common_utils.dart
       path: app_http
     version: '>=0.1.0'
+  tekartik_firebase_emulator:
+    git:
+      url: https://github.com/tekartik/firebase_node.dart
+      path: firebase_emulator
+  tekartik_firebase_auth_rest:
+    git:
+      url: https://github.com/tekartik/firebase_rest.dart
+      path: auth_rest
 
 resolution: workspace

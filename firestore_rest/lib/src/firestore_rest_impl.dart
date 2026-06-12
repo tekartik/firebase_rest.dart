@@ -4,7 +4,6 @@ import 'package:http/http.dart' as http;
 import 'package:path/path.dart';
 import 'package:tekartik_common_utils/env_utils.dart';
 import 'package:tekartik_firebase/firebase_mixin.dart';
-import 'package:tekartik_firebase_firestore_rest/firestore_rest.dart';
 import 'package:tekartik_firebase_firestore_rest/src/collection_reference_rest.dart';
 import 'package:tekartik_firebase_firestore_rest/src/document_reference_rest.dart';
 import 'package:tekartik_firebase_firestore_rest/src/document_rest_impl.dart';
@@ -20,6 +19,18 @@ import 'firestore/v1.dart' as api;
 import 'firestore/v1.dart';
 import 'import.dart';
 import 'import_firestore.dart';
+
+/// Rest firestore service.
+abstract class FirestoreServiceRest implements FirestoreService {
+  @override
+  FirestoreRest firestore(FirebaseApp app);
+}
+
+/// Rest firestore interface.
+abstract class FirestoreRest implements Firestore {
+  /// Use the firestore emulator.
+  Future<void> useFirestoreEmulator(String host, int port);
+}
 
 /// Rest null value.
 const restNullValue = 'NULL_VALUE';
@@ -256,7 +267,7 @@ class FirestoreRestImpl
         FirebaseAppProductMixin<Firestore>,
         FirestoreDefaultMixin,
         FirestoreMixin
-    implements Firestore, FirestoreDocumentContext {
+    implements FirestoreRest, FirestoreDocumentContext {
   /// Service.
   @override
   final FirestoreServiceRestImpl service;
@@ -267,6 +278,20 @@ class FirestoreRestImpl
 
   http.Client? _lastApiClient;
 
+  /// Changes this instance to point to an Auth emulator running locally.
+  ///
+  /// Set the [host] and [port] of the local emulator, such as "localhost"
+  /// with port 9099
+  ///
+  /// Note: Must be called immediately, prior to accessing auth methods.
+  /// Do not use with production credentials as emulator traffic is not encrypted.
+  @override
+  Future<void> useFirestoreEmulator(String host, int port) async {
+    _rootUrl = 'http://$host:$port/';
+  }
+
+  String? _rootUrl;
+
   /// Firestore api.
   api.FirestoreApi get firestoreApi {
     if (_firestoreApi != null && _lastApiClient == appImpl.client) {
@@ -274,7 +299,12 @@ class FirestoreRestImpl
     } else {
       var apiClient = appImpl.apiClient;
       _lastApiClient = apiClient;
-      return _firestoreApi = FirestoreApi(apiClient);
+      var rootUrl = _rootUrl;
+      if (rootUrl == null) {
+        return _firestoreApi = FirestoreApi(apiClient);
+      } else {
+        return _firestoreApi = FirestoreApi(apiClient, rootUrl: rootUrl);
+      }
     }
   }
 
@@ -991,7 +1021,7 @@ class FirestoreServiceRestImpl
     with FirebaseProductServiceMixin<Firestore>, FirestoreServiceDefaultMixin
     implements FirestoreServiceRest {
   @override
-  Firestore firestore(App app) {
+  FirestoreRest firestore(App app) {
     return getInstance(
       app,
       () => FirestoreRestImpl(this, app as FirebaseAppRest),
