@@ -280,6 +280,15 @@ abstract class FirebaseAuthRest implements FirebaseAuth {
       servicePathBase: servicePathBase,
     );
   }
+
+  /// Changes this instance to point to an Auth emulator running locally.
+  ///
+  /// Set the [host] and [port] of the local emulator, such as "localhost"
+  /// with port 9099
+  ///
+  /// Note: Must be called immediately, prior to accessing auth methods.
+  /// Do not use with production credentials as emulator traffic is not encrypted.
+  Future<void> useAuthEmulator(String host, int port);
 }
 
 /// Rest specific helper for adding a provider.
@@ -386,10 +395,13 @@ class FirebaseAuthRestImpl
   /// App rest
   final FirebaseAppRest appRest;
 
-  IdentityToolkitApi? _identitytoolkitApi;
+  IdentityToolkitApi? _identityToolkitApi;
 
   /// Root url
   String? rootUrl;
+
+  /// Use emulator
+  bool useEmulator = false;
 
   /// Service path base
   String? servicePathBase;
@@ -397,8 +409,26 @@ class FirebaseAuthRestImpl
   @override
   User? get currentUser => _currentProviderUser?.user;
 
+  /// Changes this instance to point to an Auth emulator running locally.
+  ///
+  /// Set the [host] and [port] of the local emulator, such as "localhost"
+  /// with port 9099
+  ///
+  /// Note: Must be called immediately, prior to accessing auth methods.
+  /// Do not use with production credentials as emulator traffic is not encrypted.
+  @override
+  Future<void> useAuthEmulator(String host, int port) async {
+    useEmulator = true;
+    rootUrl = 'http://$host:$port/';
+    servicePathBase = null;
+  }
+
+  /// Identity toolkit api compat
+  @Deprecated('Use identityToolkitApi instead')
+  IdentityToolkitApi get identitytoolkitApi => identityToolkitApi;
+
   /// Identity toolkit api
-  IdentityToolkitApi get identitytoolkitApi => _identitytoolkitApi ??= () {
+  IdentityToolkitApi get identityToolkitApi => _identityToolkitApi ??= () {
     if (rootUrl != null || servicePathBase != null) {
       var defaultRootUrl = 'https://www.googleapis.com/';
 
@@ -478,7 +508,7 @@ class FirebaseAuthRestImpl
     if (debugFirebaseAuthRest) {
       _log('getAccountInfoRequest: ${jsonPretty(request.toJson())}');
     }
-    var result = await identitytoolkitApi.relyingparty.getAccountInfo(request);
+    var result = await identityToolkitApi.relyingparty.getAccountInfo(request);
     if (debugFirebaseAuthRest) {
       _log('getAccountInfo: ${jsonPretty(result.toJson())}');
     }
@@ -496,7 +526,7 @@ class FirebaseAuthRestImpl
     if (debugFirebaseAuthRest) {
       _log('getAccountInfoRequest: ${jsonPretty(request.toJson())}');
     }
-    var result = await identitytoolkitApi.relyingparty.getAccountInfo(request);
+    var result = await identityToolkitApi.relyingparty.getAccountInfo(request);
     if (debugFirebaseAuthRest) {
       _log('getAccountInfo: ${jsonPretty(result.toJson())}');
     }
@@ -507,8 +537,23 @@ class FirebaseAuthRestImpl
   }
 
   @override
-  Future<UserRecord> getUserByEmail(String email) async {
-    throw UnsupportedError('getUserByEmail');
+  Future<UserCredential> createUserWithEmailAndPassword({
+    required String email,
+    required String password,
+  }) async {
+    await authReady;
+    return builtInProvider.createUserWithEmailAndPassword(
+      email: email,
+      password: password,
+    );
+  }
+
+  @override
+  Future<UserRecord?> getUserByEmail(String email) async {
+    throw UnsupportedError('$runtimeType.getUserByEmail');
+    // ignore: dead_code
+    await authReady;
+    return builtInProvider.getUserByEmail(email);
   }
 
   @override
