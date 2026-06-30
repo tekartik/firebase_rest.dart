@@ -292,19 +292,28 @@ class FirestoreRestImpl
 
   String? _rootUrl;
 
+  api.FirestoreApi? _emulatorFirestoreApi;
+
   /// Firestore api.
   api.FirestoreApi get firestoreApi {
+    var rootUrl = _rootUrl;
+    if (rootUrl != null) {
+      // Emulator: act as the emulator owner (admin). Metadata operations (such
+      // as listCollectionIds) require admin authentication, and the emulator
+      // accepts `Bearer owner` for that. We use a dedicated client rather than
+      // the app client so the owner token is not overridden by a signed-in
+      // user's authenticated client.
+      return _emulatorFirestoreApi ??= FirestoreApi(
+        _FirestoreEmulatorClient(http.Client()),
+        rootUrl: rootUrl,
+      );
+    }
     if (_firestoreApi != null && _lastApiClient == appImpl.client) {
       return _firestoreApi!;
     } else {
       var apiClient = appImpl.apiClient;
       _lastApiClient = apiClient;
-      var rootUrl = _rootUrl;
-      if (rootUrl == null) {
-        return _firestoreApi = FirestoreApi(apiClient);
-      } else {
-        return _firestoreApi = FirestoreApi(apiClient, rootUrl: rootUrl);
-      }
+      return _firestoreApi = FirestoreApi(apiClient);
     }
   }
 
@@ -1061,6 +1070,26 @@ class FirestoreServiceRestImpl
 
   @override
   bool get supportsBlobs => true;
+}
+
+/// Http client wrapper used when talking to the Firestore emulator.
+///
+/// The emulator requires admin authentication for metadata operations (such
+/// as `listCollectionIds`). It accepts `Bearer owner` as the admin/owner
+/// credential, so we set it on every request.
+class _FirestoreEmulatorClient extends http.BaseClient {
+  final http.Client _inner;
+
+  _FirestoreEmulatorClient(this._inner);
+
+  @override
+  Future<http.StreamedResponse> send(http.BaseRequest request) {
+    request.headers['Authorization'] = 'Bearer owner';
+    return _inner.send(request);
+  }
+
+  @override
+  void close() => _inner.close();
 }
 
 /// Join ignoring null but not both!

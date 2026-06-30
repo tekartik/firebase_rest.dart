@@ -14,6 +14,7 @@ var defaultRegion = 'europe-west1';
 var _emulatorService = FirebaseEmulatorService(path: 'emulator');
 Future main() async {
   debugFirestoreRest = true;
+
   // needed for memory
   skipConcurrentTransactionTests = true;
   skipFirestoreTransactionTests = true;
@@ -54,6 +55,8 @@ Future main() async {
     tearDownAll(() async {
       await app.delete();
     });
+
+    test('simple', () {});
 
     runFirestoreAppTests(
       app: app,
