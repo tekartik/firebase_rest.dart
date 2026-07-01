@@ -13,11 +13,18 @@
 //      crc32c: Cz21LQ==, etag: CLbTzriVgekCEAE=,
 //      downloadTokens: d47b6cf4-a2ac-4a7d-a058-2e1260599ab4}
 
+/// Object info parsed from the Firebase Storage json REST response.
 class GsObjectInfo {
+  /// Content type.
   final String? contentType;
+
+  /// Size in bytes.
   final int? size;
+
+  /// MD5 hash.
   final String? md5Hash;
 
+  /// Object info parsed from the Firebase Storage json REST response.
   GsObjectInfo({required this.contentType, required this.size, this.md5Hash});
 
   @override

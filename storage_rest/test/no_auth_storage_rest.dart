@@ -9,6 +9,6 @@ Storage noAuthStorageRest({required String? projectId}) {
     options: AppOptionsRest(client: httpClientFactory.newClient())
       ..projectId = projectId,
   );
-  var storage = storageServiceRest.storage(app);
+  var storage = firebaseStorageServiceRest.storage(app);
   return storage;
 }

@@ -15,19 +15,38 @@ import 'package:tekartik_http/http.dart';
 
 import 'import.dart';
 
-final storageGoogleApisReadWriteScope = api.StorageApi.devstorageReadWriteScope;
+/// Compat
+final storageGoogleApisReadWriteScope = firebaseStorageGoogleApisReadWriteScope;
 
-abstract class StorageServiceRest extends StorageService {}
+/// Api scope
+final firebaseStorageGoogleApisReadWriteScope =
+    api.StorageApi.devstorageReadWriteScope;
+
+/// Compat
+typedef StorageServiceRest = FirebaseStorageServiceRest;
+
+/// Compat
+typedef StorageRest = FirebaseStorageRest;
+
+/// Compat
+final storageServiceRest = firebaseStorageServiceRest;
+
+/// The default service
+final FirebaseStorageServiceRest firebaseStorageServiceRest =
+    StorageServiceRestImpl();
+
+/// Rest service
+abstract class FirebaseStorageServiceRest extends StorageService {}
 
 /// Storage rest helper.
-abstract class StorageRest extends Storage {
+abstract class FirebaseStorageRest extends Storage {
   /// Build a storage rest client from an auth client.
-  factory StorageRest.fromAuthClient({
+  factory FirebaseStorageRest.fromAuthClient({
     // StorageServiceRest? serviceRest,
     required Client authClient,
   }) {
     return StorageRestImpl.fromAuthClient(
-      serviceRest: storageServiceRest,
+      serviceRest: firebaseStorageServiceRest,
       authClient: authClient,
     );
   }
@@ -43,11 +62,10 @@ abstract class StorageRest extends Storage {
   Future<void> useStorageEmulator(String host, int port);
 }
 
-StorageServiceRest storageServiceRest = StorageServiceRestImpl();
-
+/// Storage service rest implementation.
 class StorageServiceRestImpl
     with FirebaseProductServiceMixin<FirebaseStorage>
-    implements StorageServiceRest {
+    implements FirebaseStorageServiceRest {
   @override
   Storage storage(App app) {
     return getInstance(app, () {
@@ -57,12 +75,17 @@ class StorageServiceRestImpl
   }
 }
 
+/// Storage rest implementation.
 class StorageRestImpl
     with FirebaseAppProductMixin<FirebaseStorage>, StorageMixin
-    implements StorageRest {
-  late final StorageServiceRest serviceRest;
+    implements FirebaseStorageRest {
+  /// Owning service.
+  late final FirebaseStorageServiceRest serviceRest;
+
+  /// Owning app.
   late final FirebaseAppRest appRest;
 
+  /// The http client to use.
   Client get authClient => _authClient ?? appRest.apiClient;
   Client? _authClient;
   api.StorageApi? _storageApi;
@@ -70,11 +93,15 @@ class StorageRestImpl
   /// Root url override, set when pointing to a Storage emulator.
   String? rootUrl;
 
+  /// The googleapis storage client.
   api.StorageApi get storageApi => _storageApi ??= rootUrl != null
       ? api.StorageApi(authClient, rootUrl: rootUrl!)
       : api.StorageApi(authClient);
 
+  /// Storage rest implementation.
   StorageRestImpl(this.serviceRest, this.appRest);
+
+  /// Builds a storage rest implementation from an auth client.
   StorageRestImpl.fromAuthClient({
     required this.serviceRest,
     required Client authClient,
@@ -96,6 +123,7 @@ class StorageRestImpl
         '${appRest.options.projectId}.appspot.com',
   );
 
+  /// Whether the file at [path] in [bucket] exists.
   Future<bool> fileExists(BucketRest bucket, String path) async {
     try {
       var meta = await storageApi.objects.get(bucket.name, path) as api.Object;
@@ -113,6 +141,7 @@ class StorageRestImpl
     // return super.exists();
   }
 
+  /// Writes [bytes] to the file at [path] in [bucket].
   Future<void> writeFile(
     BucketRest bucket,
     String path,
@@ -144,7 +173,7 @@ class StorageRestImpl
         bucket.name,
         name: path,
         predefinedAcl: 'publicRead',
-        uploadOptions: api.UploadOptions(),
+        uploadOptions: const api.UploadOptions(),
         uploadMedia: media,
       );
     }
@@ -192,6 +221,7 @@ class StorageRestImpl
     );
   }
 
+  /// Lists the files in [bucket] matching [options].
   Future<GetFilesResponse> getFiles(
     BucketRest bucket,
     GetFilesOptions options,
@@ -232,10 +262,12 @@ class StorageRestImpl
     return response;
   }
 
+  /// Flattens a list of lists into a single list.
   List<T> flatten<T>(Iterable<Iterable<T>> list) => [
     for (var sublist in list) ...sublist,
   ];
 
+  /// Reads the content of the file at [path] in [bucket].
   Future<Uint8List> readFile(BucketRest bucket, String path) async {
     var media =
         (await storageApi.objects.get(
@@ -249,6 +281,7 @@ class StorageRestImpl
     return Uint8List.fromList(flatten(listOfList));
   }
 
+  /// Fetches the metadata of the file at [path] in [bucket].
   Future<FileMetadataRest> getMetadata(BucketRest bucket, String path) async {
     var object =
         (await storageApi.objects.get(
@@ -260,10 +293,12 @@ class StorageRestImpl
     return FileMetadataRest.fromObject(object);
   }
 
+  /// Deletes the file at [path] in [bucket].
   Future<void> deleteFile(BucketRest bucket, String path) async {
     await storageApi.objects.delete(bucket.name, path);
   }
 
+  /// Whether [bucketRest] exists.
   Future<bool> bucketExists(BucketRest bucketRest) async {
     try {
       await storageApi.buckets.get(bucketRest.name);
@@ -296,6 +331,7 @@ class StorageRestImpl
   FirebaseStorageService get service => serviceRest;
 }
 
+/// Rest [GetFilesResponse] implementation.
 class GetFilesResponseRest implements GetFilesResponse {
   @override
   late List<File> files;

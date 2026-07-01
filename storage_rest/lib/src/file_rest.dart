@@ -5,6 +5,7 @@ import 'package:tekartik_firebase_storage/storage.dart';
 import 'package:tekartik_firebase_storage_rest/src/bucket_rest.dart';
 import 'package:tekartik_firebase_storage_rest/src/storage_rest_impl.dart';
 
+/// Rest file metadata implementation.
 class FileMetadataRest with FileMetadataMixin implements FileMetadata {
   @override
   final DateTime dateUpdated;
@@ -18,6 +19,7 @@ class FileMetadataRest with FileMetadataMixin implements FileMetadata {
   @override
   final String? contentType;
 
+  /// Rest file metadata implementation.
   FileMetadataRest({
     required this.dateUpdated,
     required this.md5Hash,
@@ -25,6 +27,7 @@ class FileMetadataRest with FileMetadataMixin implements FileMetadata {
     required this.contentType,
   });
 
+  /// Builds a [FileMetadataRest] from a googleapis storage [api.Object].
   factory FileMetadataRest.fromObject(api.Object object) => FileMetadataRest(
     size: int.parse(object.size!),
     md5Hash: object.md5Hash!,
@@ -33,14 +36,22 @@ class FileMetadataRest with FileMetadataMixin implements FileMetadata {
   );
 }
 
+/// Rest file implementation.
 class FileRest with FileMixin implements File {
+  /// Owning bucket.
   final BucketRest bucketRest;
   @override
   final FileMetadata? metadata;
+
+  /// File path.
   final String path;
   @override
   String get name => path;
+
+  /// Impl access.
   StorageRestImpl get impl => bucketRest.impl;
+
+  /// Rest file implementation.
   FileRest(this.bucketRest, this.path, [this.metadata]);
 
   @override

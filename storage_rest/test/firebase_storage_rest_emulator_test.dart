@@ -39,7 +39,7 @@ Future main() async {
 
     runStorageTests(
       firebase: firebaseRest,
-      storageService: storageServiceRest,
+      storageService: firebaseStorageServiceRest,
       options: FirebaseAppOptions(
         projectId: fbProjectId,
         apiKey: 'dummy',
@@ -57,6 +57,6 @@ Future main() async {
   // just-created storage instance can still be switched to the emulator here
   // before the test runner actually starts executing tests.
   var app = firebaseRest.app();
-  var storage = storageServiceRest.storage(app) as StorageRest;
+  var storage = firebaseStorageServiceRest.storage(app) as FirebaseStorageRest;
   await storage.useStorageEmulator('localhost', 9199);
 }

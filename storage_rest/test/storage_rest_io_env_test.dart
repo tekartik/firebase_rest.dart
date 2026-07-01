@@ -36,7 +36,7 @@ Future main() async {
       group('all', () {
         runStorageTests(
           firebase: firebase,
-          storageService: storageServiceRest,
+          storageService: firebaseStorageServiceRest,
           options: context.options,
           storageOptions: TestStorageOptions(
             bucket: context.options!.storageBucket,
