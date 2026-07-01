@@ -29,6 +29,7 @@ abstract class FirestoreServiceRest implements FirestoreService {
 /// Rest firestore interface.
 abstract class FirestoreRest implements Firestore {
   /// Use the firestore emulator.
+  /// Typical port is 8080
   Future<void> useFirestoreEmulator(String host, int port);
 }
 
@@ -461,7 +462,10 @@ class FirestoreRestImpl
     if (debugRest) {
       logDebug('createDocument: ${jsonPretty(document.toJson())}');
     }
-    return DocumentReferenceRestImpl(this, document.name!);
+    return DocumentReferenceRestImpl(
+      this,
+      localPathReferencePath(document.name!),
+    );
   }
 
   /// Write a document.
