@@ -57,6 +57,11 @@ dev_dependencies:
   tekartik_common_utils:
     git:
       url: https://github.com/tekartik/common_utils.dart
+  dev_build: ">=1.1.7+3"
+  tekartik_firebase_emulator:
+    git:
+      url: https://github.com/tekartik/firebase_node.dart
+      path: firebase_emulator
 
 resolution: workspace
   # tekartik_firebase_storage:

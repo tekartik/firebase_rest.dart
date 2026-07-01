@@ -31,6 +31,16 @@ abstract class StorageRest extends Storage {
       authClient: authClient,
     );
   }
+
+  /// Changes this instance to point to a Storage emulator running locally.
+  ///
+  /// Set the [host] and [port] of the local emulator, such as "localhost"
+  /// with port 9199.
+  ///
+  /// Note: Must be called immediately, prior to accessing storage methods.
+  /// Do not use with production credentials as emulator traffic is not
+  /// encrypted.
+  Future<void> useStorageEmulator(String host, int port);
 }
 
 StorageServiceRest storageServiceRest = StorageServiceRestImpl();
@@ -57,7 +67,12 @@ class StorageRestImpl
   Client? _authClient;
   api.StorageApi? _storageApi;
 
-  api.StorageApi get storageApi => _storageApi ??= api.StorageApi(authClient);
+  /// Root url override, set when pointing to a Storage emulator.
+  String? rootUrl;
+
+  api.StorageApi get storageApi => _storageApi ??= rootUrl != null
+      ? api.StorageApi(authClient, rootUrl: rootUrl!)
+      : api.StorageApi(authClient);
 
   StorageRestImpl(this.serviceRest, this.appRest);
   StorageRestImpl.fromAuthClient({
@@ -65,6 +80,12 @@ class StorageRestImpl
     required Client authClient,
   }) {
     _authClient = authClient;
+  }
+
+  @override
+  Future<void> useStorageEmulator(String host, int port) async {
+    rootUrl = 'http://$host:$port/';
+    _storageApi = null;
   }
 
   @override
@@ -109,13 +130,65 @@ class StorageRestImpl
         ? api.Media(stream, bytes.length, contentType: contentType)
         : api.Media(stream, bytes.length);
 
-    object = await storageApi.objects.insert(
-      object,
-      bucket.name,
-      name: path,
-      predefinedAcl: 'publicRead',
-      uploadOptions: api.UploadOptions(),
-      uploadMedia: media,
+    // The Storage emulator does not correctly parse multipart upload
+    // bodies (the format used by [api.UploadOptions]), nor does it expose
+    // the resumable upload path used by the googleapis client
+    // (`/resumable/upload/...`). Perform a manual resumable upload against
+    // the emulator's `/upload/storage/v1/b/{bucket}/o` route instead.
+    if (rootUrl != null) {
+      object.contentType = contentType;
+      object = await _writeFileEmulator(bucket, path, bytes, object, media);
+    } else {
+      object = await storageApi.objects.insert(
+        object,
+        bucket.name,
+        name: path,
+        predefinedAcl: 'publicRead',
+        uploadOptions: api.UploadOptions(),
+        uploadMedia: media,
+      );
+    }
+  }
+
+  Future<api.Object> _writeFileEmulator(
+    BucketRest bucket,
+    String path,
+    Uint8List bytes,
+    api.Object object,
+    api.Media media,
+  ) async {
+    var initiateUri = Uri.parse(
+      '$rootUrl'
+      'upload/storage/v1/b/${Uri.encodeComponent(bucket.name)}/o',
+    ).replace(queryParameters: {'uploadType': 'resumable', 'name': path});
+    var initiateResponse = await authClient.post(
+      initiateUri,
+      headers: {
+        'content-type': 'application/json; charset=utf-8',
+        'x-upload-content-type': media.contentType,
+        'x-upload-content-length': '${bytes.length}',
+      },
+      body: jsonEncode(object.toJson()),
+    );
+    var uploadUrl = initiateResponse.headers['location'];
+    if (initiateResponse.statusCode != 200 || uploadUrl == null) {
+      throw StateError(
+        'Invalid response for resumable upload attempt '
+        '(status was: ${initiateResponse.statusCode})',
+      );
+    }
+    var uploadResponse = await authClient.put(
+      Uri.parse(uploadUrl),
+      headers: {'content-type': media.contentType},
+      body: bytes,
+    );
+    if (uploadResponse.statusCode != 200 && uploadResponse.statusCode != 201) {
+      throw StateError(
+        'Resumable upload failed (status was: ${uploadResponse.statusCode})',
+      );
+    }
+    return api.Object.fromJson(
+      jsonDecode(uploadResponse.body) as Map<String, Object?>,
     );
   }
 
