@@ -7,6 +7,7 @@ import 'package:tekartik_firebase/firebase_mixin.dart';
 import 'package:tekartik_firebase_firestore_rest/src/collection_reference_rest.dart';
 import 'package:tekartik_firebase_firestore_rest/src/document_reference_rest.dart';
 import 'package:tekartik_firebase_firestore_rest/src/document_rest_impl.dart';
+import 'package:tekartik_firebase_firestore_rest/src/firestore_exeption.dart';
 import 'package:tekartik_firebase_firestore_rest/src/patch_document_rest_impl.dart';
 import 'package:tekartik_firebase_firestore_rest/src/query_rest.dart';
 import 'package:tekartik_firebase_firestore_rest/src/transaction_rest.dart';
@@ -19,6 +20,11 @@ import 'firestore/v1.dart' as api;
 import 'firestore/v1.dart';
 import 'import.dart';
 import 'import_firestore.dart';
+
+void _log(Object? message) {
+  // ignore: avoid_print
+  print(message);
+}
 
 /// Rest firestore service.
 abstract class FirestoreServiceRest implements FirestoreService {
@@ -287,35 +293,47 @@ class FirestoreRestImpl
   /// Note: Must be called immediately, prior to accessing auth methods.
   /// Do not use with production credentials as emulator traffic is not encrypted.
   @override
-  Future<void> useFirestoreEmulator(String host, int port) async {
-    _rootUrl = 'http://$host:$port/';
+  Future<void> useFirestoreEmulator(
+    String host,
+    int port, {
+    bool? owner,
+  }) async {
+    _emulatorRootUrl = 'http://$host:$port/';
   }
 
-  String? _rootUrl;
-
-  api.FirestoreApi? _emulatorFirestoreApi;
+  String? _emulatorRootUrl;
+  bool? _emulatorRootOwner;
 
   /// Firestore api.
   api.FirestoreApi get firestoreApi {
-    var rootUrl = _rootUrl;
-    if (rootUrl != null) {
-      // Emulator: act as the emulator owner (admin). Metadata operations (such
-      // as listCollectionIds) require admin authentication, and the emulator
-      // accepts `Bearer owner` for that. We use a dedicated client rather than
-      // the app client so the owner token is not overridden by a signed-in
-      // user's authenticated client.
-      return _emulatorFirestoreApi ??= FirestoreApi(
-        _FirestoreEmulatorClient(http.Client()),
-        rootUrl: rootUrl,
-      );
-    }
+    var emulatorRootUrl = _emulatorRootUrl;
+
     if (_firestoreApi != null && _lastApiClient == appImpl.client) {
       return _firestoreApi!;
     } else {
+      if (debugRest) {
+        _log(
+          'New api client for firestore ${emulatorRootUrl != null ? ' (emulator)' : ''}',
+        );
+      }
       var apiClient = appImpl.apiClient;
       _lastApiClient = apiClient;
-      return _firestoreApi = FirestoreApi(apiClient);
+      if (emulatorRootUrl != null) {
+        // Emulator: act as the emulator owner (admin). Metadata operations (such
+        // as listCollectionIds) require admin authentication, and the emulator
+        // accepts `Bearer owner` for that. We use a dedicated client rather than
+        // the app client so the owner token is not overridden by a signed-in
+        // user's authenticated client.
+        var owner = _emulatorRootOwner == true;
+        _firestoreApi = FirestoreApi(
+          owner ? _FirestoreEmulatorClient(http.Client()) : apiClient,
+          rootUrl: emulatorRootUrl,
+        );
+      } else {
+        _firestoreApi = FirestoreApi(apiClient);
+      }
     }
+    return _firestoreApi!;
   }
 
   /// Project id.
@@ -502,7 +520,11 @@ class FirestoreRestImpl
       if (debugRest) {
         logDebug('writeDocument error: $e');
       }
-      rethrow;
+      var wrapped = wrapFirestoreRestException(e);
+      if (identical(wrapped, e)) {
+        rethrow;
+      }
+      throw wrapped;
     }
     return DocumentReferenceRestImpl(this, path);
   }
@@ -1104,5 +1126,21 @@ String pathJoin(String? path1, String? path2) {
     return path1;
   } else {
     return url.join(path1, path2);
+  }
+}
+
+/// Wrap exception
+FirestoreExceptionRest wrapFirestoreRestException(Object e) {
+  if (e is FirestoreExceptionRest) {
+    return e;
+  } else {
+    if (e is api.DetailedApiRequestError) {
+      return FirestoreExceptionRest(apiError: e);
+    }
+    return FirestoreExceptionRest(
+      code: FirestoreErrorCode.internal,
+      message: e.toString(),
+      details: e,
+    );
   }
 }
