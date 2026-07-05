@@ -1,6 +1,7 @@
 @TestOn('vm')
 library;
 
+import 'package:http/http.dart';
 import 'package:tekartik_firebase_rest/firebase_rest.dart';
 import 'package:test/test.dart';
 
@@ -14,6 +15,23 @@ Future main() async {
     expect(app.name, name);
     expect(FirebaseApp.instance.projectId, options.projectId);
     await app.delete();
+  });
+  test('apiClientStream', () async {
+    var app = firebase.initializeApp(options: options, name: name) as FirebaseAppRest;
+    var client1 = Client();
+    var client2 = Client();
+
+    var futureClients = app.apiClientStream.toList();
+
+    // ignore: invalid_use_of_protected_member
+    app.client = client1;
+    // ignore: invalid_use_of_protected_member
+    app.client = client2;
+
+    await app.delete();
+
+    var clients = await futureClients;
+    expect(clients, [client1, client2]);
   });
   test('delete reinit', () async {
     var app = firebase.initializeApp(options: options, name: name);

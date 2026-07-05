@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:googleapis/firebaserules/v1.dart';
 import 'package:googleapis_auth/googleapis_auth.dart';
 import 'package:http/http.dart';
@@ -55,10 +57,16 @@ class AppRestImpl
     return false;
   }
 
+  final _apiClientStreamController = StreamController<Client>.broadcast();
+
+  @override
+  Stream<Client> get apiClientStream => _apiClientStreamController.stream;
+
   @override
   Future<void> delete() async {
     await super.delete();
     deleted = true;
+    await _apiClientStreamController.close();
   }
 
   @override
@@ -69,7 +77,12 @@ class AppRestImpl
   Client? get client => currentAuthClient;
 
   @override
-  set client(Client? client) => currentAuthClient = client;
+  set client(Client? client) {
+    currentAuthClient = client;
+    if (client != null && !deleted) {
+      _apiClientStreamController.add(client);
+    }
+  }
 
   @override
   String toString() {
@@ -77,7 +90,15 @@ class AppRestImpl
   }
 
   @override
-  Client get apiClient => client ??= Client();
+  Client get apiClient {
+    var existing = currentAuthClient;
+    if (existing == null) {
+      var newClient = Client();
+      client = newClient;
+      return newClient;
+    }
+    return existing;
+  }
 }
 
 /// Public extension

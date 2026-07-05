@@ -460,7 +460,7 @@ class FirebaseAuthRestImpl
         }
       }
     }
-    // ignore: deprecated_member_use
+    // ignore: invalid_use_of_protected_member
     appRest.client = client;
   }
 
@@ -586,7 +586,7 @@ class FirebaseAuthRestImpl
   Future signOut() async {
     await authReady;
     await _currentProviderUser?.provider.mixin.signOut();
-    // ignore: deprecated_member_use
+    // ignore: invalid_use_of_protected_member
     appRest.client = null;
   }
 

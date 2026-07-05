@@ -129,6 +129,12 @@ class _GrpcListener {
   User? _lastUser;
   bool _first = true;
 
+  /// Last emitted snapshot state, to skip duplicates (the server may send
+  /// the same delete/change more than once, and a reconnect re-emits the
+  /// current state).
+  bool? _lastSnapshotExists;
+  Timestamp? _lastSnapshotUpdateTime;
+
   _GrpcListener(this.docRef, this.controller) {
     var app = docRef.firestoreGrpcRestImpl.app;
     if (app.hasAdminCredentials) {
@@ -163,6 +169,15 @@ class _GrpcListener {
     sub = stream.listen(
       (snapshot) {
         if (!_closed) {
+          var exists = snapshot.exists;
+          var updateTime = exists ? snapshot.updateTime : null;
+          if (exists == _lastSnapshotExists &&
+              updateTime == _lastSnapshotUpdateTime) {
+            // Duplicate of the last emitted snapshot, skip it.
+            return;
+          }
+          _lastSnapshotExists = exists;
+          _lastSnapshotUpdateTime = updateTime;
           controller.add(snapshot);
         }
       },

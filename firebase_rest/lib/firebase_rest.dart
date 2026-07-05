@@ -1,5 +1,6 @@
 import 'package:googleapis_auth/googleapis_auth.dart';
 import 'package:http/http.dart';
+import 'package:meta/meta.dart';
 import 'package:tekartik_firebase/firebase_admin.dart';
 import 'package:tekartik_firebase_rest/src/firebase_rest.dart';
 
@@ -44,9 +45,14 @@ abstract class FirebaseAppRest implements FirebaseApp {
   /// The http client
   Client? get client;
 
-  @Deprecated('Only implementation should call that')
+  ///
+  @protected
   set client(Client? client);
 
   /// Never null
   Client get apiClient;
+
+  /// Clients are never null
+  /// It can be updated from other services
+  Stream<Client> get apiClientStream;
 }
