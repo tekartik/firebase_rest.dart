@@ -6,6 +6,7 @@ workspace:
   - auth_rest
   - firebase_rest
   - firestore_rest
+  - firestore_grpc_rest
   - repo_support
   - storage_rest
   - functions_call_rest
