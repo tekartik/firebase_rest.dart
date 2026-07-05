@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:grpc/grpc.dart';
-import 'package:tekartik_firebase_auth_rest/auth_rest.dart';
 import 'package:tekartik_firebase_firestore_grpc_rest/firestore_grpc_rest.dart';
 import 'package:tekartik_firebase_firestore_rest/firestore_rest.dart';
 import 'package:tekartik_firebase_firestore_rest/src/document_reference_rest.dart'; // ignore: implementation_imports
@@ -122,12 +121,9 @@ class _GrpcListener {
   final DocumentReferenceGrpcRestImpl docRef;
   final StreamController<DocumentSnapshot> controller;
 
-  StreamSubscription? _authSubscription;
+  StreamSubscription? _clientSubscription;
   StreamSubscription? _grpcSubscription;
   bool _closed = false;
-
-  User? _lastUser;
-  bool _first = true;
 
   /// Last emitted snapshot state, to skip duplicates (the server may send
   /// the same delete/change more than once, and a reconnect re-emits the
@@ -136,24 +132,16 @@ class _GrpcListener {
   Timestamp? _lastSnapshotUpdateTime;
 
   _GrpcListener(this.docRef, this.controller) {
-    var app = docRef.firestoreGrpcRestImpl.app;
-    if (app.hasAdminCredentials) {
-      // Service account app: the client is already authenticated, no user
-      // tracking needed (instantiating the auth service would clear the
-      // service account client on the app).
-      _startListening();
-    } else {
-      var auth = authServiceRest.auth(app);
-      _authSubscription = auth.onCurrentUser.listen((user) {
-        if (!_closed) {
-          if (_first || user?.uid != _lastUser?.uid) {
-            _first = false;
-            _lastUser = user;
-            _startListening();
-          }
-        }
-      });
-    }
+    var appImpl = docRef.firestoreGrpcRestImpl.appImpl;
+    // Start listening with the current client right away, then restart
+    // whenever the app's client changes (e.g. user sign-in/out, token
+    // refresh with a new client instance).
+    _startListening();
+    _clientSubscription = appImpl.apiClientStream.listen((_) {
+      if (!_closed) {
+        _startListening();
+      }
+    });
   }
 
   void _startListening() {
@@ -223,7 +211,7 @@ class _GrpcListener {
   void close() {
     if (_closed) return;
     _closed = true;
-    _authSubscription?.cancel();
+    _clientSubscription?.cancel();
     _grpcSubscription?.cancel();
     controller.close();
     docRef.firestoreGrpcRestImpl._activeListeners.remove(this);

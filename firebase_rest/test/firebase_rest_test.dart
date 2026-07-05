@@ -17,7 +17,8 @@ Future main() async {
     await app.delete();
   });
   test('apiClientStream', () async {
-    var app = firebase.initializeApp(options: options, name: name) as FirebaseAppRest;
+    var app =
+        firebase.initializeApp(options: options, name: name) as FirebaseAppRest;
     var client1 = Client();
     var client2 = Client();
 

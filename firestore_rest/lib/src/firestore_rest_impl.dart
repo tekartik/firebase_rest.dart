@@ -302,10 +302,10 @@ class FirestoreRestImpl
   }
 
   String? _emulatorRootUrl;
-  
+
   /// Emulator root URL.
   String? get emulatorRootUrl => _emulatorRootUrl;
-  
+
   bool? _emulatorRootOwner;
 
   /// Firestore api.

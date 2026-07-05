@@ -12,6 +12,7 @@ import 'package:test/test.dart';
 
 var defaultRegion = 'europe-west1';
 var _emulatorService = FirebaseEmulatorService(path: 'emulator');
+
 var _options = FirebaseEmulatorOptions(
   onlyAuth: true,
   onlyFirestore: true,

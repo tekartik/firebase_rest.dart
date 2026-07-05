@@ -1,0 +1,39 @@
+{
+  "indexes": [
+    {
+      "collectionGroup": "aggregate_query_complex",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "test",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "value",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "__name__",
+          "order": "ASCENDING"
+        }
+      ],
+      "density": "SPARSE_ALL"
+    },
+    {
+      "collectionGroup": "order_desc_field_and_key",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "value",
+          "order": "DESCENDING"
+        },
+        {
+          "fieldPath": "__name__",
+          "order": "ASCENDING"
+        }
+      ],
+      "density": "SPARSE_ALL"
+    }
+  ],
+  "fieldOverrides": []
+}
