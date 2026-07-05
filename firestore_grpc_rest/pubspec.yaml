@@ -14,6 +14,13 @@ dependencies:
     version: '>=0.8.2'
   tekartik_firebase_firestore_rest:
     path: ../firestore_rest
+  tekartik_firebase_auth:
+    git:
+      url: https://github.com/tekartik/firebase_auth.dart
+      path: auth
+    version: '>=0.9.0'
+  tekartik_firebase_auth_rest:
+    path: ../auth_rest
   tekartik_firebase_rest:
     git:
       url: https://github.com/tekartik/firebase_rest.dart
