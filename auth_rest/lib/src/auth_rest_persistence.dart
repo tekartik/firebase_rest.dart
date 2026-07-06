@@ -3,9 +3,9 @@ import 'package:fs_shim/fs_shim.dart';
 import 'package:fs_shim/utils/read_write.dart';
 import 'package:path/path.dart';
 import 'package:tekartik_browser_utils/storage_utils.dart';
-import 'package:tekartik_firebase_auth_rest/auth_rest.dart';
 
 import 'auth_rest.dart';
+import 'auth_rest_provider.dart';
 
 /// Access credentials from map
 abstract class FirebaseRestAuthPersistenceAccessCredentialsMap
@@ -63,7 +63,9 @@ class _FirebaseRestAuthPersistenceAccessCredentials
   UserCredentialRest getCredential(AuthProviderRest provider) {
     var userCredential = UserCredentialRest(
       credential: AuthCredentialRestImpl(),
-      user: UserRest(
+      user: FirebaseUserRestImpl(
+        auth: provider.mixin.authRest.impl,
+
         emailVerified: emailVerified,
         isAnonymous: isAnonymous,
         uid: uid,

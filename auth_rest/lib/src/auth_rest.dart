@@ -78,10 +78,22 @@ class AuthCredentialRestImpl implements AuthCredentialRest {
   String toString() => 'AuthCredentialRest($providerId)';
 }
 
+/// compat
+typedef UserRecordRest = FirebaseUserRecordRest;
+
+/// User record rest implementation
+abstract class FirebaseUserRecordRest implements UserRecord {}
+
 /// User record REST implementation
-class UserRecordRest with FirebaseUserRecordDefaultMixin implements UserRecord {
+class UserRecordRestImpl
+    with FirebaseUserRecordDefaultMixin
+    implements FirebaseUserRecordRest {
+  /// Auth
+  final FirebaseAuthRestImpl auth;
+
   /// Create user record
-  UserRecordRest({
+  UserRecordRestImpl({
+    required this.auth,
     required this.disabled,
     required this.emailVerified,
     required this.isAnonymous,
@@ -138,7 +150,8 @@ class UserRecordRest with FirebaseUserRecordDefaultMixin implements UserRecord {
 
   /// Convert to user
   User toUser() {
-    return UserRest(
+    return FirebaseUserRestImpl(
+        auth: auth,
         uid: uid,
         emailVerified: emailVerified,
         provider: null,
@@ -156,7 +169,9 @@ class UserRecordRest with FirebaseUserRecordDefaultMixin implements UserRecord {
 }
 
 /// User info rest implementation
-class UserInfoRest implements UserInfo, UserInfoWithIdToken {
+class UserInfoRest
+    with FirebaseUserMixin
+    implements UserInfo, UserInfoWithIdToken {
   /// Access credentials
   AccessCredentials? accessCredentials; // For current user only
   /// Provider
@@ -234,7 +249,12 @@ class _UserCredentialRestLive implements UserCredentialRest {
 typedef UserRest = FirebaseUserRest;
 
 /// Top level class
-class FirebaseUserRest extends UserInfoRest implements User {
+abstract class FirebaseUserRest implements User {}
+
+/// User rest implementation
+class FirebaseUserRestImpl extends UserInfoRest implements FirebaseUserRest {
+  /// Auth
+  final FirebaseAuthRest auth;
   @override
   /// Whether the email is verified
   final bool emailVerified;
@@ -246,7 +266,8 @@ class FirebaseUserRest extends UserInfoRest implements User {
   final bool isAnonymous;
 
   /// Create firebase user
-  FirebaseUserRest({
+  FirebaseUserRestImpl({
+    required this.auth,
     required this.emailVerified,
     this.client,
     super.email,
@@ -258,6 +279,11 @@ class FirebaseUserRest extends UserInfoRest implements User {
   @override
   String toString() {
     return '${super.toString()}, emailVerified: $emailVerified${isAnonymous ? ', anonymous' : ''}';
+  }
+
+  @override
+  Future<void> delete() async {
+    await auth.impl.builtInProvider.delete();
   }
 }
 
@@ -514,7 +540,7 @@ class FirebaseAuthRestImpl
     }
     if (result.users?.isNotEmpty ?? false) {
       var restUserInfo = result.users!.first;
-      return toUserRecord(restUserInfo);
+      return toUserRecord(this, restUserInfo);
     }
     return null;
   }
@@ -532,7 +558,7 @@ class FirebaseAuthRestImpl
     }
     var users = (result.users ?? <api.UserInfo>[]);
     return users
-        .map((restUserInfo) => toUserRecord(restUserInfo))
+        .map((restUserInfo) => toUserRecord(this, restUserInfo))
         .toList(growable: false);
   }
 
@@ -667,8 +693,9 @@ class AuthAccountApi {
 }
 
 /// Convert [api.UserInfo] to [UserRecord]
-UserRecord toUserRecord(api.UserInfo restUserInfo) {
-  var userRecord = UserRecordRest(
+UserRecord toUserRecord(FirebaseAuthRestImpl auth, api.UserInfo restUserInfo) {
+  var userRecord = UserRecordRestImpl(
+    auth: auth,
     emailVerified: restUserInfo.emailVerified ?? false,
     disabled: false,
     isAnonymous: false,

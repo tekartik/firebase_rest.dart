@@ -2,12 +2,10 @@ import 'package:googleapis_auth/auth_io.dart';
 import 'package:tekartik_common_utils/common_utils_import.dart';
 import 'package:tekartik_firebase_auth/auth.dart';
 import 'package:tekartik_firebase_auth_rest/src/auth_rest.dart';
-import 'package:tekartik_firebase_auth_rest/src/identitytoolkit/v3.dart'
-    hide UserInfo;
 
 import 'auth_rest_provider.dart';
-import 'identitytoolkit/v3.dart';
 
+/*
 /// Convert a rest user to a user record
 Future<UserRecord?> getUser(AuthClient client, String uid) async {
   var request = IdentitytoolkitRelyingpartyGetAccountInfoRequest()
@@ -29,7 +27,7 @@ Future<UserRecord?> getUser(AuthClient client, String uid) async {
   }
   return null;
 }
-
+*/
 /// Google rest auth provider mixin
 mixin GoogleRestAuthProviderMixin implements GoogleRestAuthProvider {
   // must be initialized.

@@ -180,7 +180,8 @@ class GoogleAuthProviderRestIoImpl
     // devPrint(jsonPretty(person.toJson()));
     // devPrint(auth.currentUser);
     var user =
-        FirebaseUserRest(
+        FirebaseUserRestImpl(
+            auth: authRest.impl,
             client: authClient,
             emailVerified: person.verifiedEmail ?? false,
             uid: person.id!,

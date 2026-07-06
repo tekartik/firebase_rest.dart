@@ -3,6 +3,7 @@ library;
 
 import 'dart:io';
 import 'package:tekartik_firebase_auth_rest/auth_rest.dart';
+import 'package:tekartik_firebase_auth_test/auth_sign_in_delete_test_runner.dart';
 import 'package:tekartik_firebase_emulator/firebase_emulator.dart';
 import 'package:tekartik_firebase_rest/firebase_rest.dart';
 import 'package:test/test.dart';
@@ -53,6 +54,13 @@ Future main() async {
 
       expect(auth.currentUser!.uid, credential.user.uid);
     });
+    var email = 'delete@gmail.com';
+    var password = 'test1234';
+    firebaseAuthSignInDeleteTests(
+      getAuth: () => auth,
+      email: email,
+      password: password,
+    );
 
     tearDownAll(() async {
       await emulator.stop();

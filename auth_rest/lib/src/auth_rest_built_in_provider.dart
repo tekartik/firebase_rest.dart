@@ -52,7 +52,8 @@ class BuiltInAuthProviderRest extends AuthProviderRestBase {
     var userCredential = UserCredentialAnonymousRestImpl(
       response,
       AuthCredentialRestImpl(),
-      UserRest(
+      FirebaseUserRestImpl(
+        auth: authRest.impl,
         client: client,
         emailVerified: false,
         provider: this,
@@ -78,7 +79,8 @@ class BuiltInAuthProviderRest extends AuthProviderRestBase {
     );
     if (response.users?.isNotEmpty ?? false) {
       var restUserInfo = response.users!.first;
-      var userRest = FirebaseUserRest(
+      var userRest = FirebaseUserRestImpl(
+        auth: authRest.impl,
         emailVerified: restUserInfo.emailVerified ?? false,
         client: client,
         email: restUserInfo.email,
@@ -129,7 +131,8 @@ class BuiltInAuthProviderRest extends AuthProviderRestBase {
             (response.users ??
             <identitytoolkit_v1.GoogleCloudIdentitytoolkitV1UserInfo>[]);
         return users.map((restUserInfo) {
-          return UserRecordRest(
+          return UserRecordRestImpl(
+              auth: authRest.impl,
               disabled: false,
               emailVerified: false,
               isAnonymous: false,
@@ -145,7 +148,7 @@ class BuiltInAuthProviderRest extends AuthProviderRestBase {
             ..email = [email],
         );
         if (response.users?.isNotEmpty ?? false) {
-          return toUserRecord(response.users!.first);
+          return toUserRecord(authRest.impl, response.users!.first);
         }
       }
 
@@ -194,7 +197,8 @@ class BuiltInAuthProviderRest extends AuthProviderRestBase {
       var userCredential = UserCredentialEmailPasswordRestImpl(
         response,
         AuthCredentialRestImpl(),
-        UserRest(
+        FirebaseUserRestImpl(
+          auth: authRest.impl,
           client: client,
           email: response.email,
           emailVerified: false,
@@ -295,7 +299,8 @@ class BuiltInAuthProviderRest extends AuthProviderRestBase {
           expiresIn: response.expiresIn,
         ),
         AuthCredentialRestImpl(),
-        UserRest(
+        FirebaseUserRestImpl(
+          auth: authRest.impl,
           client: client,
           email: response.email,
           emailVerified: false,
@@ -309,6 +314,49 @@ class BuiltInAuthProviderRest extends AuthProviderRestBase {
       return userCredential;
     } finally {
       client.close();
+    }
+  }
+
+  /// Delete current user
+  Future<void> delete() async {
+    await authReady;
+    var userCredential = currentUserCredential;
+    if (userCredential != null) {
+      var client = _newApiKeyClient();
+
+      try {
+        if (authRest.impl.useEmulator) {
+          var apiV1 = _apiV1(client);
+
+          // ignore: unused_local_variable
+          var v1Response = await apiV1.accounts.delete(
+            identitytoolkit_v1.GoogleCloudIdentitytoolkitV1DeleteAccountRequest(
+              idToken: userCredential.idToken,
+              localId: userCredential.user.uid,
+            ),
+          );
+          // v1Response: {
+          //   "kind": "identitytoolkit#DeleteAccountResponse"
+          // }
+        } else {
+          var apiV3 = _apiV3(client);
+
+          // ignore: unused_local_variable
+          var v3Response = await apiV3.relyingparty.deleteAccount(
+            identitytoolkit_v3.IdentitytoolkitRelyingpartyDeleteAccountRequest(
+              idToken: userCredential.idToken,
+              localId: userCredential.user.uid,
+            ),
+          );
+          // v3Response: {
+          //   "kind": "identitytoolkit#DeleteAccountResponse"
+          // }
+        }
+
+        await setCurrentUserCredential(null);
+      } finally {
+        client.close();
+      }
     }
   }
 }
