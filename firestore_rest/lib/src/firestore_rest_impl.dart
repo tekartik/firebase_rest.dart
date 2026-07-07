@@ -416,7 +416,11 @@ class FirestoreRestImpl
           return DocumentSnapshotRestImpl(this, Document()..name = name);
         }
       }
-      rethrow;
+      var wrapped = wrapFirestoreRestException(e);
+      if (identical(wrapped, e)) {
+        rethrow;
+      }
+      throw wrapped;
     }
   }
 
@@ -432,7 +436,11 @@ class FirestoreRestImpl
       if (e is api.DetailedApiRequestError) {
         return;
       }
-      rethrow;
+      var wrapped = wrapFirestoreRestException(e);
+      if (identical(wrapped, e)) {
+        rethrow;
+      }
+      throw wrapped;
     }
   }
 
