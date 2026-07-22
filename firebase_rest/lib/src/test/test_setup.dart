@@ -56,6 +56,7 @@ class FirebaseRestSetupContext {
 
 /// Compat
 @Deprecated('Use FirebaseRestSetupContext')
+/// Typedef representing [Context].
 typedef Context = FirebaseRestSetupContext;
 
 /// Service account
@@ -103,6 +104,7 @@ Future<FirebaseRestTestContext> getContext(
   Map serviceAccountFromPath(String path) {
     try {
       var serviceAccountJsonString = File(path).readAsStringSync();
+
       return serviceAccountFromString(serviceAccountJsonString);
     } catch (e) {
       throw (StateError('Cannot read $path'));
@@ -173,6 +175,7 @@ Future<FirebaseRestTestContext> getContextFromAccessToken(
   // expiry is ignored in request
   var accessToken = AccessToken('Bearer', token, DateTime.now().toUtc());
   var accessCredentials = AccessCredentials(accessToken, null, scopes);
+
   return getContextFromAccessCredentials(client, accessCredentials);
 }
 
@@ -195,6 +198,7 @@ Future<FirebaseRestSetupContext?> firebaseRestSetupContext({
     );
   } catch (e) {
     client.close();
+
     print('Error getting context: $e');
   }
   return null;
@@ -221,6 +225,7 @@ Future<FirebaseRestTestContext?> setup({
     );
   } catch (e) {
     client.close();
+
     print('Error getting context: $e');
   }
   return null;
@@ -251,9 +256,13 @@ Future<FirebaseRest?> firebaseRestSetup({
     return firebaseRest;
   } catch (e) {
     client.close();
+
     print(e);
+
     print('Cannot find $dir/sample.local.config.yaml');
+
     print('Make sure to run the test using something like: ');
+
     print('  pub run build_runner test --fail-on-severe -- -p chrome');
   }
   return null;

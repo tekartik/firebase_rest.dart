@@ -37,6 +37,7 @@ class TargetChange_TargetChangeType extends $pb.ProtobufEnum {
 
   static final $core.Map<$core.int, TargetChange_TargetChangeType> _byValue =
       $pb.ProtobufEnum.initByValue(values);
+
   static TargetChange_TargetChangeType? valueOf($core.int value) =>
       _byValue[value];
 

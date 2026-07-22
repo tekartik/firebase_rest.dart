@@ -22,6 +22,8 @@ import 'firestore.pb.dart' as $0;
 export 'firestore.pb.dart';
 
 @$pb.GrpcServiceName('google.firestore.v1.Firestore')
+
+/// Class representing [FirestoreClient].
 class FirestoreClient extends $grpc.Client {
   static final _$getDocument =
       $grpc.ClientMethod<$0.GetDocumentRequest, $1.Document>(
@@ -215,6 +217,8 @@ class FirestoreClient extends $grpc.Client {
 }
 
 @$pb.GrpcServiceName('google.firestore.v1.Firestore')
+
+/// Class representing [FirestoreServiceBase].
 abstract class FirestoreServiceBase extends $grpc.Service {
   $core.String get $name => 'google.firestore.v1.Firestore';
 

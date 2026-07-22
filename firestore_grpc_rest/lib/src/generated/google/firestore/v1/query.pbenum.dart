@@ -32,6 +32,7 @@ class StructuredQuery_Direction extends $pb.ProtobufEnum {
 
   static final $core.Map<$core.int, StructuredQuery_Direction> _byValue =
       $pb.ProtobufEnum.initByValue(values);
+
   static StructuredQuery_Direction? valueOf($core.int value) => _byValue[value];
 
   const StructuredQuery_Direction._($core.int v, $core.String n) : super(v, n);
@@ -57,6 +58,7 @@ class StructuredQuery_CompositeFilter_Operator extends $pb.ProtobufEnum {
 
   static final $core.Map<$core.int, StructuredQuery_CompositeFilter_Operator>
       _byValue = $pb.ProtobufEnum.initByValue(values);
+
   static StructuredQuery_CompositeFilter_Operator? valueOf($core.int value) =>
       _byValue[value];
 
@@ -115,6 +117,7 @@ class StructuredQuery_FieldFilter_Operator extends $pb.ProtobufEnum {
 
   static final $core.Map<$core.int, StructuredQuery_FieldFilter_Operator>
       _byValue = $pb.ProtobufEnum.initByValue(values);
+
   static StructuredQuery_FieldFilter_Operator? valueOf($core.int value) =>
       _byValue[value];
 
@@ -150,6 +153,7 @@ class StructuredQuery_UnaryFilter_Operator extends $pb.ProtobufEnum {
 
   static final $core.Map<$core.int, StructuredQuery_UnaryFilter_Operator>
       _byValue = $pb.ProtobufEnum.initByValue(values);
+
   static StructuredQuery_UnaryFilter_Operator? valueOf($core.int value) =>
       _byValue[value];
 

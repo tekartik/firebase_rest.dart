@@ -71,6 +71,7 @@ class StructuredQuery_CollectionSelector extends $pb.GeneratedMessage {
   @$core.pragma('dart2js:noInline')
   static StructuredQuery_CollectionSelector create() =>
       StructuredQuery_CollectionSelector._();
+
   StructuredQuery_CollectionSelector createEmptyInstance() => create();
 
   @$core.pragma('dart2js:noInline')
@@ -109,6 +110,7 @@ class StructuredQuery_CollectionSelector extends $pb.GeneratedMessage {
   void clearAllDescendants() => clearField(3);
 }
 
+/// Enum representing [StructuredQuery_Filter_FilterType].
 enum StructuredQuery_Filter_FilterType {
   compositeFilter,
   fieldFilter,
@@ -182,6 +184,7 @@ class StructuredQuery_Filter extends $pb.GeneratedMessage {
 
   @$core.pragma('dart2js:noInline')
   static StructuredQuery_Filter create() => StructuredQuery_Filter._();
+
   StructuredQuery_Filter createEmptyInstance() => create();
 
   @$core.pragma('dart2js:noInline')
@@ -191,6 +194,7 @@ class StructuredQuery_Filter extends $pb.GeneratedMessage {
 
   StructuredQuery_Filter_FilterType whichFilterType() =>
       _StructuredQuery_Filter_FilterTypeByTag[$_whichOneof(0)]!;
+
   void clearFilterType() => clearField($_whichOneof(0));
 
   /// A composite filter.
@@ -297,6 +301,7 @@ class StructuredQuery_CompositeFilter extends $pb.GeneratedMessage {
   @$core.pragma('dart2js:noInline')
   static StructuredQuery_CompositeFilter create() =>
       StructuredQuery_CompositeFilter._();
+
   StructuredQuery_CompositeFilter createEmptyInstance() => create();
 
   @$core.pragma('dart2js:noInline')
@@ -390,6 +395,7 @@ class StructuredQuery_FieldFilter extends $pb.GeneratedMessage {
   @$core.pragma('dart2js:noInline')
   static StructuredQuery_FieldFilter create() =>
       StructuredQuery_FieldFilter._();
+
   StructuredQuery_FieldFilter createEmptyInstance() => create();
 
   @$core.pragma('dart2js:noInline')
@@ -441,6 +447,7 @@ class StructuredQuery_FieldFilter extends $pb.GeneratedMessage {
   $1.Value ensureValue() => $_ensure(2);
 }
 
+/// Enum representing [StructuredQuery_UnaryFilter_OperandType].
 enum StructuredQuery_UnaryFilter_OperandType { field_2, notSet }
 
 /// A filter with a single operand.
@@ -506,6 +513,7 @@ class StructuredQuery_UnaryFilter extends $pb.GeneratedMessage {
   @$core.pragma('dart2js:noInline')
   static StructuredQuery_UnaryFilter create() =>
       StructuredQuery_UnaryFilter._();
+
   StructuredQuery_UnaryFilter createEmptyInstance() => create();
 
   @$core.pragma('dart2js:noInline')
@@ -515,6 +523,7 @@ class StructuredQuery_UnaryFilter extends $pb.GeneratedMessage {
 
   StructuredQuery_UnaryFilter_OperandType whichOperandType() =>
       _StructuredQuery_UnaryFilter_OperandTypeByTag[$_whichOneof(0)]!;
+
   void clearOperandType() => clearField($_whichOneof(0));
 
   /// The unary operator to apply.
@@ -600,6 +609,7 @@ class StructuredQuery_Order extends $pb.GeneratedMessage {
 
   @$core.pragma('dart2js:noInline')
   static StructuredQuery_Order create() => StructuredQuery_Order._();
+
   StructuredQuery_Order createEmptyInstance() => create();
 
   @$core.pragma('dart2js:noInline')
@@ -682,6 +692,7 @@ class StructuredQuery_FieldReference extends $pb.GeneratedMessage {
   @$core.pragma('dart2js:noInline')
   static StructuredQuery_FieldReference create() =>
       StructuredQuery_FieldReference._();
+
   StructuredQuery_FieldReference createEmptyInstance() => create();
 
   @$core.pragma('dart2js:noInline')
@@ -756,6 +767,7 @@ class StructuredQuery_Projection extends $pb.GeneratedMessage {
 
   @$core.pragma('dart2js:noInline')
   static StructuredQuery_Projection create() => StructuredQuery_Projection._();
+
   StructuredQuery_Projection createEmptyInstance() => create();
 
   @$core.pragma('dart2js:noInline')
@@ -864,6 +876,7 @@ class StructuredQuery extends $pb.GeneratedMessage {
 
   @$core.pragma('dart2js:noInline')
   static StructuredQuery create() => StructuredQuery._();
+
   StructuredQuery createEmptyInstance() => create();
 
   @$core.pragma('dart2js:noInline')
@@ -1095,6 +1108,7 @@ class StructuredAggregationQuery_Aggregation_Count
   @$core.pragma('dart2js:noInline')
   static StructuredAggregationQuery_Aggregation_Count create() =>
       StructuredAggregationQuery_Aggregation_Count._();
+
   StructuredAggregationQuery_Aggregation_Count createEmptyInstance() =>
       create();
 
@@ -1204,6 +1218,7 @@ class StructuredAggregationQuery_Aggregation_Sum extends $pb.GeneratedMessage {
   @$core.pragma('dart2js:noInline')
   static StructuredAggregationQuery_Aggregation_Sum create() =>
       StructuredAggregationQuery_Aggregation_Sum._();
+
   StructuredAggregationQuery_Aggregation_Sum createEmptyInstance() => create();
 
   @$core.pragma('dart2js:noInline')
@@ -1286,6 +1301,7 @@ class StructuredAggregationQuery_Aggregation_Avg extends $pb.GeneratedMessage {
   @$core.pragma('dart2js:noInline')
   static StructuredAggregationQuery_Aggregation_Avg create() =>
       StructuredAggregationQuery_Aggregation_Avg._();
+
   StructuredAggregationQuery_Aggregation_Avg createEmptyInstance() => create();
 
   @$core.pragma('dart2js:noInline')
@@ -1310,6 +1326,7 @@ class StructuredAggregationQuery_Aggregation_Avg extends $pb.GeneratedMessage {
   StructuredQuery_FieldReference ensureField_1() => $_ensure(0);
 }
 
+/// Enum representing [StructuredAggregationQuery_Aggregation_Operator].
 enum StructuredAggregationQuery_Aggregation_Operator { count, sum, avg, notSet }
 
 /// Defines an aggregation that produces a single result.
@@ -1389,6 +1406,7 @@ class StructuredAggregationQuery_Aggregation extends $pb.GeneratedMessage {
   @$core.pragma('dart2js:noInline')
   static StructuredAggregationQuery_Aggregation create() =>
       StructuredAggregationQuery_Aggregation._();
+
   StructuredAggregationQuery_Aggregation createEmptyInstance() => create();
 
   @$core.pragma('dart2js:noInline')
@@ -1399,6 +1417,7 @@ class StructuredAggregationQuery_Aggregation extends $pb.GeneratedMessage {
 
   StructuredAggregationQuery_Aggregation_Operator whichOperator() =>
       _StructuredAggregationQuery_Aggregation_OperatorByTag[$_whichOneof(0)]!;
+
   void clearOperator() => clearField($_whichOneof(0));
 
   /// Count aggregator.
@@ -1494,6 +1513,7 @@ class StructuredAggregationQuery_Aggregation extends $pb.GeneratedMessage {
   void clearAlias() => clearField(7);
 }
 
+/// Enum representing [StructuredAggregationQuery_QueryType].
 enum StructuredAggregationQuery_QueryType { structuredQuery, notSet }
 
 /// Firestore query for running an aggregation over a
@@ -1556,6 +1576,7 @@ class StructuredAggregationQuery extends $pb.GeneratedMessage {
 
   @$core.pragma('dart2js:noInline')
   static StructuredAggregationQuery create() => StructuredAggregationQuery._();
+
   StructuredAggregationQuery createEmptyInstance() => create();
 
   @$core.pragma('dart2js:noInline')
@@ -1565,6 +1586,7 @@ class StructuredAggregationQuery extends $pb.GeneratedMessage {
 
   StructuredAggregationQuery_QueryType whichQueryType() =>
       _StructuredAggregationQuery_QueryTypeByTag[$_whichOneof(0)]!;
+
   void clearQueryType() => clearField($_whichOneof(0));
 
   /// Nested structured query.
@@ -1640,6 +1662,7 @@ class Cursor extends $pb.GeneratedMessage {
 
   @$core.pragma('dart2js:noInline')
   static Cursor create() => Cursor._();
+
   Cursor createEmptyInstance() => create();
 
   @$core.pragma('dart2js:noInline')

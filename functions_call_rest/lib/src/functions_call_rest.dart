@@ -28,6 +28,7 @@ class _FirebaseFunctionsCallServiceRest
   FirebaseFunctionsCallRest _getInstance(
     App app,
     String region,
+
     FirebaseFunctionsCallRest Function() createIfNotFound,
   ) {
     var key = '${app.name}_$region';

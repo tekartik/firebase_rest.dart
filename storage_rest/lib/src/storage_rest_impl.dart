@@ -70,6 +70,7 @@ class StorageServiceRestImpl
   Storage storage(App app) {
     return getInstance(app, () {
       assert(app is FirebaseAppRest, 'invalid firebase app type');
+
       return StorageRestImpl(this, app as FirebaseAppRest);
     });
   }
@@ -317,10 +318,12 @@ class StorageRestImpl
     var uri = Uri.tryParse(path ?? '');
     if (uri == null || uri.scheme.isEmpty) {
       var fileRef = StorageFileRef(appRest.options.storageBucket!, path ?? '');
+
       return ReferenceRestImpl(storage: this, fileRef: fileRef);
     }
 
     var fileRef = StorageFileRef.fromLink(uri);
+
     return ReferenceRestImpl(storage: this, fileRef: fileRef);
   }
 

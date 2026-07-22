@@ -63,6 +63,7 @@ class DocumentMask extends $pb.GeneratedMessage {
 
   @$core.pragma('dart2js:noInline')
   static DocumentMask create() => DocumentMask._();
+
   DocumentMask createEmptyInstance() => create();
 
   @$core.pragma('dart2js:noInline')
@@ -77,6 +78,7 @@ class DocumentMask extends $pb.GeneratedMessage {
   $core.List<$core.String> get fieldPaths => $_getList(0);
 }
 
+/// Enum representing [Precondition_ConditionType].
 enum Precondition_ConditionType { exists, updateTime, notSet }
 
 /// A precondition on a document, used for conditional operations.
@@ -134,6 +136,7 @@ class Precondition extends $pb.GeneratedMessage {
 
   @$core.pragma('dart2js:noInline')
   static Precondition create() => Precondition._();
+
   Precondition createEmptyInstance() => create();
 
   @$core.pragma('dart2js:noInline')
@@ -143,6 +146,7 @@ class Precondition extends $pb.GeneratedMessage {
 
   Precondition_ConditionType whichConditionType() =>
       _Precondition_ConditionTypeByTag[$_whichOneof(0)]!;
+
   void clearConditionType() => clearField($_whichOneof(0));
 
   /// When set to `true`, the target document must exist.
@@ -226,6 +230,7 @@ class TransactionOptions_ReadWrite extends $pb.GeneratedMessage {
   @$core.pragma('dart2js:noInline')
   static TransactionOptions_ReadWrite create() =>
       TransactionOptions_ReadWrite._();
+
   TransactionOptions_ReadWrite createEmptyInstance() => create();
 
   @$core.pragma('dart2js:noInline')
@@ -247,6 +252,7 @@ class TransactionOptions_ReadWrite extends $pb.GeneratedMessage {
   void clearRetryTransaction() => clearField(1);
 }
 
+/// Enum representing [TransactionOptions_ReadOnly_ConsistencySelector].
 enum TransactionOptions_ReadOnly_ConsistencySelector { readTime, notSet }
 
 /// Options for a transaction that can only be used to read documents.
@@ -303,6 +309,7 @@ class TransactionOptions_ReadOnly extends $pb.GeneratedMessage {
   @$core.pragma('dart2js:noInline')
   static TransactionOptions_ReadOnly create() =>
       TransactionOptions_ReadOnly._();
+
   TransactionOptions_ReadOnly createEmptyInstance() => create();
 
   @$core.pragma('dart2js:noInline')
@@ -312,6 +319,7 @@ class TransactionOptions_ReadOnly extends $pb.GeneratedMessage {
 
   TransactionOptions_ReadOnly_ConsistencySelector whichConsistencySelector() =>
       _TransactionOptions_ReadOnly_ConsistencySelectorByTag[$_whichOneof(0)]!;
+
   void clearConsistencySelector() => clearField($_whichOneof(0));
 
   ///  Reads documents at the given time.
@@ -334,6 +342,7 @@ class TransactionOptions_ReadOnly extends $pb.GeneratedMessage {
   $0.Timestamp ensureReadTime() => $_ensure(0);
 }
 
+/// Enum representing [TransactionOptions_Mode].
 enum TransactionOptions_Mode { readOnly, readWrite, notSet }
 
 /// Options for creating a new transaction.
@@ -392,6 +401,7 @@ class TransactionOptions extends $pb.GeneratedMessage {
 
   @$core.pragma('dart2js:noInline')
   static TransactionOptions create() => TransactionOptions._();
+
   TransactionOptions createEmptyInstance() => create();
 
   @$core.pragma('dart2js:noInline')
@@ -401,6 +411,7 @@ class TransactionOptions extends $pb.GeneratedMessage {
 
   TransactionOptions_Mode whichMode() =>
       _TransactionOptions_ModeByTag[$_whichOneof(0)]!;
+
   void clearMode() => clearField($_whichOneof(0));
 
   /// The transaction can only be used for read operations.

@@ -46,6 +46,7 @@ extension FirebaseAdminRestExtension on FirebaseAdminRest {
       scopes: scopes,
     );
     credential.setApplicationDefault(credentials);
+
     return await initializeAppAsync(options: options);
   }
 
@@ -62,6 +63,7 @@ extension FirebaseAdminRestExtension on FirebaseAdminRest {
       scopes: scopes,
     );
     credential.setApplicationDefault(credentials);
+
     return await initializeAppAsync(options: options);
   }
 }
@@ -153,6 +155,7 @@ class FirebaseRestImpl
   @override
   App initializeApp({AppOptions? options, String? name}) {
     name ??= firebaseRestDefaultAppName;
+
     checkAppNameUninitialized(name);
     AppRestImpl app;
     var credentialsRest = credential
@@ -170,6 +173,7 @@ class FirebaseRestImpl
       }
       app = AppRestImpl(name: name, firebaseRest: this, options: options);
     }
+
     return addApp(app);
   }
 

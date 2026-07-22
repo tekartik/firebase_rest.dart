@@ -77,6 +77,7 @@ class FirebaseAdminCredentialRestImpl implements FirebaseAdminCredentialRest {
           client: authClient,
           identifyServiceAccount: FirebaseRestIdentifyServiceAccountImpl(),
         )..projectId = projectId;
+
         return FirebaseAdminAccessTokenRest(data: accessToken.data);
       }();
   /*

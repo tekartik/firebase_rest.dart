@@ -28,6 +28,7 @@ import 'write.pb.dart' as $5;
 
 export 'firestore.pbenum.dart';
 
+/// Enum representing [GetDocumentRequest_ConsistencySelector].
 enum GetDocumentRequest_ConsistencySelector { transaction, readTime, notSet }
 
 /// The request for
@@ -98,6 +99,7 @@ class GetDocumentRequest extends $pb.GeneratedMessage {
 
   @$core.pragma('dart2js:noInline')
   static GetDocumentRequest create() => GetDocumentRequest._();
+
   GetDocumentRequest createEmptyInstance() => create();
 
   @$core.pragma('dart2js:noInline')
@@ -107,6 +109,7 @@ class GetDocumentRequest extends $pb.GeneratedMessage {
 
   GetDocumentRequest_ConsistencySelector whichConsistencySelector() =>
       _GetDocumentRequest_ConsistencySelectorByTag[$_whichOneof(0)]!;
+
   void clearConsistencySelector() => clearField($_whichOneof(0));
 
   /// Required. The resource name of the Document to get. In the format:
@@ -174,6 +177,7 @@ class GetDocumentRequest extends $pb.GeneratedMessage {
   $4.Timestamp ensureReadTime() => $_ensure(3);
 }
 
+/// Enum representing [ListDocumentsRequest_ConsistencySelector].
 enum ListDocumentsRequest_ConsistencySelector { transaction, readTime, notSet }
 
 /// The request for
@@ -270,6 +274,7 @@ class ListDocumentsRequest extends $pb.GeneratedMessage {
 
   @$core.pragma('dart2js:noInline')
   static ListDocumentsRequest create() => ListDocumentsRequest._();
+
   ListDocumentsRequest createEmptyInstance() => create();
 
   @$core.pragma('dart2js:noInline')
@@ -279,6 +284,7 @@ class ListDocumentsRequest extends $pb.GeneratedMessage {
 
   ListDocumentsRequest_ConsistencySelector whichConsistencySelector() =>
       _ListDocumentsRequest_ConsistencySelectorByTag[$_whichOneof(0)]!;
+
   void clearConsistencySelector() => clearField($_whichOneof(0));
 
   ///  Required. The parent resource name. In the format:
@@ -492,6 +498,7 @@ class ListDocumentsResponse extends $pb.GeneratedMessage {
 
   @$core.pragma('dart2js:noInline')
   static ListDocumentsResponse create() => ListDocumentsResponse._();
+
   ListDocumentsResponse createEmptyInstance() => create();
 
   @$core.pragma('dart2js:noInline')
@@ -586,6 +593,7 @@ class CreateDocumentRequest extends $pb.GeneratedMessage {
 
   @$core.pragma('dart2js:noInline')
   static CreateDocumentRequest create() => CreateDocumentRequest._();
+
   CreateDocumentRequest createEmptyInstance() => create();
 
   @$core.pragma('dart2js:noInline')
@@ -735,6 +743,7 @@ class UpdateDocumentRequest extends $pb.GeneratedMessage {
 
   @$core.pragma('dart2js:noInline')
   static UpdateDocumentRequest create() => UpdateDocumentRequest._();
+
   UpdateDocumentRequest createEmptyInstance() => create();
 
   @$core.pragma('dart2js:noInline')
@@ -865,6 +874,7 @@ class DeleteDocumentRequest extends $pb.GeneratedMessage {
 
   @$core.pragma('dart2js:noInline')
   static DeleteDocumentRequest create() => DeleteDocumentRequest._();
+
   DeleteDocumentRequest createEmptyInstance() => create();
 
   @$core.pragma('dart2js:noInline')
@@ -903,6 +913,7 @@ class DeleteDocumentRequest extends $pb.GeneratedMessage {
   $3.Precondition ensureCurrentDocument() => $_ensure(1);
 }
 
+/// Enum representing [BatchGetDocumentsRequest_ConsistencySelector].
 enum BatchGetDocumentsRequest_ConsistencySelector {
   transaction,
   newTransaction,
@@ -993,6 +1004,7 @@ class BatchGetDocumentsRequest extends $pb.GeneratedMessage {
 
   @$core.pragma('dart2js:noInline')
   static BatchGetDocumentsRequest create() => BatchGetDocumentsRequest._();
+
   BatchGetDocumentsRequest createEmptyInstance() => create();
 
   @$core.pragma('dart2js:noInline')
@@ -1002,6 +1014,7 @@ class BatchGetDocumentsRequest extends $pb.GeneratedMessage {
 
   BatchGetDocumentsRequest_ConsistencySelector whichConsistencySelector() =>
       _BatchGetDocumentsRequest_ConsistencySelectorByTag[$_whichOneof(0)]!;
+
   void clearConsistencySelector() => clearField($_whichOneof(0));
 
   /// Required. The database name. In the format:
@@ -1094,6 +1107,7 @@ class BatchGetDocumentsRequest extends $pb.GeneratedMessage {
   $4.Timestamp ensureReadTime() => $_ensure(5);
 }
 
+/// Enum representing [BatchGetDocumentsResponse_Result].
 enum BatchGetDocumentsResponse_Result { found, missing, notSet }
 
 /// The streamed response for
@@ -1166,6 +1180,7 @@ class BatchGetDocumentsResponse extends $pb.GeneratedMessage {
 
   @$core.pragma('dart2js:noInline')
   static BatchGetDocumentsResponse create() => BatchGetDocumentsResponse._();
+
   BatchGetDocumentsResponse createEmptyInstance() => create();
 
   @$core.pragma('dart2js:noInline')
@@ -1175,6 +1190,7 @@ class BatchGetDocumentsResponse extends $pb.GeneratedMessage {
 
   BatchGetDocumentsResponse_Result whichResult() =>
       _BatchGetDocumentsResponse_ResultByTag[$_whichOneof(0)]!;
+
   void clearResult() => clearField($_whichOneof(0));
 
   /// A document that was requested.
@@ -1292,6 +1308,7 @@ class BeginTransactionRequest extends $pb.GeneratedMessage {
 
   @$core.pragma('dart2js:noInline')
   static BeginTransactionRequest create() => BeginTransactionRequest._();
+
   BeginTransactionRequest createEmptyInstance() => create();
 
   @$core.pragma('dart2js:noInline')
@@ -1376,6 +1393,7 @@ class BeginTransactionResponse extends $pb.GeneratedMessage {
 
   @$core.pragma('dart2js:noInline')
   static BeginTransactionResponse create() => BeginTransactionResponse._();
+
   BeginTransactionResponse createEmptyInstance() => create();
 
   @$core.pragma('dart2js:noInline')
@@ -1451,6 +1469,7 @@ class CommitRequest extends $pb.GeneratedMessage {
 
   @$core.pragma('dart2js:noInline')
   static CommitRequest create() => CommitRequest._();
+
   CommitRequest createEmptyInstance() => create();
 
   @$core.pragma('dart2js:noInline')
@@ -1542,6 +1561,7 @@ class CommitResponse extends $pb.GeneratedMessage {
 
   @$core.pragma('dart2js:noInline')
   static CommitResponse create() => CommitResponse._();
+
   CommitResponse createEmptyInstance() => create();
 
   @$core.pragma('dart2js:noInline')
@@ -1621,6 +1641,7 @@ class RollbackRequest extends $pb.GeneratedMessage {
 
   @$core.pragma('dart2js:noInline')
   static RollbackRequest create() => RollbackRequest._();
+
   RollbackRequest createEmptyInstance() => create();
 
   @$core.pragma('dart2js:noInline')
@@ -1656,8 +1677,10 @@ class RollbackRequest extends $pb.GeneratedMessage {
   void clearTransaction() => clearField(2);
 }
 
+/// Enum representing [RunQueryRequest_QueryType].
 enum RunQueryRequest_QueryType { structuredQuery, notSet }
 
+/// Enum representing [RunQueryRequest_ConsistencySelector].
 enum RunQueryRequest_ConsistencySelector {
   transaction,
   newTransaction,
@@ -1745,6 +1768,7 @@ class RunQueryRequest extends $pb.GeneratedMessage {
 
   @$core.pragma('dart2js:noInline')
   static RunQueryRequest create() => RunQueryRequest._();
+
   RunQueryRequest createEmptyInstance() => create();
 
   @$core.pragma('dart2js:noInline')
@@ -1754,10 +1778,12 @@ class RunQueryRequest extends $pb.GeneratedMessage {
 
   RunQueryRequest_QueryType whichQueryType() =>
       _RunQueryRequest_QueryTypeByTag[$_whichOneof(0)]!;
+
   void clearQueryType() => clearField($_whichOneof(0));
 
   RunQueryRequest_ConsistencySelector whichConsistencySelector() =>
       _RunQueryRequest_ConsistencySelectorByTag[$_whichOneof(1)]!;
+
   void clearConsistencySelector() => clearField($_whichOneof(1));
 
   /// Required. The parent resource name. In the format:
@@ -1846,6 +1872,7 @@ class RunQueryRequest extends $pb.GeneratedMessage {
   $4.Timestamp ensureReadTime() => $_ensure(4);
 }
 
+/// Enum representing [RunQueryResponse_ContinuationSelector].
 enum RunQueryResponse_ContinuationSelector { done, notSet }
 
 /// The response for
@@ -1921,6 +1948,7 @@ class RunQueryResponse extends $pb.GeneratedMessage {
 
   @$core.pragma('dart2js:noInline')
   static RunQueryResponse create() => RunQueryResponse._();
+
   RunQueryResponse createEmptyInstance() => create();
 
   @$core.pragma('dart2js:noInline')
@@ -1930,6 +1958,7 @@ class RunQueryResponse extends $pb.GeneratedMessage {
 
   RunQueryResponse_ContinuationSelector whichContinuationSelector() =>
       _RunQueryResponse_ContinuationSelectorByTag[$_whichOneof(0)]!;
+
   void clearContinuationSelector() => clearField($_whichOneof(0));
 
   /// A query result, not set when reporting partial progress.
@@ -2014,8 +2043,10 @@ class RunQueryResponse extends $pb.GeneratedMessage {
   void clearDone() => clearField(6);
 }
 
+/// Enum representing [RunAggregationQueryRequest_QueryType].
 enum RunAggregationQueryRequest_QueryType { structuredAggregationQuery, notSet }
 
+/// Enum representing [RunAggregationQueryRequest_ConsistencySelector].
 enum RunAggregationQueryRequest_ConsistencySelector {
   transaction,
   newTransaction,
@@ -2109,6 +2140,7 @@ class RunAggregationQueryRequest extends $pb.GeneratedMessage {
 
   @$core.pragma('dart2js:noInline')
   static RunAggregationQueryRequest create() => RunAggregationQueryRequest._();
+
   RunAggregationQueryRequest createEmptyInstance() => create();
 
   @$core.pragma('dart2js:noInline')
@@ -2118,10 +2150,12 @@ class RunAggregationQueryRequest extends $pb.GeneratedMessage {
 
   RunAggregationQueryRequest_QueryType whichQueryType() =>
       _RunAggregationQueryRequest_QueryTypeByTag[$_whichOneof(0)]!;
+
   void clearQueryType() => clearField($_whichOneof(0));
 
   RunAggregationQueryRequest_ConsistencySelector whichConsistencySelector() =>
       _RunAggregationQueryRequest_ConsistencySelectorByTag[$_whichOneof(1)]!;
+
   void clearConsistencySelector() => clearField($_whichOneof(1));
 
   /// Required. The parent resource name. In the format:
@@ -2271,6 +2305,7 @@ class RunAggregationQueryResponse extends $pb.GeneratedMessage {
   @$core.pragma('dart2js:noInline')
   static RunAggregationQueryResponse create() =>
       RunAggregationQueryResponse._();
+
   RunAggregationQueryResponse createEmptyInstance() => create();
 
   @$core.pragma('dart2js:noInline')
@@ -2334,8 +2369,10 @@ class RunAggregationQueryResponse extends $pb.GeneratedMessage {
   $4.Timestamp ensureReadTime() => $_ensure(2);
 }
 
+/// Enum representing [PartitionQueryRequest_QueryType].
 enum PartitionQueryRequest_QueryType { structuredQuery, notSet }
 
+/// Enum representing [PartitionQueryRequest_ConsistencySelector].
 enum PartitionQueryRequest_ConsistencySelector { readTime, notSet }
 
 /// The request for
@@ -2422,6 +2459,7 @@ class PartitionQueryRequest extends $pb.GeneratedMessage {
 
   @$core.pragma('dart2js:noInline')
   static PartitionQueryRequest create() => PartitionQueryRequest._();
+
   PartitionQueryRequest createEmptyInstance() => create();
 
   @$core.pragma('dart2js:noInline')
@@ -2431,10 +2469,12 @@ class PartitionQueryRequest extends $pb.GeneratedMessage {
 
   PartitionQueryRequest_QueryType whichQueryType() =>
       _PartitionQueryRequest_QueryTypeByTag[$_whichOneof(0)]!;
+
   void clearQueryType() => clearField($_whichOneof(0));
 
   PartitionQueryRequest_ConsistencySelector whichConsistencySelector() =>
       _PartitionQueryRequest_ConsistencySelectorByTag[$_whichOneof(1)]!;
+
   void clearConsistencySelector() => clearField($_whichOneof(1));
 
   /// Required. The parent resource name. In the format:
@@ -2606,6 +2646,7 @@ class PartitionQueryResponse extends $pb.GeneratedMessage {
 
   @$core.pragma('dart2js:noInline')
   static PartitionQueryResponse create() => PartitionQueryResponse._();
+
   PartitionQueryResponse createEmptyInstance() => create();
 
   @$core.pragma('dart2js:noInline')
@@ -2726,6 +2767,7 @@ class WriteRequest extends $pb.GeneratedMessage {
 
   @$core.pragma('dart2js:noInline')
   static WriteRequest create() => WriteRequest._();
+
   WriteRequest createEmptyInstance() => create();
 
   @$core.pragma('dart2js:noInline')
@@ -2864,6 +2906,7 @@ class WriteResponse extends $pb.GeneratedMessage {
 
   @$core.pragma('dart2js:noInline')
   static WriteResponse create() => WriteResponse._();
+
   WriteResponse createEmptyInstance() => create();
 
   @$core.pragma('dart2js:noInline')
@@ -2925,6 +2968,7 @@ class WriteResponse extends $pb.GeneratedMessage {
   $4.Timestamp ensureCommitTime() => $_ensure(3);
 }
 
+/// Enum representing [ListenRequest_TargetChange].
 enum ListenRequest_TargetChange { addTarget, removeTarget, notSet }
 
 /// A request for [Firestore.Listen][google.firestore.v1.Firestore.Listen]
@@ -2996,6 +3040,7 @@ class ListenRequest extends $pb.GeneratedMessage {
 
   @$core.pragma('dart2js:noInline')
   static ListenRequest create() => ListenRequest._();
+
   ListenRequest createEmptyInstance() => create();
 
   @$core.pragma('dart2js:noInline')
@@ -3005,6 +3050,7 @@ class ListenRequest extends $pb.GeneratedMessage {
 
   ListenRequest_TargetChange whichTargetChange() =>
       _ListenRequest_TargetChangeByTag[$_whichOneof(0)]!;
+
   void clearTargetChange() => clearField($_whichOneof(0));
 
   /// Required. The database name. In the format:
@@ -3054,6 +3100,7 @@ class ListenRequest extends $pb.GeneratedMessage {
   $core.Map<$core.String, $core.String> get labels => $_getMap(3);
 }
 
+/// Enum representing [ListenResponse_ResponseType].
 enum ListenResponse_ResponseType {
   targetChange,
   documentChange,
@@ -3140,6 +3187,7 @@ class ListenResponse extends $pb.GeneratedMessage {
 
   @$core.pragma('dart2js:noInline')
   static ListenResponse create() => ListenResponse._();
+
   ListenResponse createEmptyInstance() => create();
 
   @$core.pragma('dart2js:noInline')
@@ -3149,6 +3197,7 @@ class ListenResponse extends $pb.GeneratedMessage {
 
   ListenResponse_ResponseType whichResponseType() =>
       _ListenResponse_ResponseTypeByTag[$_whichOneof(0)]!;
+
   void clearResponseType() => clearField($_whichOneof(0));
 
   /// Targets have changed.
@@ -3276,6 +3325,7 @@ class Target_DocumentsTarget extends $pb.GeneratedMessage {
 
   @$core.pragma('dart2js:noInline')
   static Target_DocumentsTarget create() => Target_DocumentsTarget._();
+
   Target_DocumentsTarget createEmptyInstance() => create();
 
   @$core.pragma('dart2js:noInline')
@@ -3291,6 +3341,7 @@ class Target_DocumentsTarget extends $pb.GeneratedMessage {
   $core.List<$core.String> get documents => $_getList(0);
 }
 
+/// Enum representing [Target_QueryTarget_QueryType].
 enum Target_QueryTarget_QueryType { structuredQuery, notSet }
 
 /// A target specified by a query.
@@ -3347,6 +3398,7 @@ class Target_QueryTarget extends $pb.GeneratedMessage {
 
   @$core.pragma('dart2js:noInline')
   static Target_QueryTarget create() => Target_QueryTarget._();
+
   Target_QueryTarget createEmptyInstance() => create();
 
   @$core.pragma('dart2js:noInline')
@@ -3356,6 +3408,7 @@ class Target_QueryTarget extends $pb.GeneratedMessage {
 
   Target_QueryTarget_QueryType whichQueryType() =>
       _Target_QueryTarget_QueryTypeByTag[$_whichOneof(0)]!;
+
   void clearQueryType() => clearField($_whichOneof(0));
 
   /// The parent resource name. In the format:
@@ -3392,8 +3445,10 @@ class Target_QueryTarget extends $pb.GeneratedMessage {
   $6.StructuredQuery ensureStructuredQuery() => $_ensure(1);
 }
 
+/// Enum representing [Target_TargetType].
 enum Target_TargetType { query, documents, notSet }
 
+/// Enum representing [Target_ResumeType].
 enum Target_ResumeType { resumeToken, readTime, notSet }
 
 /// A specification of a set of documents to listen to.
@@ -3486,6 +3541,7 @@ class Target extends $pb.GeneratedMessage {
 
   @$core.pragma('dart2js:noInline')
   static Target create() => Target._();
+
   Target createEmptyInstance() => create();
 
   @$core.pragma('dart2js:noInline')
@@ -3495,10 +3551,12 @@ class Target extends $pb.GeneratedMessage {
 
   Target_TargetType whichTargetType() =>
       _Target_TargetTypeByTag[$_whichOneof(0)]!;
+
   void clearTargetType() => clearField($_whichOneof(0));
 
   Target_ResumeType whichResumeType() =>
       _Target_ResumeTypeByTag[$_whichOneof(1)]!;
+
   void clearResumeType() => clearField($_whichOneof(1));
 
   /// A target specified by a query.
@@ -3696,6 +3754,7 @@ class TargetChange extends $pb.GeneratedMessage {
 
   @$core.pragma('dart2js:noInline')
   static TargetChange create() => TargetChange._();
+
   TargetChange createEmptyInstance() => create();
 
   @$core.pragma('dart2js:noInline')
@@ -3780,6 +3839,7 @@ class TargetChange extends $pb.GeneratedMessage {
   $4.Timestamp ensureReadTime() => $_ensure(4);
 }
 
+/// Enum representing [ListCollectionIdsRequest_ConsistencySelector].
 enum ListCollectionIdsRequest_ConsistencySelector { readTime, notSet }
 
 /// The request for
@@ -3850,6 +3910,7 @@ class ListCollectionIdsRequest extends $pb.GeneratedMessage {
 
   @$core.pragma('dart2js:noInline')
   static ListCollectionIdsRequest create() => ListCollectionIdsRequest._();
+
   ListCollectionIdsRequest createEmptyInstance() => create();
 
   @$core.pragma('dart2js:noInline')
@@ -3859,6 +3920,7 @@ class ListCollectionIdsRequest extends $pb.GeneratedMessage {
 
   ListCollectionIdsRequest_ConsistencySelector whichConsistencySelector() =>
       _ListCollectionIdsRequest_ConsistencySelectorByTag[$_whichOneof(0)]!;
+
   void clearConsistencySelector() => clearField($_whichOneof(0));
 
   /// Required. The parent document. In the format:
@@ -3974,6 +4036,7 @@ class ListCollectionIdsResponse extends $pb.GeneratedMessage {
 
   @$core.pragma('dart2js:noInline')
   static ListCollectionIdsResponse create() => ListCollectionIdsResponse._();
+
   ListCollectionIdsResponse createEmptyInstance() => create();
 
   @$core.pragma('dart2js:noInline')
@@ -4057,6 +4120,7 @@ class BatchWriteRequest extends $pb.GeneratedMessage {
 
   @$core.pragma('dart2js:noInline')
   static BatchWriteRequest create() => BatchWriteRequest._();
+
   BatchWriteRequest createEmptyInstance() => create();
 
   @$core.pragma('dart2js:noInline')
@@ -4142,6 +4206,7 @@ class BatchWriteResponse extends $pb.GeneratedMessage {
 
   @$core.pragma('dart2js:noInline')
   static BatchWriteResponse create() => BatchWriteResponse._();
+
   BatchWriteResponse createEmptyInstance() => create();
 
   @$core.pragma('dart2js:noInline')

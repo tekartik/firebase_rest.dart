@@ -86,6 +86,7 @@ class Document extends $pb.GeneratedMessage {
 
   @$core.pragma('dart2js:noInline')
   static Document create() => Document._();
+
   Document createEmptyInstance() => create();
 
   @$core.pragma('dart2js:noInline')
@@ -173,6 +174,7 @@ class Document extends $pb.GeneratedMessage {
   $0.Timestamp ensureUpdateTime() => $_ensure(3);
 }
 
+/// Enum representing [Value_ValueType].
 enum Value_ValueType {
   booleanValue,
   integerValue,
@@ -304,6 +306,7 @@ class Value extends $pb.GeneratedMessage {
 
   @$core.pragma('dart2js:noInline')
   static Value create() => Value._();
+
   Value createEmptyInstance() => create();
 
   @$core.pragma('dart2js:noInline')
@@ -312,6 +315,7 @@ class Value extends $pb.GeneratedMessage {
   static Value? _defaultInstance;
 
   Value_ValueType whichValueType() => _Value_ValueTypeByTag[$_whichOneof(0)]!;
+
   void clearValueType() => clearField($_whichOneof(0));
 
   /// A boolean value.
@@ -522,6 +526,7 @@ class ArrayValue extends $pb.GeneratedMessage {
 
   @$core.pragma('dart2js:noInline')
   static ArrayValue create() => ArrayValue._();
+
   ArrayValue createEmptyInstance() => create();
 
   @$core.pragma('dart2js:noInline')
@@ -581,6 +586,7 @@ class MapValue extends $pb.GeneratedMessage {
 
   @$core.pragma('dart2js:noInline')
   static MapValue create() => MapValue._();
+
   MapValue createEmptyInstance() => create();
 
   @$core.pragma('dart2js:noInline')

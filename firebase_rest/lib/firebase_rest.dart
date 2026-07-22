@@ -45,7 +45,6 @@ abstract class FirebaseAppRest implements FirebaseApp {
   /// The http client
   Client? get client;
 
-  ///
   @protected
   set client(Client? client);
 

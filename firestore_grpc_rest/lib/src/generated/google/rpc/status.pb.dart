@@ -72,6 +72,7 @@ class Status extends $pb.GeneratedMessage {
 
   @$core.pragma('dart2js:noInline')
   static Status create() => Status._();
+
   Status createEmptyInstance() => create();
 
   @$core.pragma('dart2js:noInline')

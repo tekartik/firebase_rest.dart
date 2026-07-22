@@ -22,6 +22,7 @@ import 'write.pbenum.dart';
 
 export 'write.pbenum.dart';
 
+/// Enum representing [Write_Operation].
 enum Write_Operation { update, delete, transform, notSet }
 
 /// A write on a document.
@@ -103,6 +104,7 @@ class Write extends $pb.GeneratedMessage {
 
   @$core.pragma('dart2js:noInline')
   static Write create() => Write._();
+
   Write createEmptyInstance() => create();
 
   @$core.pragma('dart2js:noInline')
@@ -111,6 +113,7 @@ class Write extends $pb.GeneratedMessage {
   static Write? _defaultInstance;
 
   Write_Operation whichOperation() => _Write_OperationByTag[$_whichOneof(0)]!;
+
   void clearOperation() => clearField($_whichOneof(0));
 
   /// A document to write.
@@ -208,6 +211,7 @@ class Write extends $pb.GeneratedMessage {
       $_getList(5);
 }
 
+/// Enum representing [DocumentTransform_FieldTransform_TransformType].
 enum DocumentTransform_FieldTransform_TransformType {
   setToServerValue,
   increment,
@@ -316,6 +320,7 @@ class DocumentTransform_FieldTransform extends $pb.GeneratedMessage {
   @$core.pragma('dart2js:noInline')
   static DocumentTransform_FieldTransform create() =>
       DocumentTransform_FieldTransform._();
+
   DocumentTransform_FieldTransform createEmptyInstance() => create();
 
   @$core.pragma('dart2js:noInline')
@@ -326,6 +331,7 @@ class DocumentTransform_FieldTransform extends $pb.GeneratedMessage {
 
   DocumentTransform_FieldTransform_TransformType whichTransformType() =>
       _DocumentTransform_FieldTransform_TransformTypeByTag[$_whichOneof(0)]!;
+
   void clearTransformType() => clearField($_whichOneof(0));
 
   /// The path of the field. See
@@ -533,6 +539,7 @@ class DocumentTransform extends $pb.GeneratedMessage {
 
   @$core.pragma('dart2js:noInline')
   static DocumentTransform create() => DocumentTransform._();
+
   DocumentTransform createEmptyInstance() => create();
 
   @$core.pragma('dart2js:noInline')
@@ -611,6 +618,7 @@ class WriteResult extends $pb.GeneratedMessage {
 
   @$core.pragma('dart2js:noInline')
   static WriteResult create() => WriteResult._();
+
   WriteResult createEmptyInstance() => create();
 
   @$core.pragma('dart2js:noInline')
@@ -705,6 +713,7 @@ class DocumentChange extends $pb.GeneratedMessage {
 
   @$core.pragma('dart2js:noInline')
   static DocumentChange create() => DocumentChange._();
+
   DocumentChange createEmptyInstance() => create();
 
   @$core.pragma('dart2js:noInline')
@@ -799,6 +808,7 @@ class DocumentDelete extends $pb.GeneratedMessage {
 
   @$core.pragma('dart2js:noInline')
   static DocumentDelete create() => DocumentDelete._();
+
   DocumentDelete createEmptyInstance() => create();
 
   @$core.pragma('dart2js:noInline')
@@ -905,6 +915,7 @@ class DocumentRemove extends $pb.GeneratedMessage {
 
   @$core.pragma('dart2js:noInline')
   static DocumentRemove create() => DocumentRemove._();
+
   DocumentRemove createEmptyInstance() => create();
 
   @$core.pragma('dart2js:noInline')
@@ -1001,6 +1012,7 @@ class ExistenceFilter extends $pb.GeneratedMessage {
 
   @$core.pragma('dart2js:noInline')
   static ExistenceFilter create() => ExistenceFilter._();
+
   ExistenceFilter createEmptyInstance() => create();
 
   @$core.pragma('dart2js:noInline')

@@ -75,6 +75,7 @@ class BitSequence extends $pb.GeneratedMessage {
 
   @$core.pragma('dart2js:noInline')
   static BitSequence create() => BitSequence._();
+
   BitSequence createEmptyInstance() => create();
 
   @$core.pragma('dart2js:noInline')
@@ -172,6 +173,7 @@ class BloomFilter extends $pb.GeneratedMessage {
 
   @$core.pragma('dart2js:noInline')
   static BloomFilter create() => BloomFilter._();
+
   BloomFilter createEmptyInstance() => create();
 
   @$core.pragma('dart2js:noInline')

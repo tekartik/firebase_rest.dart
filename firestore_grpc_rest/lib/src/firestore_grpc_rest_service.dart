@@ -182,6 +182,7 @@ class _GrpcListener {
 
         if (isPermissionError) {
           controller.addError(error);
+
           close();
         } else {
           // Retry listening after a short delay on network/connection issues

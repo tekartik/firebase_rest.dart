@@ -67,6 +67,7 @@ class AggregationResult extends $pb.GeneratedMessage {
 
   @$core.pragma('dart2js:noInline')
   static AggregationResult create() => AggregationResult._();
+
   AggregationResult createEmptyInstance() => create();
 
   @$core.pragma('dart2js:noInline')

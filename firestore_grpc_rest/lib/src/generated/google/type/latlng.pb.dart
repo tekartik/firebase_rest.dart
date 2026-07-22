@@ -62,6 +62,7 @@ class LatLng extends $pb.GeneratedMessage {
 
   @$core.pragma('dart2js:noInline')
   static LatLng create() => LatLng._();
+
   LatLng createEmptyInstance() => create();
 
   @$core.pragma('dart2js:noInline')
