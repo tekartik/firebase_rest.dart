@@ -1,8 +1,6 @@
 import 'package:cv/cv_json.dart';
 import 'package:fs_shim/fs_shim.dart';
-import 'package:fs_shim/utils/read_write.dart';
-import 'package:path/path.dart';
-import 'package:tekartik_browser_utils/storage_utils.dart';
+import 'package:tekartik_firebase_persistence/firebase_persistence.dart';
 
 import 'auth_rest.dart';
 import 'auth_rest_provider.dart';
@@ -197,10 +195,16 @@ extension FirebaseRestAuthPersistenceExt on FirebaseRestAuthPersistence {
   Future<void> remove(String projectId) => set(projectId, null);
 }
 
-/// Web implementation
-class FirebaseRestAuthPersistenceWeb implements FirebaseRestAuthPersistence {
+/// Implementation on top of a generic [TekartikFirebasePersistence].
+class FirebaseRestAuthPersistenceOnPersistence
+    implements FirebaseRestAuthPersistence {
+  /// The underlying generic persistence.
+  final TekartikFirebasePersistence persistence;
   static const String _storageKeyPrefix =
       'tekartik_firebase_auth_rest_access_credentials_';
+
+  /// Wrap a generic [TekartikFirebasePersistence].
+  FirebaseRestAuthPersistenceOnPersistence(this.persistence);
 
   String _key(String projectId) => '$_storageKeyPrefix$projectId';
 
@@ -209,14 +213,13 @@ class FirebaseRestAuthPersistenceWeb implements FirebaseRestAuthPersistence {
     String projectId,
   ) async {
     try {
-      var map = webLocalStorageGet(_key(projectId))?.jsonToMap();
-      if (map != null) {
-        return FirebaseRestAuthPersistenceAccessCredentialsMap(map);
+      var raw = await persistence.get(_key(projectId));
+      if (raw != null) {
+        return FirebaseRestAuthPersistenceAccessCredentialsMap(raw.jsonToMap());
       }
-      // Implement web-specific persistence retrieval logic here
     } catch (e) {
       // ignore: avoid_print
-      print('Error retrieving credentials from web storage: $e');
+      print('Error retrieving credentials from persistence: $e');
     }
     return null;
   }
@@ -228,105 +231,38 @@ class FirebaseRestAuthPersistenceWeb implements FirebaseRestAuthPersistence {
   ) async {
     var key = _key(projectId);
     if (credentials == null) {
-      webLocalStorageRemove(key);
+      await persistence.remove(key);
     } else {
-      var map = credentials.toMap().cvToJson();
-      webLocalStorageSet(key, map);
+      await persistence.set(key, credentials.toMap().cvToJson());
     }
   }
 }
 
+/// Web implementation
+class FirebaseRestAuthPersistenceWeb
+    extends FirebaseRestAuthPersistenceOnPersistence {
+  /// Web local storage based persistence
+  FirebaseRestAuthPersistenceWeb()
+    : super(TekartikFirebasePersistenceWebLocalStorage());
+}
+
 /// File implementation (cross platform)
-class FirebaseRestAuthPersistenceFile implements FirebaseRestAuthPersistence {
-  /// The file system to use
-  final FileSystem fs;
-
-  /// Optional file system path for saving credentials.
-  final String directoryPath;
-  static const _directoryPathDefault = '.local';
-  static const String _storageFilePrefix =
-      'tekartik_firebase_auth_rest_access_credentials_';
-
+class FirebaseRestAuthPersistenceFile
+    extends FirebaseRestAuthPersistenceOnPersistence {
   /// File system based persistence
   FirebaseRestAuthPersistenceFile({
     /// Optional file system
     FileSystem? fs,
     String? directoryPath,
-  }) : fs = fs ?? fileSystemDefault,
-       directoryPath = directoryPath ?? _directoryPathDefault;
-
-  File _file(String projectId) =>
-      fs.file(join(directoryPath, '$_storageFilePrefix$projectId.json'));
-
-  @override
-  Future<FirebaseRestAuthPersistenceAccessCredentials?> get(
-    String projectId,
-  ) async {
-    var file = _file(projectId);
-    try {
-      if (await file.exists()) {
-        var json = await file.readAsString();
-        var map = json.jsonToMap();
-        return FirebaseRestAuthPersistenceAccessCredentialsMap(map);
-      }
-    } catch (e) {
-      // ignore: avoid_print
-      print('Error retrieving credentials from file storage: $e');
-    }
-    return null;
-  }
-
-  @override
-  Future<void> set(
-    String projectId,
-    FirebaseRestAuthPersistenceAccessCredentials? credentials,
-  ) async {
-    var file = _file(projectId);
-    if (credentials == null) {
-      try {
-        if (await file.exists()) {
-          await file.delete();
-        }
-      } catch (e) {
-        // ignore: avoid_print
-        print('Error deleting credentials file: $e');
-      }
-    } else {
-      try {
-        var raw = credentials.toMap().cvToJson();
-        await writeString(file, raw);
-      } catch (e) {
-        // ignore: avoid_print
-        print('Error writing credentials to file: $e');
-      }
-    }
-  }
+  }) : super(
+         TekartikFirebasePersistenceFile(fs: fs, directoryPath: directoryPath),
+       );
 }
 
-/// File implementation (cross platform)
-class FirebaseRestAuthPersistenceMemory implements FirebaseRestAuthPersistence {
-  final _map = <String, Model>{};
-
-  @override
-  Future<FirebaseRestAuthPersistenceAccessCredentials?> get(
-    String projectId,
-  ) async {
-    var map = _map[projectId];
-    if (map == null) {
-      return null;
-    }
-    return FirebaseRestAuthPersistenceAccessCredentialsMap(map);
-  }
-
-  @override
-  Future<void> set(
-    String projectId,
-    FirebaseRestAuthPersistenceAccessCredentials? credentials,
-  ) async {
-    if (credentials == null) {
-      _map.remove(projectId);
-    } else {
-      _map[projectId] = credentials.toMap();
-    }
-  }
+/// In memory implementation
+class FirebaseRestAuthPersistenceMemory
+    extends FirebaseRestAuthPersistenceOnPersistence {
+  /// In memory persistence
+  FirebaseRestAuthPersistenceMemory()
+    : super(TekartikFirebasePersistenceMemory());
 }

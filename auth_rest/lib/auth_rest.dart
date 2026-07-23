@@ -19,11 +19,20 @@ export 'package:tekartik_firebase_auth_rest/src/auth_service_rest.dart'
     show firebaseAuthServiceRest, FirebaseAuthServiceRest, authServiceRest;
 export 'package:tekartik_firebase_auth_rest/src/google_auth_rest.dart'
     show GoogleAuthOptions, GoogleRestAuthProvider;
+export 'package:tekartik_firebase_persistence/firebase_persistence.dart'
+    show
+        TekartikFirebasePersistence,
+        TekartikFirebasePersistenceExt,
+        TekartikFirebasePersistenceMemory,
+        TekartikFirebasePersistenceWebLocalStorage,
+        TekartikFirebasePersistenceFile,
+        TekartikFirebasePersistenceSdb;
 
 export 'src/auth_rest_persistence.dart'
     show
         FirebaseRestAuthPersistence,
         FirebaseRestAuthPersistenceAccessCredentials,
+        FirebaseRestAuthPersistenceOnPersistence,
         FirebaseRestAuthPersistenceFile,
         FirebaseRestAuthPersistenceWeb,
         FirebaseRestAuthPersistenceMemory;

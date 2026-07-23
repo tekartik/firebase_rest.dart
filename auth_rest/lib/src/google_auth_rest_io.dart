@@ -1,18 +1,23 @@
 import 'dart:io';
 
-import 'package:fs_shim/utils/io/read_write.dart';
 import 'package:googleapis/oauth2/v2.dart';
 import 'package:googleapis_auth/auth_io.dart' as auth_io;
 import 'package:googleapis_auth/googleapis_auth.dart';
 import 'package:http/http.dart';
+import 'package:path/path.dart';
 import 'package:tekartik_common_utils/common_utils_import.dart';
 import 'package:tekartik_firebase_auth/auth.dart';
 import 'package:tekartik_firebase_auth_rest/src/auth_rest.dart';
 import 'package:tekartik_firebase_auth_rest/src/user_credential_rest.dart';
+import 'package:tekartik_firebase_persistence/firebase_persistence.dart';
 import 'package:tekartik_firebase_rest/firebase_rest.dart';
 
 import 'auth_rest_provider.dart';
 import 'google_auth_rest.dart';
+
+/// Default key used to store the credentials when no [credentialPath] nor
+/// explicit key is given.
+const _credentialsPersistenceKeyDefault = 'google_auth_credentials';
 
 /// Google auth provider rest io implementation
 class GoogleAuthProviderRestIoImpl
@@ -30,7 +35,19 @@ class GoogleAuthProviderRestIoImpl
   String get apiKey => googleAuthOptions.apiKey!;
 
   /// Optional io path for saving credentials.
+  ///
+  /// Compat helper, superseded by [credentialsPersistence] and
+  /// [credentialsPersistenceKey]. When given and [credentialsPersistence] is
+  /// not, credentials are saved through a [TekartikFirebasePersistenceFile]
+  /// pointing to the same file.
   final String? credentialPath;
+
+  /// Persistence used to save/restore credentials. Defaults to a file based
+  /// credentialsPersistence built from [credentialPath] when given.
+  final TekartikFirebasePersistence? credentialsPersistence;
+
+  /// Key used to save/restore credentials in [credentialsPersistence].
+  final String credentialsPersistenceKey;
 
   /// Prompt user
   late auth_io.PromptUserForConsent userPrompt;
@@ -41,7 +58,20 @@ class GoogleAuthProviderRestIoImpl
     List<String>? scopes,
     auth_io.PromptUserForConsent? userPrompt,
     this.credentialPath,
-  }) {
+    TekartikFirebasePersistence? credentialsPersistence,
+    String? credentialsPersistenceKey,
+  }) : credentialsPersistence =
+           credentialsPersistence ??
+           (credentialPath != null
+               ? TekartikFirebasePersistenceFile(
+                   directoryPath: dirname(credentialPath),
+                 )
+               : null),
+       credentialsPersistenceKey =
+           credentialsPersistenceKey ??
+           (credentialPath != null
+               ? basename(credentialPath)
+               : _credentialsPersistenceKeyDefault) {
     this.googleAuthOptions = googleAuthOptions;
     this.userPrompt =
         userPrompt ??
@@ -69,17 +99,18 @@ class GoogleAuthProviderRestIoImpl
     try {
       var client = _authClient;
       if (client == null) {
-        if (credentialPath != null) {
+        var credentialsPersistence = this.credentialsPersistence;
+        if (credentialsPersistence != null) {
           auth_io.AccessCredentials? accessCredentials;
-          var file = File(credentialPath!);
-          if (!file.existsSync()) {
-            stderr.writeln('Credential file not found, logging in');
+          var raw = await credentialsPersistence.get(credentialsPersistenceKey);
+          if (raw == null) {
+            stderr.writeln('Credential not found, logging in');
           } else {
             try {
-              final yaml = jsonDecode(file.readAsStringSync()) as Map;
-              //devPrint(yaml);
+              final map = jsonDecode(raw) as Map;
+              //devPrint(map);
               accessCredentials = auth_io.AccessCredentials.fromJson(
-                yaml.cast<String, Object?>(),
+                map.cast<String, Object?>(),
               );
             } catch (e, st) {
               stderr.writeln('error $e loading credentials, logging in');
@@ -173,9 +204,12 @@ class GoogleAuthProviderRestIoImpl
     final person = await oauth2Api.userinfo.get();
 
     // On success, write credentials
-    if (credentialPath != null) {
-      var file = File(credentialPath!);
-      await writeString(file, jsonEncode(accessCredentials.toJson()));
+    var credentialsPersistence = this.credentialsPersistence;
+    if (credentialsPersistence != null) {
+      await credentialsPersistence.set(
+        credentialsPersistenceKey,
+        jsonEncode(accessCredentials.toJson()),
+      );
     }
     // devPrint(jsonPretty(person.toJson()));
     // devPrint(auth.currentUser);
@@ -262,9 +296,13 @@ abstract class GoogleAuthProviderRestIo implements GoogleRestAuthProvider {
     required GoogleAuthOptions options,
     PromptUserForConsentRest? userPrompt,
     String? credentialPath,
+    TekartikFirebasePersistence? credentialsPersistence,
+    String? credentialsPersistenceKey,
   }) => GoogleAuthProviderRestIoImpl(
     options,
     userPrompt: userPrompt,
     credentialPath: credentialPath,
+    credentialsPersistence: credentialsPersistence,
+    credentialsPersistenceKey: credentialsPersistenceKey,
   );
 }

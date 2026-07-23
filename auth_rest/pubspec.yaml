@@ -30,6 +30,11 @@ dependencies:
   fs_shim: ">=2.5.2"
   tekartik_browser_utils:
     git: https://github.com/tekartik/browser_utils.dart
+  tekartik_firebase_persistence:
+    git:
+      url: https://github.com/tekartik/firebase.dart
+      path: firebase_persistence
+    version: '>=0.1.0'
 
 dev_dependencies:
   tekartik_firebase_auth_test:
