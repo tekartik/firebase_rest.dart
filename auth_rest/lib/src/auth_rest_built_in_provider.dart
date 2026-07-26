@@ -13,6 +13,9 @@ import 'email_password_auth_rest.dart';
 
 /// One instance
 class BuiltInAuthProviderRest extends AuthProviderRestBase {
+  /// Provider ID
+  static String emailPasswordProviderId = 'password';
+
   /// Create built-in auth provider
   BuiltInAuthProviderRest();
 
@@ -229,7 +232,7 @@ class BuiltInAuthProviderRest extends AuthProviderRestBase {
 
   /// Provider ID.
   @override
-  String get providerId => 'built_in';
+  String get providerId => emailPasswordProviderId;
 
   identitytoolkit_v1.IdentityToolkitApi _apiV1(ApiKeyClient client) {
     var rootUrl = authRest.impl.rootUrl!;

@@ -16,6 +16,7 @@ Future main() async {
         serviceAccountJsonPath: serviceAccountJsonPath,
       );
       expect(context!.authClient, isNotNull);
+      expect(context.app.hasAdminCredentials, isTrue);
     }
   });
 }

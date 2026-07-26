@@ -25,9 +25,9 @@ class _UserCredentialRestMockImpl extends UserCredentialRestImpl {
 
 /// Mock built in auth provider rest implementation
 class MockBuiltInAuthProviderRest extends BuiltInAuthProviderRest {
-  /// Provider ID.
-  @override
-  String get providerId => 'mock_built_in';
+  /// Provider ID. (keep password)
+  // @override
+  // String get providerId => 'mock_built_in';
 
   /// Restore user credential.
   @override

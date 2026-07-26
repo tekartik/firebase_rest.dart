@@ -36,6 +36,10 @@ dependencies:
       url: https://github.com/tekartik/firebase.dart
       path: firebase
   http:
+  tekartik_firebase_auth_rest:
+    git:
+      url: https://github.com/tekartik/firebase_rest.dart
+      path: auth_rest
 dev_dependencies:
   tekartik_firebase_local:
     git:
@@ -66,9 +70,4 @@ dev_dependencies:
     git:
       url: https://github.com/tekartik/firebase_node.dart
       path: firebase_emulator
-  tekartik_firebase_auth_rest:
-    git:
-      url: https://github.com/tekartik/firebase_rest.dart
-      path: auth_rest
-
 resolution: workspace

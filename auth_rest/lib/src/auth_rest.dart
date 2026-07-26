@@ -192,7 +192,7 @@ class UserInfoRest
   String? get photoURL => null;
 
   @override
-  String get providerId => localProviderId;
+  String get providerId => provider?.providerId ?? localProviderId;
 
   @override
   final String uid;

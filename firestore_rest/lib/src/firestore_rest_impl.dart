@@ -4,6 +4,8 @@ import 'package:http/http.dart' as http;
 import 'package:path/path.dart';
 import 'package:tekartik_common_utils/env_utils.dart';
 import 'package:tekartik_firebase/firebase_mixin.dart';
+import 'package:tekartik_firebase_auth_rest/auth_rest.dart'
+    show BuiltInAuthProviderRest, FirebaseAuth, FirebaseAuthRest;
 import 'package:tekartik_firebase_firestore_rest/src/collection_reference_rest.dart';
 import 'package:tekartik_firebase_firestore_rest/src/document_reference_rest.dart';
 import 'package:tekartik_firebase_firestore_rest/src/document_rest_impl.dart';
@@ -346,6 +348,37 @@ class FirestoreRestImpl
   /// Constructor.
   FirestoreRestImpl(this.service, this.appImpl) {
     assert(projectId != null);
+  }
+
+  /// Transactions require authenticated requests.
+  ///
+  /// This is `true` when the app was initialized with admin credentials
+  /// (service account) or when the user is signed in using the built-in
+  /// (email/password, anonymous) or the google sign in provider.
+  ///
+  /// This is `false` when not authenticated (api key only access).
+  ///
+  /// Beware that this is only known once auth is ready, i.e. after the
+  /// current user has been restored (`await auth.onCurrentUser.first`).
+  @override
+  bool get supportsTransaction {
+    /// Admin (service account) credentials.
+    if (appImpl.hasAdminCredentials) {
+      return true;
+    }
+    var auth = appImpl.getProduct<FirebaseAuth>();
+    if (auth is FirebaseAuthRest) {
+      var currentUser = auth.currentUser;
+      if (currentUser == null) {
+        return false;
+      }
+      var providerId = auth.currentUser?.providerId;
+      if (providerId == BuiltInAuthProviderRest.emailPasswordProviderId) {
+        return false;
+      }
+      return true;
+    }
+    return false;
   }
 
   @override

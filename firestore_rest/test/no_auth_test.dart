@@ -16,5 +16,9 @@ void main() {
       var firestore = noAuthFirestoreRest(projectId: projectId);
       await firestore.doc(rootPath!).get();
     });
+    test('supports transaction', () async {
+      var firestore = noAuthFirestoreRest(projectId: projectId);
+      expect(firestore.supportsTransaction, isFalse);
+    });
   }, skip: (projectId == null || rootPath == null));
 }
