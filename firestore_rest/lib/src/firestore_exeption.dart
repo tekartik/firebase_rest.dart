@@ -29,17 +29,18 @@ class FirestoreExceptionRest implements FirestoreException {
     if (apiError != null) {
       var foundCode = _map[apiError?.status];
       this.code = code ?? foundCode ?? FirestoreErrorCode.unknown;
-      this.message = message ?? apiError?.message ?? 'Unknown error';
+      message ??= apiError?.message ?? 'Unknown error';
 
       if (foundCode == null) {
-        this.message = '$message (${apiError?.status})';
+        message = '$message (${apiError?.status})';
       }
       this.details = details ?? apiError?.errors;
     } else {
       this.code = code ?? FirestoreErrorCode.unknown;
-      this.message = message ?? 'Unknown error';
+      message = message ?? 'Unknown error';
       this.details = details;
     }
+    this.message = message;
   }
   @override
   String toString() {
