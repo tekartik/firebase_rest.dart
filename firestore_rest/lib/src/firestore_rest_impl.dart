@@ -467,7 +467,11 @@ class FirestoreRestImpl
       await firestoreApi.projects.databases.documents.delete(name);
     } catch (e) {
       if (e is api.DetailedApiRequestError) {
-        return;
+        // Deleting a missing document is a no-op, any other error (typically
+        // a permission denied) must be reported.
+        if (e.status == httpStatusCodeNotFound) {
+          return;
+        }
       }
       var wrapped = wrapFirestoreRestException(e);
       if (identical(wrapped, e)) {
@@ -572,6 +576,45 @@ class FirestoreRestImpl
       throw wrapped;
     }
     return DocumentReferenceRestImpl(this, path);
+  }
+
+  /// Build the [Write] deleting the document at [path], to send in a
+  /// commit request.
+  Write writeOperationDelete(String path) =>
+      Write()..delete = getDocumentName(path);
+
+  /// Build the [Write] setting the document at [path], to send in a commit
+  /// request. Matches what [writeDocument] sends as a single patch request.
+  Write writeOperationSet(
+    String path,
+    Map<String, Object?> data, {
+    required bool? merge,
+  }) {
+    WriteDocument patch;
+    if (merge ?? false) {
+      patch = SetMergedDocument(this, data);
+    } else {
+      patch = SetDocument(this, data);
+    }
+    var write = Write()
+      ..update = (patch.document..name = getDocumentName(path));
+    var fieldPaths = patch.fieldPaths;
+    if (fieldPaths != null) {
+      // Only the listed fields are written, the others are left untouched.
+      write.updateMask = DocumentMask()..fieldPaths = fieldPaths;
+    }
+    return write;
+  }
+
+  /// Build the [Write] updating the document at [path], to send in a commit
+  /// request. Matches what [updateDocument] sends as a single patch request.
+  Write writeOperationUpdate(String path, Map<String, Object?> data) {
+    var patch = UpdateDocument(this, data);
+    return Write()
+      ..update = (patch.document..name = getDocumentName(path))
+      ..updateMask = (DocumentMask()..fieldPaths = patch.fieldPaths)
+      // The document must exist.
+      ..currentDocument = (Precondition()..exists = true);
   }
 
   /// Update a document.
@@ -947,8 +990,13 @@ class FirestoreRestImpl
     }
   }
 
-  Future _commitTransaction(String? transactionId) async {
-    var request = CommitRequest()..transaction = transactionId;
+  Future _commitTransaction(
+    String? transactionId, {
+    List<Write>? writes,
+  }) async {
+    var request = CommitRequest()
+      ..transaction = transactionId
+      ..writes = (writes?.isNotEmpty ?? false) ? writes : null;
     var database = getDatabaseName();
     try {
       // Debug
@@ -980,60 +1028,50 @@ class FirestoreRestImpl
   }
 
   /// Commit a batch.
+  ///
+  /// The operations are sent as the `writes` of the commit request, so that
+  /// they are applied atomically and in order (and so that a failing write
+  /// fails the whole commit). Writing them as separate document requests
+  /// would neither be atomic nor ordered.
   Future commitBatch(WriteBatchRestImpl writeBatchRestImpl) async {
-    // begin it needed
-    var transactionId = writeBatchRestImpl.transactionId ??=
-        await beginTransaction();
-    try {
-      for (var operation in writeBatchRestImpl.operations) {
-        // Somehow we need unawait here as write operation are blocked until
-        // commit is callback. Still puzzled about operation that could fail
-        // later...
-        if (operation is WriteBatchOperationDelete) {
-          deleteDocument(operation.docRef!.path).unawait();
-        } else if (operation is WriteBatchOperationSet) {
-          final setOperation = operation;
-          writeDocument(
+    var writes = <Write>[];
+    for (var operation in writeBatchRestImpl.operations) {
+      if (operation is WriteBatchOperationDelete) {
+        writes.add(writeOperationDelete(operation.docRef!.path));
+      } else if (operation is WriteBatchOperationSet) {
+        final setOperation = operation;
+        writes.add(
+          writeOperationSet(
             setOperation.docRef!.path,
             setOperation.documentData.asMap(),
             merge: setOperation.options?.merge,
-          ).unawait();
-        } else if (operation is WriteBatchOperationUpdate) {
-          updateDocument(
+          ),
+        );
+      } else if (operation is WriteBatchOperationUpdate) {
+        writes.add(
+          writeOperationUpdate(
             operation.docRef!.path,
             operation.documentData.asMap(),
-          ).unawait();
-        } else {
-          throw UnsupportedError('operation $operation not supported');
-        }
+          ),
+        );
+      } else {
+        throw UnsupportedError('operation $operation not supported');
       }
+    }
 
-      try {
-        await _commitTransaction(transactionId);
-      } catch (e) {
-        // devPrint(e);
-        if (e is api.DetailedApiRequestError) {
-          // devPrint(e.status);
-          if (e.status == httpStatusCodeNotFound) {
-            // return DocumentSnapshotRestImpl(this, null);
-          }
-        }
-        rethrow;
-      }
+    // A transaction was started (and documents possibly read) if we are
+    // committing a transaction, in which case it must be committed (or rolled
+    // back). A plain write batch is committed on its own.
+    var transactionId = writeBatchRestImpl.transactionId;
+    if (transactionId == null && writes.isEmpty) {
+      return;
+    }
+    try {
+      await _commitTransaction(transactionId, writes: writes);
     } catch (e) {
-      try {
+      if (transactionId != null) {
         await _rollback(transactionId);
-      } catch (rollbackError) {
-        // devPrint(e);
-        if (e is api.DetailedApiRequestError) {
-          // devPrint(e.status);
-          if (e.status == httpStatusCodeNotFound) {
-            // return DocumentSnapshotRestImpl(this, null);
-          }
-        }
       }
-
-      // devPrint(e);
       rethrow;
     }
   }
