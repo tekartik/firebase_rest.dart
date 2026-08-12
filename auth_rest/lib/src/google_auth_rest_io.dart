@@ -17,7 +17,7 @@ import 'google_auth_rest.dart';
 
 /// Default key used to store the credentials when no [credentialPath] nor
 /// explicit key is given.
-const _credentialsPersistenceKeyDefault = 'google_auth_credentials';
+const _credentialsKeyDefault = 'google_auth_credentials';
 
 /// Google auth provider rest io implementation
 class GoogleAuthProviderRestIoImpl
@@ -37,17 +37,25 @@ class GoogleAuthProviderRestIoImpl
   /// Optional io path for saving credentials.
   ///
   /// Compat helper, superseded by [credentialsPersistence] and
-  /// [credentialsPersistenceKey]. When given and [credentialsPersistence] is
-  /// not, credentials are saved through a [TekartikFirebasePersistenceFile]
+  /// [credentialsKey]. When given and [credentialsPersistence] is not,
+  /// credentials are saved through a [TekartikFirebasePersistenceFile]
   /// pointing to the same file.
   final String? credentialPath;
 
-  /// Persistence used to save/restore credentials. Defaults to a file based
+  /// Store used to save/restore credentials. Defaults to a file based
   /// credentialsPersistence built from [credentialPath] when given.
-  final TekartikFirebasePersistence? credentialsPersistence;
+  ///
+  /// Any [KvStore] works, in memory ([TekartikFirebasePersistenceMemory]) or
+  /// sdb ([TekartikFirebasePersistenceSdb]) for an app that already has a
+  /// database.
+  final KvStore? credentialsPersistence;
 
   /// Key used to save/restore credentials in [credentialsPersistence].
-  final String credentialsPersistenceKey;
+  final String credentialsKey;
+
+  /// Key used to save/restore credentials in [credentialsPersistence].
+  @Deprecated('Use credentialsKey')
+  String get credentialsPersistenceKey => credentialsKey;
 
   /// Prompt user
   late auth_io.PromptUserForConsent userPrompt;
@@ -58,8 +66,9 @@ class GoogleAuthProviderRestIoImpl
     List<String>? scopes,
     auth_io.PromptUserForConsent? userPrompt,
     this.credentialPath,
-    TekartikFirebasePersistence? credentialsPersistence,
-    String? credentialsPersistenceKey,
+    KvStore? credentialsPersistence,
+    String? credentialsKey,
+    @Deprecated('Use credentialsKey') String? credentialsPersistenceKey,
   }) : credentialsPersistence =
            credentialsPersistence ??
            (credentialPath != null
@@ -67,11 +76,12 @@ class GoogleAuthProviderRestIoImpl
                    directoryPath: dirname(credentialPath),
                  )
                : null),
-       credentialsPersistenceKey =
+       credentialsKey =
+           credentialsKey ??
            credentialsPersistenceKey ??
            (credentialPath != null
                ? basename(credentialPath)
-               : _credentialsPersistenceKeyDefault) {
+               : _credentialsKeyDefault) {
     this.googleAuthOptions = googleAuthOptions;
     this.userPrompt =
         userPrompt ??
@@ -102,7 +112,7 @@ class GoogleAuthProviderRestIoImpl
         var credentialsPersistence = this.credentialsPersistence;
         if (credentialsPersistence != null) {
           auth_io.AccessCredentials? accessCredentials;
-          var raw = await credentialsPersistence.get(credentialsPersistenceKey);
+          var raw = await credentialsPersistence.getString(credentialsKey);
           if (raw == null) {
             stderr.writeln('Credential not found, logging in');
           } else {
@@ -206,8 +216,8 @@ class GoogleAuthProviderRestIoImpl
     // On success, write credentials
     var credentialsPersistence = this.credentialsPersistence;
     if (credentialsPersistence != null) {
-      await credentialsPersistence.set(
-        credentialsPersistenceKey,
+      await credentialsPersistence.setString(
+        credentialsKey,
         jsonEncode(accessCredentials.toJson()),
       );
     }
@@ -296,13 +306,13 @@ abstract class GoogleAuthProviderRestIo implements GoogleRestAuthProvider {
     required GoogleAuthOptions options,
     PromptUserForConsentRest? userPrompt,
     String? credentialPath,
-    TekartikFirebasePersistence? credentialsPersistence,
-    String? credentialsPersistenceKey,
+    KvStore? credentialsPersistence,
+    String? credentialsKey,
   }) => GoogleAuthProviderRestIoImpl(
     options,
     userPrompt: userPrompt,
     credentialPath: credentialPath,
     credentialsPersistence: credentialsPersistence,
-    credentialsPersistenceKey: credentialsPersistenceKey,
+    credentialsKey: credentialsKey,
   );
 }

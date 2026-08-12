@@ -21,8 +21,10 @@ export 'package:tekartik_firebase_auth_rest/src/google_auth_rest.dart'
     show GoogleAuthOptions, GoogleRestAuthProvider;
 export 'package:tekartik_firebase_persistence/firebase_persistence.dart'
     show
-        TekartikFirebasePersistence,
-        TekartikFirebasePersistenceExt,
+        KvStore,
+        KvStoreExt,
+        KvStoreRead,
+        KvStoreWrite,
         TekartikFirebasePersistenceMemory,
         TekartikFirebasePersistenceWebLocalStorage,
         TekartikFirebasePersistenceFile,

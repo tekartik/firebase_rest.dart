@@ -37,6 +37,7 @@ dependencies:
     version: '>=0.1.0'
 
 dev_dependencies:
+  idb_shim: ">=2.9.7-2"
   tekartik_firebase_auth_test:
     git:
       url: https://github.com/tekartik/firebase_auth.dart

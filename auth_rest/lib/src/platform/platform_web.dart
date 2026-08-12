@@ -7,7 +7,7 @@ abstract class GoogleAuthProviderRestIo implements GoogleRestAuthProvider {
     required GoogleAuthOptions options,
     PromptUserForConsentRest? userPrompt,
     String? credentialPath,
-    TekartikFirebasePersistence? credentialsPersistence,
-    String? credentialsPersistenceKey,
+    KvStore? credentialsPersistence,
+    String? credentialsKey,
   }) => throw UnsupportedError('io');
 }

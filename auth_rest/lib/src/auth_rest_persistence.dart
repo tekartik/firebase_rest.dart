@@ -195,15 +195,15 @@ extension FirebaseRestAuthPersistenceExt on FirebaseRestAuthPersistence {
   Future<void> remove(String projectId) => set(projectId, null);
 }
 
-/// Implementation on top of a generic [TekartikFirebasePersistence].
+/// Implementation on top of a generic [KvStore].
 class FirebaseRestAuthPersistenceOnPersistence
     implements FirebaseRestAuthPersistence {
-  /// The underlying generic persistence.
-  final TekartikFirebasePersistence persistence;
+  /// The underlying generic store.
+  final KvStore persistence;
   static const String _storageKeyPrefix =
       'tekartik_firebase_auth_rest_access_credentials_';
 
-  /// Wrap a generic [TekartikFirebasePersistence].
+  /// Wrap a generic [KvStore].
   FirebaseRestAuthPersistenceOnPersistence(this.persistence);
 
   String _key(String projectId) => '$_storageKeyPrefix$projectId';
@@ -213,7 +213,7 @@ class FirebaseRestAuthPersistenceOnPersistence
     String projectId,
   ) async {
     try {
-      var raw = await persistence.get(_key(projectId));
+      var raw = await persistence.getString(_key(projectId));
       if (raw != null) {
         return FirebaseRestAuthPersistenceAccessCredentialsMap(raw.jsonToMap());
       }
@@ -233,7 +233,7 @@ class FirebaseRestAuthPersistenceOnPersistence
     if (credentials == null) {
       await persistence.remove(key);
     } else {
-      await persistence.set(key, credentials.toMap().cvToJson());
+      await persistence.setString(key, credentials.toMap().cvToJson());
     }
   }
 }

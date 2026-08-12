@@ -1,6 +1,7 @@
 @TestOn('vm')
 library;
 
+import 'package:idb_shim/sdb/sdb.dart';
 import 'package:path/path.dart';
 import 'package:tekartik_firebase_auth_rest/auth_rest.dart';
 import 'package:tekartik_firebase_auth_rest/src/google_auth_rest_io.dart';
@@ -11,7 +12,7 @@ void main() {
     test('defaults to no persistence', () {
       var provider = GoogleAuthProviderRestIoImpl(GoogleAuthOptions());
       expect(provider.credentialsPersistence, isNull);
-      expect(provider.credentialsPersistenceKey, 'google_auth_credentials');
+      expect(provider.credentialsKey, 'google_auth_credentials');
     });
 
     test('derived from credentialPath', () {
@@ -26,10 +27,7 @@ void main() {
       var persistence =
           provider.credentialsPersistence as TekartikFirebasePersistenceFile;
       expect(persistence.directoryPath, 'example');
-      expect(
-        provider.credentialsPersistenceKey,
-        'local.config_io.user.credentials.yaml',
-      );
+      expect(provider.credentialsKey, 'local.config_io.user.credentials.yaml');
     });
 
     test('explicit persistence takes precedence over credentialPath', () {
@@ -38,9 +36,42 @@ void main() {
         GoogleAuthOptions(),
         credentialPath: join('example', 'unused.yaml'),
         credentialsPersistence: explicitPersistence,
-        credentialsPersistenceKey: 'my_key',
+        credentialsKey: 'my_key',
       );
       expect(provider.credentialsPersistence, same(explicitPersistence));
+      expect(provider.credentialsKey, 'my_key');
+    });
+
+    test('sdb store', () async {
+      var store = TekartikFirebasePersistenceSdb(
+        sdbFactory: sdbFactoryMemory,
+        dbName: 'google_auth_rest_io_test',
+      );
+      var provider = GoogleAuthProviderRestIoImpl(
+        GoogleAuthOptions(),
+        credentialsPersistence: store,
+        credentialsKey: 'my_key',
+      );
+      expect(provider.credentialsPersistence, same(store));
+      expect(provider.credentialsKey, 'my_key');
+
+      // The provider only ever needs the KvStore surface.
+      var kvStore = provider.credentialsPersistence!;
+      await kvStore.setString('my_key', 'my_value');
+      expect(await kvStore.getString('my_key'), 'my_value');
+      await kvStore.remove('my_key');
+      expect(await kvStore.getString('my_key'), isNull);
+      await store.close();
+    });
+
+    test('credentialsPersistenceKey is still accepted', () {
+      var provider = GoogleAuthProviderRestIoImpl(
+        GoogleAuthOptions(),
+        // ignore: deprecated_member_use_from_same_package
+        credentialsPersistenceKey: 'my_key',
+      );
+      expect(provider.credentialsKey, 'my_key');
+      // ignore: deprecated_member_use_from_same_package
       expect(provider.credentialsPersistenceKey, 'my_key');
     });
   });
