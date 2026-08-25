@@ -1,7 +1,7 @@
 // ignore_for_file: avoid_print
 
-import 'package:googleapis/storage/v1.dart' as api;
 import 'package:tekartik_firebase_storage_rest/src/import.dart';
+import 'package:tekartik_firebase_storage_rest/src/storage/v1.dart' as api;
 import 'package:test/test.dart';
 
 import 'test_setup.dart';

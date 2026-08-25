@@ -1,4 +1,4 @@
-import 'package:googleapis/firestore/v1.dart';
+import 'package:tekartik_firebase_firestore_rest/src/firestore/v1.dart';
 import 'package:tekartik_firebase_firestore_rest/src/query_rest.dart';
 
 import 'import_firestore.dart';

@@ -1,5 +1,5 @@
-import 'package:googleapis/firestore/v1.dart' as api;
 import 'package:tekartik_firebase_firestore/firestore.dart';
+import 'package:tekartik_firebase_firestore_rest/src/firestore/v1.dart' as api;
 import 'package:tekartik_http/http.dart';
 
 /// Rest exception

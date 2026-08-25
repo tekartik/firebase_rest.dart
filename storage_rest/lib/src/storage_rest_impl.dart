@@ -1,7 +1,5 @@
 import 'dart:typed_data';
 
-import 'package:googleapis/bigquery/v2.dart';
-import 'package:googleapis/storage/v1.dart' as api;
 import 'package:path/path.dart';
 import 'package:tekartik_firebase/firebase_mixin.dart';
 import 'package:tekartik_firebase_rest/firebase_rest.dart';
@@ -11,6 +9,7 @@ import 'package:tekartik_firebase_storage/utils/link.dart';
 import 'package:tekartik_firebase_storage_rest/src/bucket_rest.dart';
 import 'package:tekartik_firebase_storage_rest/src/file_rest.dart';
 import 'package:tekartik_firebase_storage_rest/src/reference_rest.dart';
+import 'package:tekartik_firebase_storage_rest/src/storage/v1.dart' as api;
 import 'package:tekartik_http/http.dart';
 
 import 'import.dart';
@@ -274,7 +273,7 @@ class StorageRestImpl
         (await storageApi.objects.get(
               bucket.name,
               path,
-              downloadOptions: DownloadOptions.fullMedia,
+              downloadOptions: api.DownloadOptions.fullMedia,
             ))
             as api.Media;
     var listOfList = await media.stream.toList();
@@ -288,7 +287,7 @@ class StorageRestImpl
         (await storageApi.objects.get(
               bucket.name,
               path,
-              downloadOptions: DownloadOptions.metadata,
+              downloadOptions: api.DownloadOptions.metadata,
             ))
             as api.Object;
     return FileMetadataRest.fromObject(object);

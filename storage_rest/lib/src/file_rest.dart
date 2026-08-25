@@ -1,8 +1,8 @@
 import 'dart:typed_data';
 
-import 'package:googleapis/storage/v1.dart' as api;
 import 'package:tekartik_firebase_storage/storage.dart';
 import 'package:tekartik_firebase_storage_rest/src/bucket_rest.dart';
+import 'package:tekartik_firebase_storage_rest/src/storage/v1.dart' as api;
 import 'package:tekartik_firebase_storage_rest/src/storage_rest_impl.dart';
 
 /// Rest file metadata implementation.

@@ -1,8 +1,8 @@
 // ignore_for_file: avoid_print
 
-import 'package:googleapis/firestore/v1.dart';
 import 'package:http/http.dart';
 import 'package:path/path.dart' as p;
+import 'package:tekartik_firebase_firestore_rest/src/firestore/v1.dart';
 import 'package:test/test.dart';
 
 void main() {
