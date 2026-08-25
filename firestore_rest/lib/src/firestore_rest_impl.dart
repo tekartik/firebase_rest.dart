@@ -38,7 +38,11 @@ abstract class FirestoreServiceRest implements FirestoreService {
 abstract class FirestoreRest implements Firestore {
   /// Use the firestore emulator.
   /// Typical port is 8080
-  Future<void> useFirestoreEmulator(String host, int port);
+  ///
+  /// When [owner] is true, requests are sent as the emulator owner (admin),
+  /// bypassing the security rules. Only ever use this against an emulator,
+  /// typically to setup or teardown test data.
+  Future<void> useFirestoreEmulator(String host, int port, {bool? owner});
 }
 
 /// Rest null value.
@@ -301,6 +305,10 @@ class FirestoreRestImpl
     bool? owner,
   }) async {
     _emulatorRootUrl = 'http://$host:$port/';
+    _emulatorRootOwner = owner;
+    // The api client is built lazily and cached, drop any existing one so the
+    // owner setting is taken into account.
+    _firestoreApi = null;
   }
 
   String? _emulatorRootUrl;
