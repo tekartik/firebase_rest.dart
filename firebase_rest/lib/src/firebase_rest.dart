@@ -163,7 +163,16 @@ class FirebaseRestImpl
         ?.anyAs<FirebaseAdminCredentialRest?>();
     var restOptions = credentialsRest?.appOptions;
     if (options == null) {
-      app = AppRestImpl(name: name, firebaseRest: this, options: restOptions!);
+      if (restOptions == null) {
+        throw StateError(
+          'No app options specified and no application default credential set. '
+          'Either pass options, or register a credential first using '
+          'credential.setApplicationDefault(...), '
+          'initializeAppWithServiceAccountMap(...) or '
+          'initializeAppWithServiceAccountString(...).',
+        );
+      }
+      app = AppRestImpl(name: name, firebaseRest: this, options: restOptions);
     } else {
       if (restOptions != null) {
         options = restOptions.copyWith(

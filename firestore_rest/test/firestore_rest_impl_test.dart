@@ -35,7 +35,7 @@ Future main() async {
     });
 
     test('access_token', () async {
-      var app = await firebaseRest.initializeAppAsync();
+      var app = context!.app;
       var firestore = firestoreServiceRest.firestore(app);
       var snapshot = await firestore.doc('validate_user_access/_dummy').get();
       expect(snapshot.exists, isFalse);

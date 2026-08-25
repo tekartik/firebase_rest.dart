@@ -15,10 +15,12 @@ void main() {
     test('rootPath', () async {
       var firestore = noAuthFirestoreRest(projectId: projectId);
       await firestore.doc(rootPath!).get();
+      await firestore.app.delete();
     });
     test('supports transaction', () async {
       var firestore = noAuthFirestoreRest(projectId: projectId);
       expect(firestore.supportsTransaction, isFalse);
+      await firestore.app.delete();
     });
   }, skip: (projectId == null || rootPath == null));
 }

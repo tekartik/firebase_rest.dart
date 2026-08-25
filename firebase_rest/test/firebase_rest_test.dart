@@ -1,4 +1,3 @@
-@TestOn('vm')
 library;
 
 import 'package:http/http.dart';
