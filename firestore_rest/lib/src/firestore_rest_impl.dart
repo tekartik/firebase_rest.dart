@@ -922,13 +922,13 @@ class FirestoreRestImpl
       // devPrint('get ${jsonPretty(response.toJson())}');
       return QuerySnapshotRestImpl(this, response);
     } catch (e) {
-      if (e is api.DetailedApiRequestError) {
-        // devPrint(e.status);
-        if (e.status == httpStatusCodeNotFound) {
-          // return DocumentSnapshotRestImpl(this, null);
-        }
+      // Like the document operations, surface a FirestoreException (a
+      // security rules denial is a permission-denied one).
+      var wrapped = wrapFirestoreRestException(e);
+      if (identical(wrapped, e)) {
+        rethrow;
       }
-      rethrow;
+      throw wrapped;
     }
   }
 
@@ -1024,14 +1024,13 @@ class FirestoreRestImpl
         logDebug('commit ${jsonPretty(response.toJson())}');
       }
     } catch (e) {
-      // devPrint(e);
-      if (e is api.DetailedApiRequestError) {
-        // devPrint(e.status);
-        if (e.status == httpStatusCodeNotFound) {
-          // return DocumentSnapshotRestImpl(this, null);
-        }
+      // Like the document operations, surface a FirestoreException (a
+      // security rules denial is a permission-denied one).
+      var wrapped = wrapFirestoreRestException(e);
+      if (identical(wrapped, e)) {
+        rethrow;
       }
-      rethrow;
+      throw wrapped;
     }
   }
 
