@@ -34,9 +34,7 @@ void main() {
     /// [statuses] are answered in order, the last one repeated.
     MockClient inner() => MockClient((request) async {
       sentAuthorizations.add(request.headers['Authorization']);
-      var status = statuses.length > 1
-          ? statuses.removeAt(0)
-          : statuses.first;
+      var status = statuses.length > 1 ? statuses.removeAt(0) : statuses.first;
       return Response('body', status);
     });
 
@@ -81,10 +79,9 @@ void main() {
 
     test('401 renews once and retries', () async {
       statuses = [401, 200];
-      var response = await client(tokens()).post(
-        Uri.parse('http://x/y'),
-        body: '{"a":1}',
-      );
+      var response = await client(
+        tokens(),
+      ).post(Uri.parse('http://x/y'), body: '{"a":1}');
       expect(response.statusCode, 200);
       expect(response.body, 'body');
       expect(refreshes, [true]);

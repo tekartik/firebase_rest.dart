@@ -64,7 +64,8 @@ class RestAuthTokens {
   }
 
   /// Whether the id token is expired.
-  bool isExpired({DateTime? now}) => isExpiring(margin: Duration.zero, now: now);
+  bool isExpired({DateTime? now}) =>
+      isExpiring(margin: Duration.zero, now: now);
 
   /// Take the tokens of a refresh (a refresh may or may not send a new
   /// refresh token).
@@ -87,7 +88,9 @@ DateTime? idTokenExpiration(String idToken) {
       return null;
     }
     var payload =
-        json.decode(utf8.decode(base64Url.decode(base64Url.normalize(parts[1]))))
+        json.decode(
+              utf8.decode(base64Url.decode(base64Url.normalize(parts[1]))),
+            )
             as Map;
     var exp = payload['exp'];
     if (exp is num) {
@@ -156,9 +159,12 @@ class RestAuthTokenRefresher {
     if (root == null) {
       base = 'https://securetoken.googleapis.com/';
     } else {
-      base = '${root.endsWith('/') ? root : '$root/'}securetoken.googleapis.com/';
+      base =
+          '${root.endsWith('/') ? root : '$root/'}securetoken.googleapis.com/';
     }
-    return Uri.parse('${base}v1/token').replace(queryParameters: {'key': apiKey});
+    return Uri.parse(
+      '${base}v1/token',
+    ).replace(queryParameters: {'key': apiKey});
   }
 
   /// Exchange [refreshToken] for a new id token (and possibly a new refresh

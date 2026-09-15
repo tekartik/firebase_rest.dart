@@ -29,8 +29,14 @@ void main() {
         tokens.isExpiring(now: now.add(const Duration(minutes: 56))),
         isTrue,
       );
-      expect(tokens.isExpired(now: now.add(const Duration(minutes: 59))), isFalse);
-      expect(tokens.isExpired(now: now.add(const Duration(minutes: 60))), isTrue);
+      expect(
+        tokens.isExpired(now: now.add(const Duration(minutes: 59))),
+        isFalse,
+      );
+      expect(
+        tokens.isExpired(now: now.add(const Duration(minutes: 60))),
+        isTrue,
+      );
     });
 
     test('fromSignIn falls back to the jwt exp', () {
@@ -140,8 +146,10 @@ void main() {
       var refresher = RestAuthTokenRefresher(
         apiKey: 'k',
         clientFactory: () => MockClient(
-          (request) async =>
-              Response(jsonEncode({'id_token': 'id2', 'expires_in': '10'}), 200),
+          (request) async => Response(
+            jsonEncode({'id_token': 'id2', 'expires_in': '10'}),
+            200,
+          ),
         ),
       );
       var tokens = await refresher.refresh('r1');
