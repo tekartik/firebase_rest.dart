@@ -75,7 +75,11 @@ mixin AuthProviderRestMixin implements AuthProviderRest {
     bool noSave = false,
   }) async {
     if (userCredential != null) {
-      currentAuthClient = LoggedInClient(userCredential: userCredential);
+      currentAuthClient = LoggedInClient(
+        userCredential: userCredential,
+        refreshToken: ({bool force = false}) =>
+            refreshIdToken(credential: userCredential, force: force),
+      );
     } else {
       currentAuthClient = null;
     }
@@ -93,6 +97,78 @@ mixin AuthProviderRestMixin implements AuthProviderRest {
   /// Restore user credential
   Future<UserCredentialRest?> restore() async {
     return null;
+  }
+
+  /// Renews id tokens through the secure token api, null when the app has no
+  /// api key (nothing to renew with).
+  RestAuthTokenRefresher? get tokenRefresher {
+    var impl = authRest.impl;
+    var apiKey = impl.appRest.options.apiKey;
+    if (apiKey == null) {
+      return null;
+    }
+    return RestAuthTokenRefresher(apiKey: apiKey, rootUrl: impl.rootUrl);
+  }
+
+  Future<void>? _refreshing;
+
+  /// Renew the id token of [credential] (the current user by default) when it
+  /// is expiring, or when [force].
+  ///
+  /// A no-op when the credential cannot be renewed (no refresh token). One
+  /// renewal at a time, callers share it. The new tokens are persisted when
+  /// [credential] is the current user. A refused renewal
+  /// ([RestAuthTokenRefreshException.isSessionExpired]) signs the current user
+  /// out and rethrows; anything else (network) just rethrows.
+  Future<void> refreshIdToken({
+    UserCredentialRest? credential,
+    bool force = false,
+  }) {
+    credential ??= currentUserCredential;
+    var tokens = credential?.tokens;
+    if (credential == null || tokens == null || !tokens.canRefresh) {
+      return Future.value();
+    }
+    if (!force && !tokens.isExpiring()) {
+      return Future.value();
+    }
+    return _refreshing ??= _refreshTokens(
+      credential,
+      tokens,
+    ).whenComplete(() => _refreshing = null);
+  }
+
+  Future<void> _refreshTokens(
+    UserCredentialRest credential,
+    RestAuthTokens tokens,
+  ) async {
+    var refresher = tokenRefresher;
+    if (refresher == null) {
+      return;
+    }
+    try {
+      tokens.update(await refresher.refresh(tokens.refreshToken!));
+    } on RestAuthTokenRefreshException catch (e) {
+      if (e.isSessionExpired && identical(credential, currentUserCredential)) {
+        await setCurrentUserCredential(null);
+      }
+      rethrow;
+    }
+    if (identical(credential, currentUserCredential)) {
+      await saveUser(credential);
+    }
+  }
+
+  /// The id token of the current user, renewed first when expiring or when
+  /// [forceRefresh].
+  @override
+  Future<String> getIdToken({bool? forceRefresh}) async {
+    var credential = currentUserCredential;
+    if (credential == null) {
+      throw StateError('getIdToken: no signed in user');
+    }
+    await refreshIdToken(credential: credential, force: forceRefresh == true);
+    return credential.idToken;
   }
 
   /// Save user credential.
@@ -128,13 +204,6 @@ extension AuthProviderRestPrv on AuthProvider {
 abstract class AuthProviderRestBase
     with AuthProviderRestMixin
     implements AuthProviderRest {
-  /// Get id token.
-  @override
-  Future<String> getIdToken({bool? forceRefresh}) {
-    // TODO: implement getIdToken
-    throw UnimplementedError();
-  }
-
   /// Sign in.
   @override
   Future<AuthSignInResult> signIn() {

@@ -11,6 +11,7 @@ import 'package:tekartik_firebase_rest/firebase_rest.dart';
 
 import 'auth_rest_built_in_provider.dart';
 import 'auth_rest_provider.dart';
+import 'auth_rest_token.dart';
 import 'auth_service_rest.dart';
 import 'google_auth_rest.dart';
 import 'import.dart';
@@ -214,16 +215,29 @@ abstract class UserCredentialRest implements UserCredential {
   /// The id token
   String get idToken;
 
-  /// Create user credential
+  /// The tokens (refresh token, expiration) when the id token can be renewed,
+  /// null otherwise.
+  RestAuthTokens? get tokens;
+
+  /// Create user credential.
+  ///
+  /// [refreshToken] and [expiresAt] let the id token be renewed (see
+  /// [RestAuthTokens]).
   factory UserCredentialRest({
     required AuthCredential credential,
     required FirebaseUser user,
     required String idToken,
+    String? refreshToken,
+    DateTime? expiresAt,
   }) {
     return _UserCredentialRestLive(
       credential: credential,
       user: user,
-      idToken: idToken,
+      tokens: RestAuthTokens(
+        idToken: idToken,
+        refreshToken: refreshToken,
+        expiresAt: expiresAt,
+      ),
     );
   }
 }
@@ -236,12 +250,15 @@ class _UserCredentialRestLive implements UserCredentialRest {
   final User user;
 
   @override
-  final String idToken;
+  final RestAuthTokens tokens;
+
+  @override
+  String get idToken => tokens.idToken;
 
   _UserCredentialRestLive({
     required this.credential,
     required this.user,
-    required this.idToken,
+    required this.tokens,
   });
 }
 

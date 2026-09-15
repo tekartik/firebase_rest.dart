@@ -19,22 +19,58 @@ class BuiltInAuthProviderRest extends AuthProviderRestBase {
   /// Create built-in auth provider
   BuiltInAuthProviderRest();
 
+  /// How long a restore waits for the token renewal before starting with the
+  /// persisted token anyway (renewed at the first request instead).
+  static const restoreRefreshTimeout = Duration(seconds: 20);
+
   /// Restore user credential.
+  ///
+  /// The persisted id token lives an hour: when it is expiring it is renewed
+  /// with the persisted refresh token before the user is restored. A session
+  /// the api refuses to renew is dropped (the user signs in again), a renewal
+  /// that fails otherwise (offline) keeps the user, renewed at the first
+  /// request. A session persisted without refresh token is only restored
+  /// while its id token is valid.
   @override
   Future<UserCredentialRest?> restore() async {
-    if (persistence != null) {
-      var credentials = await persistence!.get(projectId);
-      if (credentials != null) {
-        var providerId = credentials.providerId;
-        if (providerId == this.providerId) {
-          var user = await _initWithAccessCredentials(
-            credentials as FirebaseRestAuthPersistenceAccessCredentialsMap,
-          );
-          return user;
+    var persistence = this.persistence;
+    if (persistence == null) {
+      return null;
+    }
+    var credentials = await persistence.get(projectId);
+    if (credentials == null || credentials.providerId != providerId) {
+      return null;
+    }
+    var credential = await _initWithAccessCredentials(
+      credentials as FirebaseRestAuthPersistenceAccessCredentialsMap,
+    );
+    var tokens = credential?.tokens;
+    if (credential == null || tokens == null) {
+      return credential;
+    }
+    if (!tokens.canRefresh) {
+      if (tokens.isExpired()) {
+        await persistence.remove(projectId);
+        return null;
+      }
+      return credential;
+    }
+    if (tokens.isExpiring()) {
+      try {
+        await refreshIdToken(
+          credential: credential,
+        ).timeout(restoreRefreshTimeout);
+        await saveUser(credential);
+      } on RestAuthTokenRefreshException catch (e) {
+        if (e.isSessionExpired) {
+          await persistence.remove(projectId);
+          return null;
         }
+      } catch (_) {
+        // Offline, timeout: renewed at the first request.
       }
     }
-    return null;
+    return credential;
   }
 
   /// Sign in anonymously

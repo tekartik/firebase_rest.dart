@@ -46,6 +46,12 @@ class _FirebaseRestAuthPersistenceAccessCredentials
   @override
   late final String idToken;
 
+  @override
+  late final String? refreshToken;
+
+  @override
+  late final DateTime? expiresAt;
+
   /// Default constructor
   _FirebaseRestAuthPersistenceAccessCredentials._(this._map) {
     uid = _map!['uid'] as String;
@@ -54,6 +60,10 @@ class _FirebaseRestAuthPersistenceAccessCredentials
     isAnonymous = _map['isAnonymous'] as bool? ?? false;
     email = _map['email'] as String?;
     idToken = _map['idToken'] as String? ?? '';
+    refreshToken = _map['refreshToken'] as String?;
+    expiresAt = DateTime.tryParse(
+      _map['expiresAt']?.toString() ?? '',
+    )?.toLocal();
   }
 
   /// Get user credential for provider
@@ -70,6 +80,8 @@ class _FirebaseRestAuthPersistenceAccessCredentials
         provider: provider,
       )..email = email,
       idToken: idToken,
+      refreshToken: refreshToken,
+      expiresAt: expiresAt,
     );
     return userCredential;
   }
@@ -104,6 +116,12 @@ class _UserCredentialFirebaseRestAuthPersistenceAccessCredentials
   @override
   String get idToken => _userCredential.idToken;
 
+  @override
+  String? get refreshToken => _userCredential.tokens?.refreshToken;
+
+  @override
+  DateTime? get expiresAt => _userCredential.tokens?.expiration;
+
   /// Default constructor
   _UserCredentialFirebaseRestAuthPersistenceAccessCredentials._(
     this.providerId,
@@ -132,6 +150,8 @@ mixin FirebaseRestAuthPersistenceAccessCredentialsMixin
   /// Convert to map
   @override
   Model toMap() {
+    var refreshToken = this.refreshToken;
+    var expiresAt = this.expiresAt;
     return {
       'uid': uid,
       'providerId': providerId,
@@ -139,6 +159,8 @@ mixin FirebaseRestAuthPersistenceAccessCredentialsMixin
       'isAnonymous': isAnonymous,
       'email': email,
       'idToken': idToken,
+      'refreshToken': ?refreshToken,
+      'expiresAt': ?expiresAt?.toUtc().toIso8601String(),
     };
   }
 
@@ -167,6 +189,13 @@ abstract class FirebaseRestAuthPersistenceAccessCredentials {
 
   /// Id token
   String get idToken;
+
+  /// Refresh token, null when the id token cannot be renewed (sessions
+  /// persisted before refresh tokens were kept).
+  String? get refreshToken;
+
+  /// When the id token expires, null when unknown.
+  DateTime? get expiresAt;
 
   /// Convert to map
   Model toMap();

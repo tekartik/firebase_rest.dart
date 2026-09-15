@@ -15,6 +15,12 @@ export 'package:tekartik_firebase_auth_rest/src/auth_rest_mock_provider.dart'
     show MockBuiltInAuthProviderRest;
 export 'package:tekartik_firebase_auth_rest/src/auth_rest_provider.dart'
     show AuthProviderRest;
+export 'package:tekartik_firebase_auth_rest/src/auth_rest_token.dart'
+    show
+        RestAuthTokens,
+        RestAuthTokenRefresher,
+        RestAuthTokenRefreshException,
+        idTokenExpiration;
 export 'package:tekartik_firebase_auth_rest/src/auth_service_rest.dart'
     show firebaseAuthServiceRest, FirebaseAuthServiceRest, authServiceRest;
 export 'package:tekartik_firebase_auth_rest/src/google_auth_rest.dart'

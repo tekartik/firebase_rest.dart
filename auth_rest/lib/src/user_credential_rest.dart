@@ -8,18 +8,25 @@ class UserCredentialEmailPasswordRestImpl extends UserCredentialRestImpl {
   /// The sign in response
   final identitytoolkit_v3.VerifyPasswordResponse signInResponse;
 
-  /// Create user credential
+  /// Create user credential, keeping the refresh token and the expiration of
+  /// the response so the id token can be renewed.
   UserCredentialEmailPasswordRestImpl(
     this.signInResponse,
     super.credential,
     super.user,
-  );
+  ) : super(
+        tokens: RestAuthTokens.fromSignIn(
+          idToken: signInResponse.idToken!,
+          refreshToken: signInResponse.refreshToken,
+          expiresIn: signInResponse.expiresIn,
+        ),
+      );
 
   @override
   String toString() => '$user $credential';
 
   @override
-  String get idToken => signInResponse.idToken!;
+  String get idToken => tokens!.idToken;
 }
 
 /// User credential rest implementation
@@ -30,8 +37,13 @@ abstract class UserCredentialRestImpl implements UserCredentialRest {
   @override
   final FirebaseUserRest user;
 
+  /// The tokens when the id token can be renewed (identity toolkit sign in),
+  /// null otherwise (google, mock).
+  @override
+  RestAuthTokens? tokens;
+
   /// Create user credential
-  UserCredentialRestImpl(this.credential, this.user);
+  UserCredentialRestImpl(this.credential, this.user, {this.tokens});
 
   @override
   String toString() => '$user $credential';
