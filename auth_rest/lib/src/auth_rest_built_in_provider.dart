@@ -218,6 +218,23 @@ class BuiltInAuthProviderRest extends AuthProviderRestBase {
     }
   }
 
+  /// Send a password reset email (v1 `accounts:sendOobCode`).
+  Future<void> sendPasswordResetEmail({required String email}) async {
+    await authReady;
+    var client = _newApiKeyClient();
+    try {
+      var apiV1 = _apiV1(client);
+      await apiV1.accounts.sendOobCode(
+        identitytoolkit_v1.GoogleCloudIdentitytoolkitV1GetOobCodeRequest(
+          requestType: 'PASSWORD_RESET',
+          email: email,
+        ),
+      );
+    } finally {
+      client.close();
+    }
+  }
+
   /// Initialize with access credentials
   Future<UserCredentialRest?> _initWithAccessCredentials(
     FirebaseRestAuthPersistenceAccessCredentialsMap credentials,
@@ -235,7 +252,10 @@ class BuiltInAuthProviderRest extends AuthProviderRestBase {
   String get providerId => emailPasswordProviderId;
 
   identitytoolkit_v1.IdentityToolkitApi _apiV1(ApiKeyClient client) {
-    var rootUrl = authRest.impl.rootUrl!;
+    var rootUrl = authRest.impl.rootUrl;
+    if (rootUrl == null) {
+      return identitytoolkit_v1.IdentityToolkitApi(client);
+    }
     var apiV1 = identitytoolkit_v1.IdentityToolkitApi(
       client,
       rootUrl: url.join(rootUrl, 'identitytoolkit.googleapis.com/'),

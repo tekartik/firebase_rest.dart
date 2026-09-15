@@ -657,6 +657,12 @@ class FirebaseAuthRestImpl
   }
 
   @override
+  Future<void> sendPasswordResetEmail({required String email}) async {
+    await authReady;
+    return builtInProvider.sendPasswordResetEmail(email: email);
+  }
+
+  @override
   FirebaseApp get app => appRest;
 
   @override
