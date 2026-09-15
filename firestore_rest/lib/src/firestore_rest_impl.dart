@@ -529,11 +529,21 @@ class FirestoreRestImpl
         'createDocumentRequest: ${jsonPretty(document.toJson())}, parent: $parent, collectionId: $collectionId',
       );
     }
-    document = await firestoreApi.projects.databases.documents.createDocument(
-      document,
-      parent,
-      collectionId,
-    );
+    try {
+      document = await firestoreApi.projects.databases.documents.createDocument(
+        document,
+        parent,
+        collectionId,
+      );
+    } catch (e) {
+      // Like the other document operations, surface a FirestoreException (a
+      // security rules denial is a permission-denied one).
+      var wrapped = wrapFirestoreRestException(e);
+      if (identical(wrapped, e)) {
+        rethrow;
+      }
+      throw wrapped;
+    }
     if (debugRest) {
       logDebug('createDocument: ${jsonPretty(document.toJson())}');
     }
