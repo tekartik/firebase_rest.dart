@@ -14,10 +14,6 @@ jobs:
     steps:
       - name: Setup dart
         uses: tekartik/ci.dart/.github/actions/setup_ci_dart@v1
-        with:
-          dart-channel: stable
-      - run: dart --version
-      - run: dart pub get
       - name: Run storage test
         run: dart run tool/run_ci.dart
         env:

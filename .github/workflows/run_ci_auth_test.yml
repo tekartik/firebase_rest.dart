@@ -7,24 +7,13 @@ on:
 
 jobs:
   test:
-    name: Test on ${{ matrix.os }} / ${{ matrix.dart }}
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: repo_support/workflow_ci_auth_test
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - os: ubuntu-latest
-            dart: stable
     steps:
       - name: Setup dart
         uses: tekartik/ci.dart/.github/actions/setup_ci_dart@v1
-        with:
-          dart-channel: ${{ matrix.dart }}
-      - run: dart --version
-      - run: dart pub get
       - name: Run auth test
         run: dart run tool/run_ci.dart
         env:
