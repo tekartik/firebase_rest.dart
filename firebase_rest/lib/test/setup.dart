@@ -12,9 +12,10 @@ bool get runningOnGithub => platformIo.runningOnGithub;
 /// Github actions prefix
 final githubActionsPrefix = 'ga_${io.Platform.operatingSystem}';
 
-/// Env variable set by the dedicated env test workflows (run_ci_storage_test.yml,
-/// run_ci_firestore_test.yml, run_ci_auth_test.yml) through
-/// `repo_support/workflow_ci_<name>_test/tool/run_ci.dart`.
+/// Env variable set by the dedicated env test workflows
+/// (`run_ci_<name>_test.yml`) through
+/// `repo_support/workflow_ci_<name>_test/tool/run_ci.dart`, which uses
+/// `firebaseGithubActionEnvTestShell` (`package:tekartik_firebase_test/ci_shell_io.dart`).
 ///
 /// It is not set by the regular run_ci.yml workflow.
 const githubActionsEnvTestEnvKey = 'TEKARTIK_GITHUB_ACTIONS_ENV_TEST';

@@ -1,16 +1,9 @@
 import 'package:path/path.dart';
-import 'package:process_run/shell.dart';
+import 'package:tekartik_firebase_test/ci_shell_io.dart';
 
 var topDir = join('..', '..');
 
-/// Set by this script only, so that the env test (which needs the private
-/// service account) is run here and not in the regular run_ci workflow.
-const githubActionsEnvTestEnvKey = 'TEKARTIK_GITHUB_ACTIONS_ENV_TEST';
-
 Future<void> main() async {
-  var shell = Shell(
-    workingDirectory: join(topDir, 'firestore_rest'),
-    environment: ShellEnvironment()..vars[githubActionsEnvTestEnvKey] = 'true',
-  );
+  var shell = firebaseGithubActionEnvTestShell(join(topDir, 'firestore_rest'));
   await shell.run('dart test test/firestore_rest_io_env_test.dart');
 }
