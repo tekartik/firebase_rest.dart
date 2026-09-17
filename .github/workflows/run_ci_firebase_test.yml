@@ -1,4 +1,4 @@
-name: Run CI
+name: Run CI firebase test
 on:
   push:
   workflow_dispatch:
@@ -11,29 +11,23 @@ jobs:
     runs-on: ${{ matrix.os }}
     defaults:
       run:
-        working-directory: repo_support
+        working-directory: repo_support/workflow_ci_firebase_test
     strategy:
       fail-fast: false
       matrix:
         include:
           - os: ubuntu-latest
             dart: stable
-          - os: ubuntu-latest
-            dart: beta
-          - os: ubuntu-latest
-            dart: dev
-          - os: windows-latest
-            dart: stable
-          - os: macos-latest
-            dart: stable
     steps:
-      - uses: actions/checkout@v7
-      - uses: dart-lang/setup-dart@v1
+      - name: Setup dart
+        uses: tekartik/ci.dart/.github/actions/setup_ci_dart@v1
         with:
-          sdk: ${{ matrix.dart }}
+          dart-channel: ${{ matrix.dart }}
       - run: dart --version
       - run: dart pub get
-      - run: dart run tool/run_ci.dart
+      - name: Run firebase test
+        run: dart run tool/run_ci.dart
         env:
+          TEKARTIK_FIREBASE_REST_TEST_SERVICE_ACCOUNT: ${{ secrets.TEKARTIK_FIREBASE_REST_TEST_SERVICE_ACCOUNT }}
           TEKARTIK_GITHUB_ACTIONS_OS: ${{ matrix.os }}
           TEKARTIK_GITHUB_ACTIONS_DART: ${{ matrix.dart }}

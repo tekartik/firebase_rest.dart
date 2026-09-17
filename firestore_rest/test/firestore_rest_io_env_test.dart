@@ -26,9 +26,13 @@ Future main() async {
   if (context == null || testRootCollectionPath == null) {
     test('no env setup available', () {});
   } else {
-    if (runningOnGithub && !isGithubActionsUbuntuAndDartStable()) {
-      test('Skip on github for other than ubuntu and dart stable', () {
+    if (shouldSkipEnvTestOnGithub()) {
+      test('Skip env test on github', () {
         print('githubActionsPrefix: $githubActionsPrefix');
+        print(
+          'Env test only run by the dedicated env test workflow '
+          '(ubuntu/stable)',
+        );
       });
       return;
     }

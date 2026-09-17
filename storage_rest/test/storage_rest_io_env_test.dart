@@ -19,9 +19,13 @@ Future main() async {
     print('TEKARTIK_FIREBASE_STORAGE_REST_TEST_ROOT_PATH: $testRootPath');
   });
   if (context != null) {
-    if (runningOnGithub && !isGithubActionsUbuntuAndDartStable()) {
-      test('Skip on github for other than ubuntu and dart stable', () {
+    if (shouldSkipEnvTestOnGithub()) {
+      test('Skip env test on github', () {
         print('githubActionsPrefix: $githubActionsPrefix');
+        print(
+          'Env test only run by the dedicated env test workflow '
+          '(ubuntu/stable)',
+        );
       });
       return;
     }

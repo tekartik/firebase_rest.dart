@@ -8,5 +8,9 @@ workspace:
   - firestore_rest
   - firestore_grpc_rest
   - repo_support
+  - repo_support/workflow_ci_storage_test
+  - repo_support/workflow_ci_firestore_test
+  - repo_support/workflow_ci_auth_test
+  - repo_support/workflow_ci_firebase_test
   - storage_rest
   - functions_call_rest
