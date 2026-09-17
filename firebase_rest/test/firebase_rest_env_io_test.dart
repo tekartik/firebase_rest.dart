@@ -20,10 +20,7 @@ Future main() async {
     if (shouldSkipEnvTestOnGithub()) {
       test('Skip env test on github', () {
         print('githubActionsPrefix: $githubActionsPrefix');
-        print(
-          'Env test only run by the dedicated env test workflow '
-          '(ubuntu/stable)',
-        );
+        print('Env test only run by the dedicated env test workflow (linux)');
       });
       return;
     }

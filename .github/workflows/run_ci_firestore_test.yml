@@ -1,4 +1,4 @@
-  name: Run CI firestore test
+name: Run CI firestore test
 on:
   push:
   workflow_dispatch:
@@ -30,5 +30,3 @@ jobs:
         env:
           TEKARTIK_FIREBASE_REST_TEST_SERVICE_ACCOUNT: ${{ secrets.TEKARTIK_FIREBASE_REST_TEST_SERVICE_ACCOUNT }}
           TEKARTIK_FIRESTORE_REST_TEST_ROOT_COLLECTION_PATH: ${{ secrets.TEKARTIK_FIRESTORE_REST_TEST_ROOT_COLLECTION_PATH }}
-          TEKARTIK_GITHUB_ACTIONS_OS: ${{ matrix.os }}
-          TEKARTIK_GITHUB_ACTIONS_DART: ${{ matrix.dart }}

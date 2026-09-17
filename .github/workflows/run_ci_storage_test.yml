@@ -8,11 +8,14 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: repo_support/workflow_ci_storage_test
     steps:
       - name: Setup dart
         uses: tekartik/ci.dart/.github/actions/setup_ci_dart@v1
         with:
-          dart-channel: ${{ matrix.dart }}
+          dart-channel: stable
       - run: dart --version
       - run: dart pub get
       - name: Run storage test
@@ -20,5 +23,3 @@ jobs:
         env:
           TEKARTIK_FIREBASE_REST_TEST_SERVICE_ACCOUNT: ${{ secrets.TEKARTIK_FIREBASE_REST_TEST_SERVICE_ACCOUNT }}
           TEKARTIK_FIREBASE_STORAGE_REST_TEST_ROOT_PATH: ${{ secrets.TEKARTIK_FIREBASE_STORAGE_REST_TEST_ROOT_PATH }}
-          TEKARTIK_GITHUB_ACTIONS_OS: ${{ matrix.os }}
-          TEKARTIK_GITHUB_ACTIONS_DART: ${{ matrix.dart }}

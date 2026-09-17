@@ -29,5 +29,3 @@ jobs:
         run: dart run tool/run_ci.dart
         env:
           TEKARTIK_FIREBASE_REST_TEST_SERVICE_ACCOUNT: ${{ secrets.TEKARTIK_FIREBASE_REST_TEST_SERVICE_ACCOUNT }}
-          TEKARTIK_GITHUB_ACTIONS_OS: ${{ matrix.os }}
-          TEKARTIK_GITHUB_ACTIONS_DART: ${{ matrix.dart }}
