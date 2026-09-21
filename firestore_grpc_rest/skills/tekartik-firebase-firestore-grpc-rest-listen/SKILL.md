@@ -179,7 +179,7 @@ library;
 
 import 'package:tekartik_firebase_firestore_grpc_rest/firestore_grpc_rest.dart';
 import 'package:tekartik_firebase_firestore_rest/firestore_rest.dart';
-import 'package:tekartik_firebase_firestore_test/firestore_test.dart';
+import 'package:tekartik_firebase_firestore_test/firestore_test_runner.dart';
 import 'package:tekartik_firebase_rest/firebase_rest_setup.dart';
 import 'package:test/test.dart';
 

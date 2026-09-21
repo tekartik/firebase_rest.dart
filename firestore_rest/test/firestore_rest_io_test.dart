@@ -3,7 +3,7 @@ library;
 
 import 'package:tekartik_common_utils/common_utils_import.dart';
 import 'package:tekartik_firebase_firestore_rest/firestore_rest.dart';
-import 'package:tekartik_firebase_firestore_test/firestore_test.dart';
+import 'package:tekartik_firebase_firestore_test/firestore_test_runner.dart';
 import 'package:test/test.dart';
 
 import 'test_setup.dart';
