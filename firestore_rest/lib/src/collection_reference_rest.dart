@@ -23,4 +23,15 @@ class CollectionReferenceRestImpl extends QueryRestImpl
   @override
   Future<DocumentReference> add(Map<String, Object?> data) =>
       firestoreRestImpl.createDocument(path, data);
+
+  @override
+  Future<FirestoreListDocumentsResult> listDocuments({
+    FirestoreListDocumentsOptions? options,
+  }) {
+    // Listing missing documents requires admin access
+    if (firestoreRestImpl.hasAdminAccess || !(options?.showMissing ?? true)) {
+      return firestoreRestImpl.listCollectionDocuments(path, options: options);
+    }
+    return super.listDocuments(options: options);
+  }
 }

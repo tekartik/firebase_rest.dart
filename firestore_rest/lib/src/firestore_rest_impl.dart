@@ -23,6 +23,9 @@ import 'firestore/v1.dart';
 import 'import.dart';
 import 'import_firestore.dart';
 
+/// Field mask used when listing documents to only get their name.
+const _listDocumentsNameMask = firestoreNameFieldPath;
+
 void _log(Object? message) {
   // ignore: avoid_print
   print(message);
@@ -317,6 +320,12 @@ class FirestoreRestImpl
   String? get emulatorRootUrl => _emulatorRootUrl;
 
   bool? _emulatorRootOwner;
+
+  /// `true` when metadata operations (such as listing missing documents) are
+  /// allowed: admin (service account) credentials or emulator owner.
+  bool get hasAdminAccess =>
+      appImpl.hasAdminCredentials ||
+      (_emulatorRootUrl != null && _emulatorRootOwner == true);
 
   /// Firestore api.
   api.FirestoreApi get firestoreApi {
@@ -1147,6 +1156,53 @@ class FirestoreRestImpl
     return _listCollections(path);
   }
 
+  /// List the documents of the collection at [path], including missing
+  /// documents (without data but with sub-collections) unless
+  /// [FirestoreListDocumentsOptions.showMissing] is `false`.
+  ///
+  /// Without page size, all the (remaining) documents are returned.
+  ///
+  /// Showing missing documents requires admin access (see [hasAdminAccess]).
+  Future<FirestoreListDocumentsResult> listCollectionDocuments(
+    String path, {
+    FirestoreListDocumentsOptions? options,
+  }) async {
+    var parentPath = url.dirname(path);
+    var parent = parentPath == '.'
+        ? getDocumentRootName()
+        : getDocumentName(parentPath);
+    var collectionId = url.basename(path);
+    var pageSize = options?.pageSize;
+    var refs = <DocumentReference>[];
+    var pageToken = options?.pageToken;
+    do {
+      if (debugRest) {
+        logDebug('listDocuments: $parent $collectionId $pageToken');
+      }
+      var response = await firestoreApi.projects.databases.documents.list(
+        parent,
+        collectionId,
+        showMissing: options?.showMissing ?? true,
+        // Only the document names are needed, avoid reading the data
+        mask_fieldPaths: [_listDocumentsNameMask],
+        pageSize: pageSize,
+        pageToken: pageToken,
+      );
+      if (debugRest) {
+        logDebug('response: ${jsonPretty(response.toJson())}');
+      }
+      for (var document in response.documents ?? <api.Document>[]) {
+        refs.add(doc(getDocumentPath(document.name)));
+      }
+      pageToken = response.nextPageToken;
+      if (pageToken?.isEmpty ?? false) {
+        pageToken = null;
+      }
+      // A single page when paging
+    } while (pageSize == null && pageToken != null);
+    return FirestoreListDocumentsResult(refs: refs, nextPageToken: pageToken);
+  }
+
   @override
   FirebaseApp get app => appImpl;
 }
@@ -1187,6 +1243,11 @@ class FirestoreServiceRestImpl
 
   @override
   bool get supportsListCollections => true;
+
+  /// Only with admin access, otherwise only existing documents are listed
+  /// (as with `showMissing: false`).
+  @override
+  bool get supportsListMissingDocuments => true;
 
   @override
   bool get supportsAggregateQueries => true;

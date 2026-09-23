@@ -24,6 +24,7 @@ Future main() async {
   skipConcurrentTransactionTests = true;
   skipFirestoreTransactionTests = true;
   skipFirestoreListCollectionsTests = true;
+  skipFirestoreListMissingDocumentsTests = true;
 
   if (await _emulatorService.isSupported(options: _options)) {
     stdout.writeln('firebase emulator is supported');

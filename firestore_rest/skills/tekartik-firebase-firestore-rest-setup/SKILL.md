@@ -68,6 +68,11 @@ setup and the missing pieces are specific.
   `supportsFieldValueArray` (`FieldValue.arrayUnion`/`arrayRemove`),
   `supportsQuerySnapshotCursor` and `supportsVectorValue` are `false`. Guard
   generic code on these instead of catching `UnsupportedError`.
+* `supportsListMissingDocuments` is `true` but listing missing documents
+  (`collRef.listDocuments()`, ListDocuments with `showMissing`) needs admin
+  access: a service account, or `useFirestoreEmulator(..., owner: true)`.
+  Otherwise `listDocuments()` falls back to the documents of `get()`.
+  `showMissing: false` needs no admin access.
 * `where` maps to the REST field filters `EQUAL`, `LESS_THAN`,
   `LESS_THAN_OR_EQUAL`, `GREATER_THAN`, `GREATER_THAN_OR_EQUAL`,
   `ARRAY_CONTAINS`, `ARRAY_CONTAINS_ANY`, `IN` and the unary `IS_NULL`
@@ -138,7 +143,8 @@ Future<FirestoreRest> emulatorFirestore(String projectId) async {
           )
           as FirebaseAppRest;
   var firestore = firestoreServiceRest.firestore(app);
-  // owner: true bypasses the rules, needed for listCollections. Emulator only.
+  // owner: true bypasses the rules, needed for listCollections and for
+  // listDocuments to include missing documents. Emulator only.
   await firestore.useFirestoreEmulator('localhost', 8080, owner: true);
   return firestore;
 }
