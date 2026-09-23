@@ -14,14 +14,20 @@ class _FirebaseAuthServiceRest
   /// Persistence.
   final FirebaseRestAuthPersistence? persistence;
 
+  /// True for a service used with admin credentials.
+  final bool isAdmin;
+
   /// Constructor
   _FirebaseAuthServiceRest({
     this.persistence,
     List<AuthProviderRest> Function()? providers,
+    this.isAdmin = false,
   }) : providersCallback = providers ?? (() => [BuiltInAuthProviderRest()]);
+
+  /// Listing users needs admin credentials, see
+  /// [FirebaseAuthServiceRest.new] `isAdmin`.
   @override
-  /// Whether list users is supported
-  bool get supportsListUsers => false;
+  bool get supportsListUsers => isAdmin;
 
   /// Get auth instance.
   @override
@@ -49,11 +55,21 @@ extension FirebaseAuthServiceRestPrvExt on FirebaseAuthService {
 /// Auth service rest implementation
 abstract class FirebaseAuthServiceRest implements FirebaseAuthService {
   /// Constructor
+  ///
+  /// [isAdmin] is for a service used with admin credentials — an app
+  /// initialized with a service account: it then reports
+  /// [supportsListUsers], `listUsers` and `getUserByEmail` going through the
+  /// admin api of the identity toolkit. They are implemented either way, and
+  /// fail with a permission error without admin credentials.
   factory FirebaseAuthServiceRest({
     FirebaseRestAuthPersistence? persistence,
     List<AuthProviderRest> Function()? providers,
-  }) =>
-      _FirebaseAuthServiceRest(persistence: persistence, providers: providers);
+    bool isAdmin = false,
+  }) => _FirebaseAuthServiceRest(
+    persistence: persistence,
+    providers: providers,
+    isAdmin: isAdmin,
+  );
 
   /// Get auth instance.
   @override
@@ -74,3 +90,11 @@ FirebaseAuthServiceRest get firebaseAuthServiceRest =>
 
 /// Compat
 typedef AuthServiceRest = FirebaseAuthServiceRest;
+
+FirebaseAuthServiceRest? _authServiceRestAdmin;
+
+/// The service for an app initialized with admin credentials (a service
+/// account): it lists the users and looks them up by email, see
+/// [FirebaseAuthServiceRest.new] `isAdmin`.
+FirebaseAuthServiceRest get firebaseAuthServiceRestAdmin =>
+    _authServiceRestAdmin ??= FirebaseAuthServiceRest(isAdmin: true);

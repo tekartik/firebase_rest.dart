@@ -1,6 +1,6 @@
 name: tekartik_firebase_auth_rest
 description: Firebase auth rest
-version: 0.9.2
+version: 0.9.3
 publish_to: none
 
 environment:

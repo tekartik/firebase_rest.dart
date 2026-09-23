@@ -54,9 +54,12 @@ call as the signed-in user.
   (`AppOptionsRest()..projectId = ...` then `..apiKey = ...`, or
   `FirebaseAppOptions(projectId: ..., apiKey: ...)`).
 * Capabilities: `supportsCurrentUser` is `true`, `supportsListUsers` is
-  `false` — `listUsers` throws `UnsupportedError`. `getUser`, `getUsers` and
+  `false` for the default service. `listUsers`, `getUser`, `getUsers` and
   `getUserByEmail` only work with an admin (service account) client on the
-  app.
+  app, failing with a permission error otherwise: for such an app use
+  `firebaseAuthServiceRestAdmin` (or `FirebaseAuthServiceRest(isAdmin:
+  true)`), which reports `supportsListUsers`. `listUsers` pages with the
+  identity toolkit `downloadAccount` token, null on the last page.
 * Providers: the default service uses a single `BuiltInAuthProviderRest`
   (email/password, provider id `password`, plus `signInAnonymously`). Build a
   service with your own list through

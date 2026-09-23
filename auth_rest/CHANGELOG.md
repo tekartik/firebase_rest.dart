@@ -1,3 +1,15 @@
+# 0.9.3
+
+- `listUsers` implemented (identity toolkit `downloadAccount`), and
+  `getUserByEmail` (`getAccountInfo` by email): both need admin credentials,
+  an app initialized with a service account.
+- `FirebaseAuthServiceRest(isAdmin: true)` and `firebaseAuthServiceRestAdmin`,
+  a service reporting `supportsListUsers` for such an app. The default service
+  still reports `false`.
+- A `UserRecord` now carries `disabled`, `phoneNumber`, `metadata` (creation
+  and last sign-in times), `customClaims` and `tokensValidAfterTime`, and
+  `isAnonymous` for an account without provider, email nor phone.
+
 # 0.9.2
 
 - Renew the id token of the built-in (email/password, anonymous) provider: the

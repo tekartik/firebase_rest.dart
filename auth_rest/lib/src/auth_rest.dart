@@ -101,7 +101,7 @@ class UserRecordRestImpl
   });
 
   @override
-  dynamic get customClaims => null;
+  Object? customClaims;
 
   @override
   final bool disabled;
@@ -119,7 +119,7 @@ class UserRecordRestImpl
   final bool isAnonymous;
 
   @override
-  UserMetadata? get metadata => null;
+  UserMetadata? metadata;
 
   @override
   String? get passwordHash => null;
@@ -128,7 +128,7 @@ class UserRecordRestImpl
   String? get passwordSalt => null;
 
   @override
-  String? get phoneNumber => null;
+  String? phoneNumber;
 
   @override
   String? photoURL;
@@ -137,7 +137,7 @@ class UserRecordRestImpl
   List<UserInfo>? get providerData => null;
 
   @override
-  String? get tokensValidAfterTime => null;
+  String? tokensValidAfterTime;
 
   @override
   late String uid;
@@ -167,6 +167,22 @@ class UserRecordRestImpl
   String toString() {
     return 'email: $email ($emailVerified) $displayName, $uid';
   }
+}
+
+/// User metadata rest implementation
+class UserMetadataRest implements UserMetadata {
+  @override
+  final String creationTime;
+
+  @override
+  final String lastSignInTime;
+
+  /// Create user metadata, the times as iso8601 utc strings, empty when
+  /// unknown.
+  UserMetadataRest({required this.creationTime, required this.lastSignInTime});
+
+  @override
+  String toString() => 'created $creationTime, signed in $lastSignInTime';
 }
 
 /// User info rest implementation
@@ -536,12 +552,33 @@ class FirebaseAuthRestImpl
     }
   }
 
+  /// Lists the users with the admin api of the identity toolkit
+  /// (`downloadAccount`), which needs admin credentials: an app initialized
+  /// with a service account, see [FirebaseAuthServiceRest.new] `isAdmin`.
   @override
   Future<ListUsersResult> listUsers({
     int? maxResults,
     String? pageToken,
   }) async {
-    throw UnsupportedError('listUsers');
+    var request = IdentitytoolkitRelyingpartyDownloadAccountRequest()
+      ..targetProjectId = app.projectId
+      ..maxResults = maxResults
+      ..nextPageToken = pageToken;
+    if (debugFirebaseAuthRest) {
+      _log('downloadAccountRequest: ${jsonPretty(request.toJson())}');
+    }
+    var result = await identityToolkitApi.relyingparty.downloadAccount(request);
+    if (debugFirebaseAuthRest) {
+      _log('downloadAccount: ${jsonPretty(result.toJson())}');
+    }
+    var nextPageToken = result.nextPageToken;
+    return ListUsersResult(
+      pageToken: (nextPageToken?.isEmpty ?? true) ? null : nextPageToken,
+      users: [
+        for (var restUserInfo in result.users ?? <api.UserInfo>[])
+          toUserRecord(this, restUserInfo),
+      ],
+    );
   }
 
   @override
@@ -591,12 +628,24 @@ class FirebaseAuthRestImpl
     );
   }
 
+  /// Looks the user up with the admin api of the identity toolkit, which
+  /// needs admin credentials, see [listUsers].
   @override
   Future<UserRecord?> getUserByEmail(String email) async {
-    throw UnsupportedError('$runtimeType.getUserByEmail');
-    // ignore: dead_code
-    await authReady;
-    return builtInProvider.getUserByEmail(email);
+    var request = IdentitytoolkitRelyingpartyGetAccountInfoRequest()
+      ..email = [email];
+    if (debugFirebaseAuthRest) {
+      _log('getAccountInfoRequest: ${jsonPretty(request.toJson())}');
+    }
+    var result = await identityToolkitApi.relyingparty.getAccountInfo(request);
+    if (debugFirebaseAuthRest) {
+      _log('getAccountInfo: ${jsonPretty(result.toJson())}');
+    }
+    var users = result.users;
+    if (users != null && users.isNotEmpty) {
+      return toUserRecord(this, users.first);
+    }
+    return null;
   }
 
   @override
@@ -715,18 +764,69 @@ class AuthAccountApi {
   }
 }
 
+/// An iso8601 utc string from a count of [unit]s since epoch as the identity
+/// toolkit gives it, null when there is none.
+String? _utcStringFromEpoch(String? count, {required Duration unit}) {
+  var value = int.tryParse(count ?? '');
+  if (value == null) {
+    return null;
+  }
+  return DateTime.fromMicrosecondsSinceEpoch(
+    value * unit.inMicroseconds,
+    isUtc: true,
+  ).toIso8601String();
+}
+
+/// The custom claims of an account, set as a json object.
+Object? _customClaims(String? customAttributes) {
+  if (customAttributes == null || customAttributes.isEmpty) {
+    return null;
+  }
+  try {
+    return jsonDecode(customAttributes);
+  } on FormatException catch (_) {
+    return null;
+  }
+}
+
 /// Convert [api.UserInfo] to [UserRecord]
 UserRecord toUserRecord(FirebaseAuthRestImpl auth, api.UserInfo restUserInfo) {
+  var creationTime = _utcStringFromEpoch(
+    restUserInfo.createdAt,
+    unit: const Duration(milliseconds: 1),
+  );
   var userRecord = UserRecordRestImpl(
     auth: auth,
     emailVerified: restUserInfo.emailVerified ?? false,
-    disabled: false,
-    isAnonymous: false,
+    disabled: restUserInfo.disabled ?? false,
+    // An anonymous account has no provider, nor an email or phone to sign in
+    // with.
+    isAnonymous:
+        (restUserInfo.providerUserInfo?.isEmpty ?? true) &&
+        restUserInfo.email == null &&
+        restUserInfo.phoneNumber == null,
   );
   userRecord.email = restUserInfo.email;
   userRecord.displayName = restUserInfo.displayName;
   userRecord.uid = restUserInfo.localId!;
   userRecord.photoURL = restUserInfo.photoUrl;
+  userRecord.phoneNumber = restUserInfo.phoneNumber;
+  userRecord.customClaims = _customClaims(restUserInfo.customAttributes);
+  userRecord.tokensValidAfterTime = _utcStringFromEpoch(
+    restUserInfo.validSince,
+    unit: const Duration(seconds: 1),
+  );
+  if (creationTime != null) {
+    userRecord.metadata = UserMetadataRest(
+      creationTime: creationTime,
+      lastSignInTime:
+          _utcStringFromEpoch(
+            restUserInfo.lastLoginAt,
+            unit: const Duration(milliseconds: 1),
+          ) ??
+          '',
+    );
+  }
   return userRecord;
 }
 

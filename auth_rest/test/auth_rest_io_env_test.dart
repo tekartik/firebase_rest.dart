@@ -5,7 +5,6 @@ library;
 
 import 'package:dev_build/shell.dart';
 import 'package:tekartik_common_utils/common_utils_import.dart';
-import 'package:tekartik_firebase_auth/utils/json_utils.dart';
 import 'package:tekartik_firebase_auth_rest/auth_rest.dart';
 import 'package:tekartik_firebase_auth_test/auth_test.dart';
 import 'package:tekartik_firebase_rest/firebase_rest.dart';
@@ -37,6 +36,33 @@ Future main() async {
       test('factory', () {
         expect(firebaseAuthServiceRest.supportsListUsers, isFalse);
         expect(firebaseAuthServiceRest.supportsCurrentUser, isTrue);
+      });
+
+      group('admin', () {
+        late App app;
+        late FirebaseAuthRest auth;
+
+        setUpAll(() async {
+          app = firebase.initializeApp(options: context.options, name: 'admin');
+          auth = firebaseAuthServiceRestAdmin.auth(app);
+        });
+
+        tearDownAll(() {
+          return app.delete();
+        });
+
+        test('factory', () {
+          expect(firebaseAuthServiceRestAdmin.supportsListUsers, isTrue);
+          expect(auth.service, firebaseAuthServiceRestAdmin);
+        });
+
+        test('listUsers', () async {
+          await checkListUsers(auth);
+        });
+
+        test('getUserByEmail', () async {
+          expect(await auth.getUserByEmail(unknownEmail()), isNull);
+        });
       });
 
       runAuthTests(
@@ -106,26 +132,14 @@ Future main() async {
           //expect(true, isFalse);
         });
 
+        // The service account is an admin: listing and looking up by email
+        // work whatever the service says, see the admin group.
         test('listUsers', () async {
-          try {
-            var user = (await auth.listUsers(maxResults: 1)).users.first!;
-            print(userRecordToJson(user));
-            fail('should fail');
-          } on UnsupportedError catch (_) {}
+          await checkListUsers(auth);
         });
 
         test('getUserByEmail', () async {
-          try {
-            expect(
-              (await auth.getUserByEmail('admin@example.com'))!.displayName,
-              'admin',
-            );
-            expect(
-              (await auth.getUserByEmail('user@example.com'))!.displayName,
-              'user',
-            );
-            fail('should fail');
-          } on UnsupportedError catch (_) {}
+          expect(await auth.getUserByEmail(unknownEmail()), isNull);
         });
 
         group('currentUser', () {
@@ -160,4 +174,32 @@ Future main() async {
       });
     });
   }
+}
+
+/// An email no account has.
+String unknownEmail() =>
+    'nobody-${DateTime.now().microsecondsSinceEpoch}@example.com';
+
+/// Lists the users two by two, at most three pages: no user listed twice,
+/// each found again by uid and by email.
+Future<void> checkListUsers(FirebaseAuth auth) async {
+  var uids = <String>{};
+  String? pageToken;
+  for (var page = 0; page < 3; page++) {
+    var result = await auth.listUsers(maxResults: 2, pageToken: pageToken);
+    expect(result.users.length, lessThanOrEqualTo(2));
+    for (var user in result.users.nonNulls) {
+      expect(uids.add(user.uid), isTrue, reason: 'listed twice ${user.uid}');
+      expect((await auth.getUser(user.uid))!.uid, user.uid);
+      var email = user.email;
+      if (email != null) {
+        expect((await auth.getUserByEmail(email))!.uid, user.uid);
+      }
+    }
+    pageToken = result.pageToken;
+    if (pageToken == null) {
+      break;
+    }
+  }
+  print('listed ${uids.length} users${pageToken == null ? '' : ' (and more)'}');
 }
