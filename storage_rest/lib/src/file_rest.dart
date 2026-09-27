@@ -19,12 +19,16 @@ class FileMetadataRest with FileMetadataMixin implements FileMetadata {
   @override
   final String? contentType;
 
+  @override
+  final String? cacheControl;
+
   /// Rest file metadata implementation.
   FileMetadataRest({
     required this.dateUpdated,
     required this.md5Hash,
     required this.size,
     required this.contentType,
+    this.cacheControl,
   });
 
   /// Builds a [FileMetadataRest] from a googleapis storage [api.Object].
@@ -33,6 +37,7 @@ class FileMetadataRest with FileMetadataMixin implements FileMetadata {
     md5Hash: object.md5Hash!,
     dateUpdated: object.timeCreated!,
     contentType: object.contentType,
+    cacheControl: object.cacheControl,
   );
 }
 

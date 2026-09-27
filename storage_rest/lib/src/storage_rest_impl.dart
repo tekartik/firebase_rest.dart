@@ -150,7 +150,8 @@ class StorageRestImpl
   ) async {
     var object = api.Object()
       ..name = path
-      ..bucket = bucket.name;
+      ..bucket = bucket.name
+      ..cacheControl = options?.cacheControl;
     var contentType =
         options?.contentType ??
         firebaseStorageContentTypeFromFilename(url.basename(path));
