@@ -138,6 +138,73 @@ Future main() async {
       expect(patchDocument.fields!['test2']!.integerValue, '1');
       expect(patchDocument.fieldPaths, ['test', 'test2']);
     });
+    test('transforms', () {
+      Map<String?, FieldTransform> transformsByPath(WriteDocument document) => {
+        for (var t in document.fieldTransforms!) t.fieldPath: t,
+      };
+
+      // Transforms (increment, serverTimestamp) are neither in the fields
+      // nor in the field paths (update mask)
+      var patchDocument = UpdateDocument(firestoreMock, {
+        'count': FieldValue.increment(2),
+        'sub.count': FieldValue.increment(-1.5),
+        'sub.time': FieldValue.serverTimestamp,
+        'sub.name': 'name',
+        'other': FieldValue.delete,
+      });
+      expect(patchDocument.fields!.keys, ['sub']);
+      expect(patchDocument.fields!['sub']!.mapValue!.fields!.keys, ['name']);
+      expect(patchDocument.fieldPaths, ['sub.name', 'other']);
+      var transforms = transformsByPath(patchDocument);
+      expect(
+        transforms.keys,
+        unorderedEquals(['count', 'sub.count', 'sub.time']),
+      );
+      expect(transforms['count']!.increment!.integerValue, '2');
+      expect(transforms['sub.count']!.increment!.doubleValue, -1.5);
+      expect(transforms['sub.time']!.setToServerValue, 'REQUEST_TIME');
+      expect(patchDocument.toString(), contains('count +='));
+      expect(patchDocument.toString(), contains('sub.time = REQUEST_TIME'));
+
+      // Set merge: nested map and literal dotted key (escaped)
+      WriteDocument writeDocument = SetMergedDocument(firestoreMock, {
+        'count': FieldValue.increment(1),
+        'sub': {'time': FieldValue.serverTimestamp, 'name': 'name'},
+        'sub.field': FieldValue.increment(3),
+      });
+      expect(writeDocument.fields!.keys, ['sub']);
+      expect(writeDocument.fields!['sub']!.mapValue!.fields!.keys, ['name']);
+      expect(writeDocument.fieldPaths, ['sub.name']);
+      expect(
+        transformsByPath(writeDocument).keys,
+        unorderedEquals(['count', 'sub.time', '`sub.field`']),
+      );
+
+      // Set (no merge): no field paths
+      writeDocument = SetDocument(firestoreMock, {
+        'count': FieldValue.increment(1),
+        'sub': {'time': FieldValue.serverTimestamp},
+      });
+      expect(writeDocument.fields!.keys, ['sub']);
+      expect(writeDocument.fields!['sub']!.mapValue!.fields, isEmpty);
+      expect(writeDocument.fieldPaths, isNull);
+      expect(
+        transformsByPath(writeDocument).keys,
+        unorderedEquals(['count', 'sub.time']),
+      );
+
+      // Only transforms
+      writeDocument = SetMergedDocument(firestoreMock, {
+        'count': FieldValue.increment(1),
+      });
+      expect(writeDocument.fields, isEmpty);
+      expect(writeDocument.fieldPaths, isNull);
+      expect(writeDocument.fieldTransforms, hasLength(1));
+
+      // No transforms
+      writeDocument = SetDocument(firestoreMock, {'count': 1});
+      expect(writeDocument.fieldTransforms, isNull);
+    });
 
     test('subField', () {
       var patchDocument = UpdateDocument(firestoreMock, {'test.sub': 1});

@@ -6,6 +6,7 @@ import 'package:tekartik_common_utils/env_utils.dart';
 import 'package:tekartik_firebase/firebase_mixin.dart';
 import 'package:tekartik_firebase_auth_rest/auth_rest.dart'
     show BuiltInAuthProviderRest, FirebaseAuth, FirebaseAuthRest;
+import 'package:tekartik_firebase_firestore/utils/auto_id_generator.dart';
 import 'package:tekartik_firebase_firestore_rest/src/collection_reference_rest.dart';
 import 'package:tekartik_firebase_firestore_rest/src/document_reference_rest.dart';
 import 'package:tekartik_firebase_firestore_rest/src/document_rest_impl.dart';
@@ -263,12 +264,10 @@ Value toRestValue(FirestoreRestImpl firestore, dynamic value) {
     // else  if (value is FieldValue) {
     //restValue = Value()..nullValue= 'NULL_VALUE';
   } else if (value is FieldValue) {
-    if (value == FieldValue.serverTimestamp) {
-      // TODO for now use local date time
-      restValue = Value()..timestampValue = Timestamp.now().toIso8601String();
-    } else {
-      throw UnsupportedError('FieldValue ${value.runtimeType}: $value');
-    }
+    // serverTimestamp and increment are written as transforms of the
+    // document (see WriteDocument), they are not supported as a value (for
+    // example in an array).
+    throw UnsupportedError('FieldValue ${value.runtimeType}: $value');
   } else if (value is VectorValue) {
     return _listToRestValue(firestore, value.toArray());
   } else {
@@ -529,6 +528,22 @@ class FirestoreRestImpl
     String path,
     Map<String, Object?> data,
   ) async {
+    var patch = SetDocument(this, data);
+    if (patch.fieldTransforms != null) {
+      // The createDocument API does not support transforms
+      // (FieldValue.increment): commit a write creating the document (with
+      // a generated id) instead.
+      var docPath = url.join(path, AutoIdGenerator.autoId());
+      var write = _writeOperation(docPath, patch, updateMask: null)
+        ..currentDocument = (Precondition()..exists = false);
+      if (debugRest) {
+        logDebug(
+          'createDocumentRequest (commit): ${jsonPretty(write.toJson())}',
+        );
+      }
+      await _commitTransaction(null, writes: [write]);
+      return DocumentReferenceRestImpl(this, docPath);
+    }
     var document = Document()..fields = _mapToFields(this, data);
 
     var parent = url.dirname(getDocumentName(path));
@@ -574,6 +589,18 @@ class FirestoreRestImpl
       patch = SetMergedDocument(this, data);
     } else {
       patch = SetDocument(this, data);
+    }
+    if (patch.fieldTransforms != null) {
+      // The patch API does not support transforms (FieldValue.increment),
+      // commit the write instead.
+      var write = _writeSetOperation(path, patch, merge: merge);
+      if (debugRest) {
+        logDebug(
+          'writeDocumentRequest (commit): ${jsonPretty(write.toJson())}',
+        );
+      }
+      await _commitTransaction(null, writes: [write]);
+      return DocumentReferenceRestImpl(this, path);
     }
     // var patchedDocument =
     var name = getDocumentName(path);
@@ -623,12 +650,44 @@ class FirestoreRestImpl
     } else {
       patch = SetDocument(this, data);
     }
-    var write = Write()
-      ..update = (patch.document..name = getDocumentName(path));
+    return _writeSetOperation(path, patch, merge: merge);
+  }
+
+  /// Build the [Write] setting the document at [path] from [patch].
+  Write _writeSetOperation(
+    String path,
+    WriteDocument patch, {
+    required bool? merge,
+  }) {
+    DocumentMask? updateMask;
     var fieldPaths = patch.fieldPaths;
     if (fieldPaths != null) {
       // Only the listed fields are written, the others are left untouched.
-      write.updateMask = DocumentMask()..fieldPaths = fieldPaths;
+      updateMask = DocumentMask()..fieldPaths = fieldPaths;
+    } else if ((merge ?? false) && patch.fieldTransforms != null) {
+      // Only transforms: an empty mask so that no field is written and the
+      // transforms apply to the existing values (like the official SDKs).
+      updateMask = DocumentMask();
+    }
+    return _writeOperation(path, patch, updateMask: updateMask);
+  }
+
+  /// Build the [Write] writing [patch] (its document, [updateMask] if any
+  /// and its transforms) at [path].
+  Write _writeOperation(
+    String path,
+    WriteDocument patch, {
+    required DocumentMask? updateMask,
+  }) {
+    var write = Write()
+      ..update = (patch.document..name = getDocumentName(path));
+    if (updateMask != null) {
+      write.updateMask = updateMask;
+    }
+    var fieldTransforms = patch.fieldTransforms;
+    if (fieldTransforms != null) {
+      // Applied after the update, atomically.
+      write.updateTransforms = fieldTransforms;
     }
     return write;
   }
@@ -637,9 +696,16 @@ class FirestoreRestImpl
   /// request. Matches what [updateDocument] sends as a single patch request.
   Write writeOperationUpdate(String path, Map<String, Object?> data) {
     var patch = UpdateDocument(this, data);
-    return Write()
-      ..update = (patch.document..name = getDocumentName(path))
-      ..updateMask = (DocumentMask()..fieldPaths = patch.fieldPaths)
+    return _writeUpdateOperation(path, patch);
+  }
+
+  /// Build the [Write] updating the document at [path] from [patch].
+  Write _writeUpdateOperation(String path, WriteDocument patch) {
+    return _writeOperation(
+        path,
+        patch,
+        updateMask: DocumentMask()..fieldPaths = patch.fieldPaths,
+      )
       // The document must exist.
       ..currentDocument = (Precondition()..exists = true);
   }
@@ -650,6 +716,18 @@ class FirestoreRestImpl
     Map<String, Object?> data,
   ) async {
     var patch = UpdateDocument(this, data);
+    if (patch.fieldTransforms != null) {
+      // The patch API does not support transforms (FieldValue.increment),
+      // commit the write instead.
+      var write = _writeUpdateOperation(path, patch);
+      if (debugRest) {
+        logDebug(
+          'updateDocumentRequest (commit): ${jsonPretty(write.toJson())}',
+        );
+      }
+      await _commitTransaction(null, writes: [write]);
+      return DocumentReferenceRestImpl(this, path);
+    }
     // var document = Document()..fields = _mapToFields(this, data);
     // document =
     var name = getDocumentName(path);
@@ -1231,6 +1309,9 @@ class FirestoreServiceRestImpl
   @override
   // TODO @alex implements?
   bool get supportsFieldValueArray => false;
+
+  @override
+  bool get supportsFieldValueIncrement => true;
 
   @override
   bool get supportsQuerySelect => true;

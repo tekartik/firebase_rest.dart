@@ -46,15 +46,18 @@ Future main() async {
     var firestore =
         noAuthFirestoreRest(projectId: 'dummy') as FirestoreRestImpl;
     expect(toRestValue(firestore, true).booleanValue, true);
-    expect(
-      toRestValue(firestore, FieldValue.serverTimestamp).timestampValue,
-      isNotNull,
-    );
-    try {
-      toRestValue(firestore, FieldValue.delete);
-      fail('should fail');
-    } catch (e) {
-      expect(e, isNot(const TypeMatcher<TestFailure>()));
+    // Sentinels are not values (serverTimestamp and increment are written
+    // as transforms, delete through the update mask)
+    for (var fieldValue in [
+      FieldValue.serverTimestamp,
+      FieldValue.delete,
+      FieldValue.increment(1),
+    ]) {
+      expect(
+        () => toRestValue(firestore, fieldValue),
+        throwsUnsupportedError,
+        reason: '$fieldValue',
+      );
     }
   });
 

@@ -7,8 +7,9 @@ description: >-
   useFirestoreEmulator(host, port, owner:),
   firestoreGoogleApisAuthDatastoreScope /
   firestoreGoogleApisAuthCloudPlatformScope, debugFirestoreRest, and the
-  supportsTransaction / supportsTrackChanges / supportsFieldValueArray
-  capability flags. Read it before expecting onSnapshot, documentChanges or a
+  supportsTransaction / supportsTrackChanges / supportsFieldValueArray /
+  supportsFieldValueIncrement capability flags. Read it before expecting
+  onSnapshot, documentChanges or a
   transaction to work over REST, when wiring firestore on a FirebaseAppRest,
   or when running the shared tekartik_firebase_firestore_test suites
   (runFirestoreTests, runFirestoreAppTests) against REST.
@@ -64,10 +65,16 @@ setup and the missing pieces are specific.
   `runTransaction`; `batch()` always works.
 * Other capability flags on the service: `supportsQuerySelect`,
   `supportsListCollections`, `supportsAggregateQueries`, `supportsBlobs`,
-  `supportsTimestamps`, `supportsDocumentSnapshotTime` are `true`;
+  `supportsTimestamps`, `supportsDocumentSnapshotTime`,
+  `supportsFieldValueIncrement` (`FieldValue.increment(n)`) are `true`;
   `supportsFieldValueArray` (`FieldValue.arrayUnion`/`arrayRemove`),
   `supportsQuerySnapshotCursor` and `supportsVectorValue` are `false`. Guard
   generic code on these instead of catching `UnsupportedError`.
+* `FieldValue.serverTimestamp` and `FieldValue.increment(n)` are sent as server
+  side transforms (`REQUEST_TIME`, `increment`) of a `commit` request: a
+  write holding one goes through `commit` instead of `patch`/`createDocument`
+  (same permissions, atomic), so the timestamp is the real server time. They
+  are not supported inside an array (`UnsupportedError`).
 * `supportsListMissingDocuments` is `true` but listing missing documents
   (`collRef.listDocuments()`, ListDocuments with `showMissing`) needs admin
   access: a service account, or `useFirestoreEmulator(..., owner: true)`.

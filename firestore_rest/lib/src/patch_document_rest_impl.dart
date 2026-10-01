@@ -1,10 +1,18 @@
 import 'package:path/path.dart';
 import 'package:tekartik_firebase_firestore/firestore.dart';
 import 'package:tekartik_firebase_firestore/src/common/value_key_mixin.dart'; // ignore: implementation_imports
+import 'package:tekartik_firebase_firestore/utils/firestore_mixin.dart'
+    show FieldValueIncrement;
 import 'package:tekartik_firebase_firestore_rest/src/document_rest_impl.dart';
 import 'package:tekartik_firebase_firestore_rest/src/firestore_rest_impl.dart';
 
 import 'firestore/v1.dart';
+
+/// True if [value] is written as a server side transform (see
+/// [WriteDocument.fieldTransforms]) rather than as a document field:
+/// `FieldValue.increment` and `FieldValue.serverTimestamp`.
+bool isFieldTransformValue(Object? value) =>
+    value is FieldValueIncrement || value == FieldValue.serverTimestamp;
 
 /// Set document.
 class SetDocument extends WriteDocument {
@@ -48,6 +56,8 @@ class SetMergedDocument extends WriteDocument {
           var newKeys = [...keys, stringKey];
           if (value is Map) {
             handleMapGetKeys(newKeys, value);
+          } else if (isFieldTransformValue(value)) {
+            // Applied as a transform, not part of the update mask.
           } else {
             fieldPaths!.add(_toKeyPath(newKeys));
           }
@@ -56,11 +66,15 @@ class SetMergedDocument extends WriteDocument {
 
       if (value is Map) {
         handleMapGetKeys([topStringKey], value);
+      } else if (isFieldTransformValue(value)) {
+        // Applied as a transform, not part of the update mask.
       } else {
         fieldPaths ??= [];
         fieldPaths!.add(_toKeyPath([topStringKey]));
       }
-      fields[topStringKey] = patchToRestValue(topStringKey, value);
+      if (!_addFieldTransform(topStringKey, value)) {
+        fields[topStringKey] = patchToRestValue(topStringKey, value);
+      }
     });
 
     return fields;
@@ -87,7 +101,9 @@ class UpdateDocument extends WriteDocument {
       final stringKey = key.toString();
 
       fieldPaths ??= [];
-      fieldPaths!.add(stringKey);
+      if (!isFieldTransformValue(value)) {
+        fieldPaths!.add(stringKey);
+      }
     });
 
     var expanded = expandUpdateData(map)!;
@@ -98,6 +114,8 @@ class UpdateDocument extends WriteDocument {
       if (value == FieldValue.delete) {
         // Don't set it  in the fields but add
         // it to fieldPaths.
+      } else if (_addFieldTransform(stringKey, value)) {
+        // Applied as a transform, not part of the document.
       } else {
         // Build the tree
 
@@ -116,6 +134,8 @@ class UpdateDocument extends WriteDocument {
 
       if (value == FieldValue.delete) {
         // Don't set it  in the fields but added in field paths
+      } else if (_addFieldTransform(stringKey, value)) {
+        // Applied as a transform, not part of the document.
       } else {
         fields[stringKey] = patchToRestValue(stringKey, value);
       }
@@ -138,7 +158,21 @@ class WriteDocument with DocumentContext {
 
   /// Computed initially in merged.
   List<String>? fieldPaths;
+
+  /// The server side transforms (`FieldValue.increment`,
+  /// `FieldValue.serverTimestamp`) to apply after the document update, in a
+  /// commit request, `null` if none.
+  ///
+  /// A transformed field is neither part of the document [fields] nor of
+  /// [fieldPaths] (the update mask), so that the transform is applied to the
+  /// value currently stored.
+  List<FieldTransform>? fieldTransforms;
+
   Map<String, Value>? _fields;
+
+  /// The keys of the maps enclosing the map being converted (top-level key
+  /// first), used to build the field path of a transform.
+  final _parentKeys = <String>[];
 
   /// Constructor.
   WriteDocument(this.firestore, Map data, {required this.merge}) {
@@ -156,12 +190,35 @@ class WriteDocument with DocumentContext {
 
   String? _currentParent;
 
+  /// If [value] is a transform value (see [isFieldTransformValue]), adds the
+  /// transform of the field [key] of the map being converted to
+  /// [fieldTransforms] and returns `true`; returns `false` otherwise.
+  bool _addFieldTransform(String key, Object? value) {
+    FieldTransform transform;
+    if (value is FieldValueIncrement) {
+      transform = FieldTransform()..increment = super.toRestValue(value.data);
+    } else if (value == FieldValue.serverTimestamp) {
+      // The time at which the server processed the request.
+      transform = FieldTransform()..setToServerValue = 'REQUEST_TIME';
+    } else {
+      return false;
+    }
+    transform.fieldPath = [..._parentKeys, key].map(restEscapeKey).join('.');
+    (fieldTransforms ??= []).add(transform);
+    return true;
+  }
+
   /// Patch to rest value.
   Value patchToRestValue(String key, dynamic value) {
     var me = _currentParent == null ? key : url.join(_currentParent!, key);
 
     if (value is Map) {
-      return _pathMapToRestValue(me, value);
+      _parentKeys.add(key);
+      try {
+        return _pathMapToRestValue(me, value);
+      } finally {
+        _parentKeys.removeLast();
+      }
     }
 
     return super.toRestValue(value);
@@ -179,6 +236,9 @@ class WriteDocument with DocumentContext {
           fieldPaths ??= [];
           fieldPaths!.add(pathJoin(me, stringKey));
         }
+      } else if (_addFieldTransform(stringKey, value)) {
+        // Applied as a transform, not part of the document nor of the
+        // update mask.
       } else {
         fields[stringKey] = patchToRestValue(stringKey, value);
 
@@ -209,7 +269,7 @@ class WriteDocument with DocumentContext {
 
   @override
   String toString() {
-    return 'doc: $fieldsToString $fieldPaths';
+    return 'doc: $fieldsToString $fieldPaths${fieldTransforms != null ? ' transforms: $fieldTransformsToString' : ''}';
   }
 
   /// Fields to string.
@@ -224,6 +284,28 @@ class WriteDocument with DocumentContext {
     if (sb.isEmpty && fields == null) {
       sb.write('(nullFields)');
     }
+    return sb.toString();
+  }
+
+  /// Transforms to string.
+  String get fieldTransformsToString {
+    var sb = StringBuffer();
+    fieldTransforms?.forEach((transform) {
+      if (sb.isNotEmpty) {
+        sb.write(', ');
+      }
+      var increment = transform.increment;
+      var serverValue = transform.setToServerValue;
+      if (increment != null) {
+        sb.write(
+          '${transform.fieldPath} += ${restValueToString(firestore, increment)}',
+        );
+      } else if (serverValue != null) {
+        sb.write('${transform.fieldPath} = $serverValue');
+      } else {
+        sb.write('${transform.fieldPath}: ${transform.toJson()}');
+      }
+    });
     return sb.toString();
   }
 }
