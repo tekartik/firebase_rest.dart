@@ -674,7 +674,13 @@ class FirestoreRestImpl
       if (debugRest) {
         logDebug('updateDocument error: $e');
       }
-      rethrow;
+      // Like the other document operations, surface a FirestoreException (a
+      // security rules denial is a permission-denied one).
+      var wrapped = wrapFirestoreRestException(e);
+      if (identical(wrapped, e)) {
+        rethrow;
+      }
+      throw wrapped;
     }
     return DocumentReferenceRestImpl(this, path);
   }
