@@ -11,6 +11,10 @@ import 'auth_rest_persistence.dart';
 import 'auth_rest_provider.dart';
 import 'email_password_auth_rest.dart';
 
+/// The provider id of Google, the default of
+/// [BuiltInAuthProviderRest.signInWithIdp].
+const googleIdpProviderId = 'google.com';
+
 /// One instance
 class BuiltInAuthProviderRest extends AuthProviderRestBase {
   /// Provider ID
@@ -245,6 +249,84 @@ class BuiltInAuthProviderRest extends AuthProviderRestBase {
           uid: response.localId!,
           isAnonymous: false,
         ),
+      );
+
+      await setCurrentUserCredential(userCredential);
+      return userCredential;
+    } finally {
+      client.close();
+    }
+  }
+
+  /// Sign in (up on first use) with the credential an identity provider
+  /// gave: its [idToken] and/or [accessToken], the identity toolkit
+  /// `accounts:signInWithIdp`.
+  ///
+  /// A firebase user, the one flutterfire's
+  /// `signInWithCredential(GoogleAuthProvider.credential(...))` signs in: same
+  /// uid on every platform, security rules applied, renewable tokens
+  /// persisted like an email/password session. [providerId] is `google.com`
+  /// by default; a Google id token is accepted when it was issued to an OAuth
+  /// client of the firebase project, or of a project allow listed in the
+  /// Google provider of the firebase console.
+  ///
+  /// [requestUri] is only checked by the identity toolkit for a redirect
+  /// flow, any http(s) url does here.
+  Future<UserCredential> signInWithIdp({
+    String providerId = googleIdpProviderId,
+    String? idToken,
+    String? accessToken,
+    String requestUri = 'http://localhost',
+  }) async {
+    if (idToken == null && accessToken == null) {
+      throw ArgumentError('idToken or accessToken needed');
+    }
+    await authReady;
+    var client = _newApiKeyClient();
+    try {
+      var apiV1 = _apiV1(client);
+      var response = await apiV1.accounts.signInWithIdp(
+        identitytoolkit_v1.GoogleCloudIdentitytoolkitV1SignInWithIdpRequest(
+          postBody: Uri(
+            queryParameters: {
+              'id_token': ?idToken,
+              'access_token': ?accessToken,
+              'providerId': providerId,
+            },
+          ).query,
+          requestUri: requestUri,
+          returnSecureToken: true,
+        ),
+      );
+      var firebaseIdToken = response.idToken;
+      var localId = response.localId;
+      if (firebaseIdToken == null || localId == null) {
+        // An account with the same email and another provider
+        // (needConfirmation), or a refused credential.
+        throw StateError(
+          'signInWithIdp($providerId) failed: '
+          '${response.errorMessage ?? (response.needConfirmation == true ? 'needConfirmation' : 'no id token')}',
+        );
+      }
+
+      var userCredential = UserCredentialEmailPasswordRestImpl(
+        identitytoolkit_v3.VerifyPasswordResponse(
+          email: response.email,
+          idToken: firebaseIdToken,
+          localId: localId,
+          refreshToken: response.refreshToken,
+          expiresIn: response.expiresIn,
+        ),
+        AuthCredentialRestImpl(providerId: providerId),
+        FirebaseUserRestImpl(
+          auth: authRest.impl,
+          client: client,
+          email: response.email,
+          emailVerified: response.emailVerified ?? false,
+          provider: this,
+          uid: localId,
+          isAnonymous: false,
+        )..displayName = response.displayName,
       );
 
       await setCurrentUserCredential(userCredential);

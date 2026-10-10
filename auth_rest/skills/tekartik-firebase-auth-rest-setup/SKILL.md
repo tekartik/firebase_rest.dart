@@ -7,10 +7,12 @@ description: >-
   providers:), FirebaseAuthRest, useAuthEmulator, BuiltInAuthProviderRest
   (email/password + anonymous), MockBuiltInAuthProviderRest, AuthProviderRest
   and addProvider, GoogleRestAuthProvider / GoogleAuthProviderRestIo /
-  GoogleAuthOptions, and the FirebaseRestAuthPersistence implementations
-  (Memory, Web, File, OnPersistence over a KvStore). Also when wiring an
-  auth_rest app on a FirebaseAppRest from tekartik_firebase_rest, or running
-  the shared tekartik_firebase_auth_test suites against it.
+  GoogleIdpAuthProviderRestIo / GoogleAuthOptions, signInWithIdp (a
+  firebase user from a Google id token), and the FirebaseRestAuthPersistence
+  implementations (Memory, Web, File, OnPersistence over a KvStore). Also
+  when wiring an auth_rest app on a FirebaseAppRest from
+  tekartik_firebase_rest, or running the shared tekartik_firebase_auth_test
+  suites against it.
 ---
 
 # tekartik_firebase_auth_rest: sign in over REST
@@ -100,6 +102,22 @@ call as the signed-in user.
   `clientSecret`/`client_secret`, `apiKey`/`api_key`, `projectId` and
   `developerKey`. `PromptUserForConsentRest` is the `void Function(String uri)`
   that shows the consent url.
+* `GoogleAuthProviderRestIo` signs a **Google account** in, not a firebase
+  user: the uid is the Google id and firestore is reached with OAuth scopes
+  as that account (rules bypassed, IAM decides). A developer tool. For the
+  users of an app use `GoogleIdpAuthProviderRestIo(options:
+  GoogleAuthOptions(clientId:, clientSecret:), userPrompt:)` (also
+  `auth_rest_io.dart`, VM only): loopback consent for the `openid email
+  profile` scopes, then `signInWithIdp` with the Google id token. The user
+  is the firebase one (same uid as flutterfire's Google sign in, rules
+  applied, renewable tokens persisted like email/password) and belongs to
+  `BuiltInAuthProviderRest`, which must be in the providers too. The client
+  is a "Desktop app" OAuth client (a web client refuses the random loopback
+  port) of the firebase project's Google Cloud project.
+* `auth.signInWithIdp(idToken:, accessToken:, providerId: 'google.com')`
+  (`FirebaseAuthRestExt`, `BuiltInAuthProviderRest.signInWithIdp`) signs in
+  (up on first use) with a credential obtained elsewhere. The auth emulator
+  takes an unsigned id token: `jsonEncode({'sub': ..., 'email': ...})`.
 * Set `debugFirebaseAuthRest = true` to trace the REST calls while debugging.
   Never log id tokens, refresh tokens or the client secret.
 * Do not build sign-in UI directly on this: the generic

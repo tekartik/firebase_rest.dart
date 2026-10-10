@@ -11,3 +11,12 @@ abstract class GoogleAuthProviderRestIo implements GoogleRestAuthProvider {
     String? credentialsKey,
   }) => throw UnsupportedError('io');
 }
+
+/// Google sign in of a firebase user from io (desktop, console), io only.
+abstract class GoogleIdpAuthProviderRestIo implements GoogleRestAuthProvider {
+  /// Factory
+  factory GoogleIdpAuthProviderRestIo({
+    required GoogleAuthOptions options,
+    PromptUserForConsentRest? userPrompt,
+  }) => throw UnsupportedError('io');
+}

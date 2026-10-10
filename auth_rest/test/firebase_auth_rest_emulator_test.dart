@@ -1,6 +1,7 @@
 @TestOn('vm')
 library;
 
+import 'dart:convert';
 import 'dart:io';
 import 'package:tekartik_firebase_auth_rest/auth_rest.dart';
 import 'package:tekartik_firebase_auth_test/auth_sign_in_delete_test_runner.dart';
@@ -53,6 +54,36 @@ Future main() async {
       );
 
       expect(auth.currentUser!.uid, credential.user.uid);
+    });
+    test('signInWithIdp google', () async {
+      await auth.signOut();
+      // The emulator takes an unsigned id token.
+      var idToken = jsonEncode({
+        'sub': 'idp-test-google-id',
+        'email': 'idp@gmail.com',
+        'email_verified': true,
+        'name': 'Idp Test',
+      });
+      var credential = await auth.signInWithIdp(idToken: idToken);
+      var uid = credential.user.uid;
+      expect(auth.currentUser!.uid, uid);
+      expect(credential.user.email, 'idp@gmail.com');
+      expect(credential.user.emailVerified, isTrue);
+      expect(credential.user.displayName, 'Idp Test');
+      // A firebase id token, renewable.
+      expect(
+        await (auth.currentUser! as UserInfoWithIdToken).getIdToken(
+          forceRefresh: true,
+        ),
+        isNotEmpty,
+      );
+
+      // The same firebase user next time.
+      await auth.signOut();
+      expect(auth.currentUser, isNull);
+      credential = await auth.signInWithIdp(idToken: idToken);
+      expect(credential.user.uid, uid);
+      await auth.signOut();
     });
     var email = 'delete@gmail.com';
     var password = 'test1234';

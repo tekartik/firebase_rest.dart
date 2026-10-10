@@ -358,6 +358,18 @@ extension FirebaseAuthRestExt on FirebaseAuth {
 
   /// Get the list of providers
   List<AuthProviderRest> get providers => impl.providers;
+
+  /// Sign in (up on first use) with the [idToken] and/or [accessToken] an
+  /// identity provider gave, see [BuiltInAuthProviderRest.signInWithIdp].
+  Future<UserCredential> signInWithIdp({
+    String providerId = googleIdpProviderId,
+    String? idToken,
+    String? accessToken,
+  }) => impl.builtInProvider.signInWithIdp(
+    providerId: providerId,
+    idToken: idToken,
+    accessToken: accessToken,
+  );
 }
 
 /// Private extension
