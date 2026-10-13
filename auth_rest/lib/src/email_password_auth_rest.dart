@@ -2,6 +2,8 @@ import 'package:http/http.dart';
 import 'package:tekartik_firebase_auth_rest/src/auth_rest.dart';
 import 'package:tekartik_firebase_auth_rest/src/auth_rest_token.dart';
 import 'package:tekartik_firebase_auth_rest/src/user_credential_rest.dart';
+import 'package:tekartik_firebase_rest/firebase_rest.dart'
+    show FirebaseRestTokenClient;
 
 import 'identitytoolkit/v3.dart' as identitytoolkit_v3;
 
@@ -61,7 +63,10 @@ typedef LoggedInClientTokenRefresh = Future<void> Function({bool force});
 /// it is expiring, and once more, followed by a retry, when the server answers
 /// 401 anyway. Requests with a body larger than [maxRetryBodyLength], or of
 /// unknown length, are streamed through and not retried.
-class LoggedInClient extends BaseClient {
+///
+/// Its token is also handed out ([getAccessToken]) to the connections that
+/// cannot go through it (the firestore listen).
+class LoggedInClient extends BaseClient implements FirebaseRestTokenClient {
   /// Bodies up to this size are buffered so the request can be retried.
   static const int maxRetryBodyLength = 4 * 1024 * 1024;
 
@@ -83,6 +88,18 @@ class LoggedInClient extends BaseClient {
 
   LoggedInClientTokenRefresh? get _refresh =>
       (userCredential.tokens?.canRefresh ?? false) ? refreshToken : null;
+
+  /// The id token of [userCredential], renewed first when it is expiring or
+  /// when [forceRefresh] (and it can be renewed).
+  @override
+  Future<String> getAccessToken({bool forceRefresh = false}) async {
+    var refresh = _refresh;
+    if (refresh != null &&
+        (forceRefresh || (userCredential.tokens?.isExpiring() ?? false))) {
+      await refresh(force: forceRefresh);
+    }
+    return userCredential.idToken;
+  }
 
   @override
   Future<StreamedResponse> send(BaseRequest request) async {

@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:fixnum/fixnum.dart';
 import 'package:grpc/grpc.dart';
+import 'package:http/http.dart';
 import 'package:protobuf/protobuf.dart'; // ignore: unused_import
 import 'package:protobuf/well_known_types/google/protobuf/timestamp.pb.dart'
     as grpc;
@@ -23,6 +24,9 @@ class MockFirestoreService extends Service {
 
   final activeControllers = <StreamController<grpc.ListenResponse>>[];
 
+  /// The authorization metadata of each listen call, in order.
+  final authorizations = <String?>[];
+
   MockFirestoreService() {
     $addMethod(
       ServiceMethod<grpc.ListenRequest, grpc.ListenResponse>(
@@ -40,6 +44,7 @@ class MockFirestoreService extends Service {
     ServiceCall call,
     Stream<grpc.ListenRequest> request,
   ) {
+    authorizations.add(call.clientMetadata?['authorization']);
     late StreamController<grpc.ListenResponse> controller;
     controller = StreamController<grpc.ListenResponse>(
       onCancel: () {
@@ -48,6 +53,17 @@ class MockFirestoreService extends Service {
     );
     activeControllers.add(controller);
     return controller.stream;
+  }
+
+  /// Waits for [count] listen calls.
+  Future<void> waitListenCount(int count) async {
+    var sw = Stopwatch()..start();
+    while (authorizations.length < count) {
+      if (sw.elapsed > const Duration(seconds: 5)) {
+        throw StateError('${authorizations.length} listen calls');
+      }
+      await Future<void>.delayed(const Duration(milliseconds: 5));
+    }
   }
 
   Future<void> get hasListener async {
@@ -81,6 +97,36 @@ class MockFirestoreService extends Service {
     activeControllers.clear();
   }
 }
+
+/// A signed in user client, handing out its token.
+class _TokenClient extends BaseClient implements FirebaseRestTokenClient {
+  String token;
+  final forceRefreshes = <bool>[];
+
+  _TokenClient(this.token);
+
+  @override
+  Future<String?> getAccessToken({bool forceRefresh = false}) async {
+    forceRefreshes.add(forceRefresh);
+    if (forceRefresh) {
+      token = '${token}r';
+    }
+    return token;
+  }
+
+  @override
+  Future<StreamedResponse> send(BaseRequest request) =>
+      throw UnimplementedError();
+}
+
+grpc.ListenResponse _changeResponse(int seconds) => grpc.ListenResponse()
+  ..documentChange = (grpc.DocumentChange()
+    ..document = (grpc.Document()
+      ..name = 'projects/test-project/databases/(default)/documents/test/doc'
+      ..fields['foo'] = (grpc.Value()..stringValue = 'bar')
+      ..createTime = (grpc.Timestamp()..seconds = Int64(seconds))
+      ..updateTime = (grpc.Timestamp()..seconds = Int64(seconds)))
+    ..targetIds.add(1));
 
 void main() {
   group('onGrpcSnapshot', () {
@@ -318,6 +364,86 @@ void main() {
       }
       expect(snapshots.last.data, {'foo': 'baz'});
 
+      await subscription.cancel();
+    });
+
+    test('listens with the token of the signed in user', () async {
+      var appRest = app as FirebaseAppRest;
+      var client = _TokenClient('u1');
+      // ignore: invalid_use_of_protected_member
+      appRest.client = client;
+      var snapshots = <DocumentSnapshot>[];
+      var subscription = firestore
+          .doc('test/doc')
+          .onSnapshot()
+          .listen(snapshots.add);
+      await mockService.waitListenCount(1);
+      expect(mockService.authorizations, ['Bearer u1']);
+      mockService.addResponse(_changeResponse(1));
+      while (snapshots.isEmpty) {
+        await Future<void>.delayed(const Duration(milliseconds: 5));
+      }
+
+      // Another user: listens again with its token.
+      // ignore: invalid_use_of_protected_member
+      appRest.client = _TokenClient('u2');
+      await mockService.waitListenCount(2);
+      expect(mockService.authorizations.last, 'Bearer u2');
+
+      // Signed out: listens unauthenticated.
+      // ignore: invalid_use_of_protected_member
+      appRest.client = null;
+      await mockService.waitListenCount(3);
+      expect(mockService.authorizations.last, isNull);
+      expect(mockService.activeControllers, hasLength(1));
+
+      await subscription.cancel();
+    });
+
+    test('renews a refused token and listens again', () async {
+      var appRest = app as FirebaseAppRest;
+      var client = _TokenClient('u1');
+      // ignore: invalid_use_of_protected_member
+      appRest.client = client;
+      var errors = <Object>[];
+      var subscription = firestore
+          .doc('test/doc')
+          .onSnapshot()
+          .listen((_) {}, onError: errors.add);
+      await mockService.waitListenCount(1);
+      mockService.addError(const GrpcError.unauthenticated('expired'));
+      await mockService.waitListenCount(2);
+      expect(mockService.authorizations, ['Bearer u1', 'Bearer u1r']);
+      expect(client.forceRefreshes, [false, true]);
+      expect(errors, isEmpty);
+      await subscription.cancel();
+    });
+
+    test('permission denied ends the stream', () async {
+      var errors = <Object>[];
+      var done = Completer<void>();
+      var subscription = firestore
+          .doc('test/doc')
+          .onSnapshot()
+          .listen((_) {}, onError: errors.add, onDone: done.complete);
+      await mockService.waitListenCount(1);
+      mockService.addError(const GrpcError.permissionDenied('rules'));
+      await done.future.timeout(const Duration(seconds: 2));
+      expect(errors.single, isA<GrpcError>());
+      await Future<void>.delayed(const Duration(milliseconds: 100));
+      expect(mockService.authorizations, hasLength(1));
+      await subscription.cancel();
+    });
+
+    test('emulator owner listens as owner', () async {
+      await (firestore as FirestoreRestImpl).useFirestoreEmulator(
+        'localhost',
+        server.port!,
+        owner: true,
+      );
+      var subscription = firestore.doc('test/doc').onSnapshot().listen((_) {});
+      await mockService.waitListenCount(1);
+      expect(mockService.authorizations, ['Bearer owner']);
       await subscription.cancel();
     });
   });

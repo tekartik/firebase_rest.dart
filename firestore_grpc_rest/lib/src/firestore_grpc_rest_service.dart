@@ -1,7 +1,7 @@
 import 'dart:async';
 
-import 'package:grpc/grpc.dart';
-import 'package:tekartik_firebase_firestore_grpc_rest/firestore_grpc_rest.dart';
+import 'package:tekartik_firebase_firestore_grpc_rest/src/firestore_grpc_listener.dart';
+import 'package:tekartik_firebase_firestore_grpc_rest/src/firestore_grpc_rest.dart';
 import 'package:tekartik_firebase_firestore_rest/firestore_rest.dart';
 import 'package:tekartik_firebase_firestore_rest/src/document_reference_rest.dart'; // ignore: implementation_imports
 import 'package:tekartik_firebase_firestore_rest/src/firestore_rest_impl.dart'; // ignore: implementation_imports
@@ -69,7 +69,7 @@ class FirestoreServiceGrpcRestImpl extends FirestoreServiceRestImpl {
 
 /// Firestore gRPC REST implementation.
 class FirestoreGrpcRestImpl extends FirestoreRestImpl {
-  final _activeListeners = <_GrpcListener>[];
+  final _activeListeners = <GrpcDocumentListener>[];
 
   /// Constructor.
   FirestoreGrpcRestImpl(super.service, super.appImpl);
@@ -81,8 +81,8 @@ class FirestoreGrpcRestImpl extends FirestoreRestImpl {
 
   @override
   void dispose() {
-    for (var listener in List<_GrpcListener>.from(_activeListeners)) {
-      listener.close();
+    for (var listener in List<GrpcDocumentListener>.from(_activeListeners)) {
+      unawaited(listener.close());
     }
     _activeListeners.clear();
     super.dispose();
@@ -98,123 +98,24 @@ class DocumentReferenceGrpcRestImpl extends DocumentReferenceRestImpl {
   DocumentReferenceGrpcRestImpl(this.firestoreGrpcRestImpl, String path)
     : super(firestoreGrpcRestImpl, path);
 
+  /// The snapshots of the document through the gRPC Listen API, kept open
+  /// across connection failures and auth changes (see
+  /// [GrpcDocumentListener]): authenticated with the token of the app
+  /// client (a signed in user included), reconnected on each sign in or
+  /// sign out. A permission denied (the rules) ends the stream with the
+  /// error.
   @override
   Stream<DocumentSnapshot> onSnapshot({bool includeMetadataChanges = false}) {
-    late StreamController<DocumentSnapshot> controller;
-    _GrpcListener? listener;
-
-    controller = StreamController<DocumentSnapshot>(
-      onListen: () {
-        listener = _GrpcListener(this, controller);
-        firestoreGrpcRestImpl._activeListeners.add(listener!);
-      },
-      onCancel: () {
-        listener?.close();
-      },
+    var firestore = firestoreGrpcRestImpl;
+    late GrpcDocumentListener listener;
+    listener = GrpcDocumentListener(
+      connect: (token) => grpcListenDocument(this, token: token),
+      getToken: ({bool forceRefresh = false}) =>
+          grpcListenToken(firestore, forceRefresh: forceRefresh),
+      authChanges: firestore.appImpl.onClientChanged,
+      onStart: () => firestore._activeListeners.add(listener),
+      onClose: () => firestore._activeListeners.remove(listener),
     );
-
-    return controller.stream;
-  }
-}
-
-class _GrpcListener {
-  final DocumentReferenceGrpcRestImpl docRef;
-  final StreamController<DocumentSnapshot> controller;
-
-  StreamSubscription? _clientSubscription;
-  StreamSubscription? _grpcSubscription;
-  bool _closed = false;
-
-  /// Last emitted snapshot state, to skip duplicates (the server may send
-  /// the same delete/change more than once, and a reconnect re-emits the
-  /// current state).
-  bool? _lastSnapshotExists;
-  Timestamp? _lastSnapshotUpdateTime;
-
-  _GrpcListener(this.docRef, this.controller) {
-    var appImpl = docRef.firestoreGrpcRestImpl.appImpl;
-    // Start listening with the current client right away, then restart
-    // whenever the app's client changes (e.g. user sign-in/out, token
-    // refresh with a new client instance).
-    _startListening();
-    _clientSubscription = appImpl.apiClientStream.listen((_) {
-      if (!_closed) {
-        _startListening();
-      }
-    });
-  }
-
-  void _startListening() {
-    _grpcSubscription?.cancel();
-    _grpcSubscription = null;
-
-    if (_closed) return;
-
-    // ignore: cancel_subscriptions
-    StreamSubscription? sub;
-    var stream = docRef.onGrpcSnapshot();
-
-    sub = stream.listen(
-      (snapshot) {
-        if (!_closed) {
-          var exists = snapshot.exists;
-          var updateTime = exists ? snapshot.updateTime : null;
-          if (exists == _lastSnapshotExists &&
-              updateTime == _lastSnapshotUpdateTime) {
-            // Duplicate of the last emitted snapshot, skip it.
-            return;
-          }
-          _lastSnapshotExists = exists;
-          _lastSnapshotUpdateTime = updateTime;
-          controller.add(snapshot);
-        }
-      },
-      onError: (Object error) {
-        if (_closed) return;
-
-        var isPermissionError = false;
-        if (error is GrpcError) {
-          if (error.code == StatusCode.permissionDenied ||
-              error.code == StatusCode.unauthenticated) {
-            isPermissionError = true;
-          }
-        }
-
-        if (isPermissionError) {
-          controller.addError(error);
-
-          close();
-        } else {
-          // Retry listening after a short delay on network/connection issues
-          Future.delayed(const Duration(seconds: 1), () {
-            if (!_closed && _grpcSubscription == sub) {
-              _startListening();
-            }
-          });
-        }
-      },
-      onDone: () {
-        if (_closed) return;
-
-        // Reconnect if the stream closes unexpectedly
-        Future.delayed(const Duration(seconds: 1), () {
-          if (!_closed && _grpcSubscription == sub) {
-            _startListening();
-          }
-        });
-      },
-      cancelOnError: true,
-    );
-
-    _grpcSubscription = sub;
-  }
-
-  void close() {
-    if (_closed) return;
-    _closed = true;
-    _clientSubscription?.cancel();
-    _grpcSubscription?.cancel();
-    controller.close();
-    docRef.firestoreGrpcRestImpl._activeListeners.remove(this);
+    return listener.stream;
   }
 }

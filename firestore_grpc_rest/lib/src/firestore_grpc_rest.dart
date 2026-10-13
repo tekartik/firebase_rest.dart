@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:googleapis_auth/googleapis_auth.dart';
 import 'package:grpc/grpc.dart';
 import 'package:protobuf/well_known_types/google/protobuf/timestamp.pb.dart'
     as grpc;
@@ -12,11 +11,20 @@ import 'package:tekartik_firebase_firestore_rest/firestore_rest.dart';
 import 'package:tekartik_firebase_firestore_rest/src/document_reference_rest.dart'; // ignore: implementation_imports
 import 'package:tekartik_firebase_firestore_rest/src/firestore/v1.dart'
     as api; // ignore: implementation_imports, unused_import
-import 'package:tekartik_firebase_firestore_rest/src/firestore_rest_impl.dart'; // ignore: implementation_imports, unused_import
+import 'package:tekartik_firebase_firestore_rest/src/firestore_rest_impl.dart'; // ignore: implementation_imports
+import 'package:tekartik_firebase_rest/firebase_rest.dart'
+    show firebaseRestClientAccessToken;
+
+import 'firestore_grpc_rest_service.dart' show firestoreServiceGrpcRest;
 
 /// Extension on [DocumentReference] to listen for updates using the Firestore gRPC Listen API.
 extension DocumentReferenceGrpcRestExt on DocumentReference {
   /// Listen for updates to this document using the Firestore gRPC Listen API.
+  ///
+  /// One connection, authenticated with the token of the app client at the
+  /// time of the listen ([grpcListenToken]): the stream ends with the
+  /// connection (error or not). `onSnapshot` of [firestoreServiceGrpcRest]
+  /// keeps it open across failures and auth changes.
   Stream<DocumentSnapshot> onGrpcSnapshot() {
     var ref = this;
     if (ref is! DocumentReferenceRestImpl) {
@@ -24,114 +32,118 @@ extension DocumentReferenceGrpcRestExt on DocumentReference {
         'onGrpcSnapshot is only supported on REST-based DocumentReference (DocumentReferenceRestImpl).',
       );
     }
+    return Stream.fromFuture(
+      grpcListenToken(ref.firestoreRestImpl),
+    ).asyncExpand((token) => grpcListenDocument(ref, token: token));
+  }
+}
 
-    var firestoreRest = ref.firestoreRestImpl;
-    var databaseName = firestoreRest.getDatabaseName();
-    var documentName = firestoreRest.getDocumentName(ref.path);
+/// The bearer token a listen of [firestoreRest] sends: `owner` on the
+/// emulator as its owner, otherwise the one of the app client (a signed in
+/// user id token, renewed when expiring or when [forceRefresh], a service
+/// account access token), null when unauthenticated.
+Future<String?> grpcListenToken(
+  FirestoreRestImpl firestoreRest, {
+  bool forceRefresh = false,
+}) async {
+  if (firestoreRest.emulatorOwner) {
+    return 'owner';
+  }
+  return await firebaseRestClientAccessToken(
+    firestoreRest.appImpl.client,
+    forceRefresh: forceRefresh,
+  );
+}
 
-    var baseUrl =
-        firestoreRest.emulatorRootUrl ?? 'https://firestore.googleapis.com/';
-    var uri = Uri.parse(baseUrl);
-    var host = uri.host.isNotEmpty ? uri.host : 'firestore.googleapis.com';
-    var port = uri.hasPort ? uri.port : (uri.scheme == 'https' ? 443 : 80);
-    var isSecure = uri.scheme == 'https';
+/// One listen connection to the document [ref], authenticated with [token]
+/// (none when null), opened on listen. The stream ends with the connection,
+/// with its error if any.
+Stream<DocumentSnapshot> grpcListenDocument(
+  DocumentReferenceRestImpl ref, {
+  required String? token,
+}) {
+  var firestoreRest = ref.firestoreRestImpl;
+  var databaseName = firestoreRest.getDatabaseName();
+  var documentName = firestoreRest.getDocumentName(ref.path);
 
-    String? token;
-    var appClient = firestoreRest.appImpl.client;
-    if (appClient is AutoRefreshingAuthClient) {
-      token = appClient.credentials.accessToken.data;
-    }
+  var baseUrl =
+      firestoreRest.emulatorRootUrl ?? 'https://firestore.googleapis.com/';
+  var uri = Uri.parse(baseUrl);
+  var host = uri.host.isNotEmpty ? uri.host : 'firestore.googleapis.com';
+  var port = uri.hasPort ? uri.port : (uri.scheme == 'https' ? 443 : 80);
+  var isSecure = uri.scheme == 'https';
 
-    var metadata = <String, String>{
-      'google-cloud-resource-prefix': databaseName,
-      'x-goog-request-params': 'database=${Uri.encodeComponent(databaseName)}',
-    };
-    if (token != null) {
-      metadata['authorization'] = 'Bearer $token';
-    }
+  var metadata = <String, String>{
+    'google-cloud-resource-prefix': databaseName,
+    'x-goog-request-params': 'database=${Uri.encodeComponent(databaseName)}',
+  };
+  if (token != null) {
+    metadata['authorization'] = 'Bearer $token';
+  }
 
-    var channel = ClientChannel(
-      host,
-      port: port,
-      options: ChannelOptions(
-        credentials: isSecure
-            ? const ChannelCredentials.secure()
-            : const ChannelCredentials.insecure(),
-      ),
-    );
+  var target = Target()
+    ..documents = (Target_DocumentsTarget()..documents.add(documentName))
+    ..targetId = 1;
 
-    var grpcClient = FirestoreClient(channel);
+  var listenRequest = ListenRequest()
+    ..database = databaseName
+    ..addTarget = target;
 
-    var target = Target()
-      ..documents = (Target_DocumentsTarget()..documents.add(documentName))
-      ..targetId = 1;
+  ClientChannel? channel;
+  StreamController<ListenRequest>? requestController;
+  StreamSubscription<ListenResponse>? subscription;
+  late StreamController<DocumentSnapshot> controller;
 
-    var listenRequest = ListenRequest()
-      ..database = databaseName
-      ..addTarget = target;
+  void emit(api.Document doc) {
+    controller.add(DocumentSnapshotRestImpl(firestoreRest, doc));
+  }
 
-    late StreamSubscription<ListenResponse> subscription;
-    var requestController = StreamController<ListenRequest>();
-    var controller = StreamController<DocumentSnapshot>(
-      onCancel: () async {
-        await subscription.cancel();
-        await requestController.close();
-        await channel.shutdown();
-      },
-    );
-
-    // Run async setup
-    unawaited(() async {
+  controller = StreamController<DocumentSnapshot>(
+    onListen: () {
       try {
-        requestController.add(listenRequest);
-
-        var responseStream = grpcClient.listen(
-          requestController.stream,
+        channel = ClientChannel(
+          host,
+          port: port,
+          options: ChannelOptions(
+            credentials: isSecure
+                ? const ChannelCredentials.secure()
+                : const ChannelCredentials.insecure(),
+          ),
+        );
+        requestController = StreamController<ListenRequest>()
+          ..add(listenRequest);
+        var responseStream = FirestoreClient(channel!).listen(
+          requestController!.stream,
           options: CallOptions(metadata: metadata),
         );
 
         var hasBeenEmitted = false;
-
         subscription = responseStream.listen(
           (response) {
             try {
               if (response.hasDocumentChange()) {
-                var change = response.documentChange;
-                var doc = _apiDocumentFromGrpc(change.document);
-                var snapshot = DocumentSnapshotRestImpl(firestoreRest, doc);
-                controller.add(snapshot);
+                emit(_apiDocumentFromGrpc(response.documentChange.document));
                 hasBeenEmitted = true;
               } else if (response.hasDocumentDelete()) {
-                var change = response.documentDelete;
-                var name = change.document;
-                var doc = api.Document(name: name);
-                var snapshot = DocumentSnapshotRestImpl(firestoreRest, doc);
-                controller.add(snapshot);
+                emit(api.Document(name: response.documentDelete.document));
                 hasBeenEmitted = true;
               } else if (response.hasDocumentRemove()) {
-                var change = response.documentRemove;
-                var name = change.document;
-                var doc = api.Document(name: name);
-                var snapshot = DocumentSnapshotRestImpl(firestoreRest, doc);
-                controller.add(snapshot);
+                emit(api.Document(name: response.documentRemove.document));
                 hasBeenEmitted = true;
               } else if (response.hasTargetChange()) {
                 var targetChange = response.targetChange;
                 if (targetChange.targetChangeType ==
-                    TargetChange_TargetChangeType.CURRENT) {
-                  if (!hasBeenEmitted) {
-                    var doc = api.Document(name: documentName);
-                    var snapshot = DocumentSnapshotRestImpl(firestoreRest, doc);
-                    controller.add(snapshot);
-                    hasBeenEmitted = true;
-                  }
+                        TargetChange_TargetChangeType.CURRENT &&
+                    !hasBeenEmitted) {
+                  emit(api.Document(name: documentName));
+                  hasBeenEmitted = true;
                 }
               }
             } catch (e, st) {
               controller.addError(e, st);
             }
           },
-          onError: (Object error, StackTrace? stackTrace) {
+          onError: (Object error, StackTrace stackTrace) {
             controller.addError(error, stackTrace);
             controller.close();
           },
@@ -142,12 +154,16 @@ extension DocumentReferenceGrpcRestExt on DocumentReference {
         );
       } catch (e, st) {
         controller.addError(e, st);
-        await controller.close();
+        controller.close();
       }
-    }());
-
-    return controller.stream;
-  }
+    },
+    onCancel: () async {
+      await subscription?.cancel();
+      await requestController?.close();
+      await channel?.shutdown();
+    },
+  );
+  return controller.stream;
 }
 
 api.Value _apiValueFromGrpc(grpc.Value grpcValue) {

@@ -6,6 +6,8 @@ import 'package:tekartik_firebase_auth_rest/auth_rest.dart';
 import 'package:tekartik_firebase_auth_rest/src/auth_rest.dart'
     show UserCredentialRest;
 import 'package:tekartik_firebase_auth_rest/src/email_password_auth_rest.dart';
+import 'package:tekartik_firebase_rest/firebase_rest.dart'
+    show firebaseRestClientAccessToken;
 import 'package:test/test.dart';
 
 /// Only the tokens matter to the client.
@@ -60,6 +62,33 @@ void main() {
         tokens.expiresAt = DateTime.now().add(const Duration(hours: 1));
       },
     );
+
+    test('getAccessToken', () async {
+      var loggedInClient = client(tokens());
+      expect(await loggedInClient.getAccessToken(), 't1');
+      expect(refreshes, isEmpty);
+      expect(await loggedInClient.getAccessToken(forceRefresh: true), 't2');
+      expect(refreshes, [true]);
+      expect(
+        await firebaseRestClientAccessToken(loggedInClient),
+        't2',
+        reason: 'a FirebaseRestTokenClient',
+      );
+    });
+
+    test('getAccessToken renews an expiring token', () async {
+      var loggedInClient = client(
+        tokens(expiresAt: DateTime.now().add(const Duration(minutes: 2))),
+      );
+      expect(await loggedInClient.getAccessToken(), 't2');
+      expect(refreshes, [false]);
+    });
+
+    test('getAccessToken without refresh token', () async {
+      var loggedInClient = client(tokens(refreshable: false));
+      expect(await loggedInClient.getAccessToken(forceRefresh: true), 't1');
+      expect(refreshes, isEmpty);
+    });
 
     test('valid token is sent as is', () async {
       var response = await client(tokens()).get(Uri.parse('http://x/y'));

@@ -18,6 +18,8 @@ export 'package:tekartik_firebase_rest/src/firebase_rest.dart'
 export 'src/app_options_access_token.dart' show getAppOptionsFromAccessToken;
 export 'src/firebase_rest_identity.dart'
     show FirebaseRestIdentifyServiceAccount, FirebaseRestIdentity;
+export 'src/firebase_rest_token_client.dart'
+    show FirebaseRestTokenClient, firebaseRestClientAccessToken;
 export 'src/scopes.dart'
     show
         firebaseBaseScopes,
@@ -54,4 +56,9 @@ abstract class FirebaseAppRest implements FirebaseApp {
   /// Clients are never null
   /// It can be updated from other services
   Stream<Client> get apiClientStream;
+
+  /// Each change of [client], null included (the user signed out): what
+  /// a long lived connection authenticated with the client token (the
+  /// firestore listen) restarts on.
+  Stream<Client?> get onClientChanged;
 }

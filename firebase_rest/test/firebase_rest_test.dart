@@ -33,6 +33,26 @@ Future main() async {
     var clients = await futureClients;
     expect(clients, [client1, client2]);
   });
+  test('onClientChanged', () async {
+    var app =
+        firebase.initializeApp(options: options, name: name) as FirebaseAppRest;
+    var client1 = Client();
+
+    var futureClients = app.onClientChanged.toList();
+
+    // ignore: invalid_use_of_protected_member
+    app.client = client1;
+    // The same client again is no change.
+    // ignore: invalid_use_of_protected_member
+    app.client = client1;
+    // ignore: invalid_use_of_protected_member
+    app.client = null;
+
+    await app.delete();
+
+    var clients = await futureClients;
+    expect(clients, [client1, null]);
+  });
   test('delete reinit', () async {
     var app = firebase.initializeApp(options: options, name: name);
     expect(

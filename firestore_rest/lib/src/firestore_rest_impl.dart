@@ -320,6 +320,11 @@ class FirestoreRestImpl
 
   bool? _emulatorRootOwner;
 
+  /// `true` when running against the emulator as its owner (admin), see
+  /// [useFirestoreEmulator].
+  bool get emulatorOwner =>
+      _emulatorRootUrl != null && _emulatorRootOwner == true;
+
   /// `true` when metadata operations (such as listing missing documents) are
   /// allowed: admin (service account) credentials or emulator owner.
   bool get hasAdminAccess =>

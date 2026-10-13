@@ -62,11 +62,17 @@ class AppRestImpl
   @override
   Stream<Client> get apiClientStream => _apiClientStreamController.stream;
 
+  final _clientChangedController = StreamController<Client?>.broadcast();
+
+  @override
+  Stream<Client?> get onClientChanged => _clientChangedController.stream;
+
   @override
   Future<void> delete() async {
     await super.delete();
     deleted = true;
     await _apiClientStreamController.close();
+    await _clientChangedController.close();
   }
 
   @override
@@ -78,9 +84,15 @@ class AppRestImpl
 
   @override
   set client(Client? client) {
+    var changed = !identical(client, currentAuthClient);
     currentAuthClient = client;
-    if (client != null && !deleted) {
-      _apiClientStreamController.add(client);
+    if (!deleted) {
+      if (client != null) {
+        _apiClientStreamController.add(client);
+      }
+      if (changed) {
+        _clientChangedController.add(client);
+      }
     }
   }
 
