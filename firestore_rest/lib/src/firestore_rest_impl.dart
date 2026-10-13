@@ -700,15 +700,21 @@ class FirestoreRestImpl
     return DocumentReferenceRestImpl(this, path);
   }
 
-  /// Convert where info to filter.
-  Filter whereToFilter(WhereInfo whereInfo) {
-    if (whereInfo.isNull == true) {
-      return Filter()
-        ..unaryFilter = (UnaryFilter()
-          ..field = (FieldReference()
-            ..fieldPath = _restFieldPath(whereInfo.fieldPath))
-          ..op = 'IS_NULL');
+  /// Convert where info to filters, one per condition set (several
+  /// conditions can be set by one `where()` call), all of them must match.
+  List<Filter> whereToFilters(WhereInfo whereInfo) {
+    FieldReference field() =>
+        FieldReference()..fieldPath = _restFieldPath(whereInfo.fieldPath);
+    var filters = <Filter>[];
+    void addUnary(String op) {
+      filters.add(
+        Filter()
+          ..unaryFilter = (UnaryFilter()
+            ..field = field()
+            ..op = op),
+      );
     }
+
     // Operator
     //A field filter operator.
     //
@@ -720,43 +726,34 @@ class FirestoreRestImpl
     //GREATER_THAN_OR_EQUAL	Greater than or equal. Requires that the field come first in orderBy.
     //EQUAL	Equal.
     //ARRAY_CONTAINS	Contains. Requires that the field is an array.
+    void add(String op, Object? value) {
+      if (value != null) {
+        filters.add(
+          Filter()
+            ..fieldFilter = (FieldFilter()
+              ..field = field()
+              ..op = op
+              ..value = toRestValue(this, value)),
+        );
+      }
+    }
 
-    String? op;
-    dynamic value;
-    if (whereInfo.isEqualTo != null) {
-      op = 'EQUAL';
-      value = whereInfo.isEqualTo;
-    } else if (whereInfo.isGreaterThan != null) {
-      op = 'GREATER_THAN';
-      value = whereInfo.isGreaterThan;
-    } else if (whereInfo.isGreaterThanOrEqualTo != null) {
-      op = 'GREATER_THAN_OR_EQUAL';
-      value = whereInfo.isGreaterThanOrEqualTo;
-    } else if (whereInfo.isLessThan != null) {
-      op = 'LESS_THAN';
-      value = whereInfo.isLessThan;
-    } else if (whereInfo.isLessThanOrEqualTo != null) {
-      op = 'LESS_THAN_OR_EQUAL';
-      value = whereInfo.isLessThanOrEqualTo;
-    } else if (whereInfo.arrayContains != null) {
-      op = 'ARRAY_CONTAINS';
-      value = whereInfo.arrayContains;
-    } else if (whereInfo.arrayContainsAny != null) {
-      op = 'ARRAY_CONTAINS_ANY';
-      value = whereInfo.arrayContainsAny;
-    } else if (whereInfo.whereIn != null) {
-      op = 'IN';
-      value = whereInfo.whereIn;
+    if (whereInfo.isNull != null) {
+      addUnary(whereInfo.isNull! ? 'IS_NULL' : 'IS_NOT_NULL');
     }
-    if (op != null && value != null) {
-      return Filter()
-        ..fieldFilter = (FieldFilter()
-          ..field = (FieldReference()
-            ..fieldPath = _restFieldPath(whereInfo.fieldPath))
-          ..op = op
-          ..value = toRestValue(this, value));
+    add('EQUAL', whereInfo.isEqualTo);
+    add('GREATER_THAN', whereInfo.isGreaterThan);
+    add('GREATER_THAN_OR_EQUAL', whereInfo.isGreaterThanOrEqualTo);
+    add('LESS_THAN', whereInfo.isLessThan);
+    add('LESS_THAN_OR_EQUAL', whereInfo.isLessThanOrEqualTo);
+    add('ARRAY_CONTAINS', whereInfo.arrayContains);
+    add('ARRAY_CONTAINS_ANY', whereInfo.arrayContainsAny);
+    add('IN', whereInfo.whereIn);
+    add('NOT_IN', whereInfo.notIn);
+    if (filters.isEmpty) {
+      throw UnsupportedError('where $whereInfo');
     }
-    throw UnsupportedError('where $whereInfo');
+    return filters;
   }
 
   /// Index alias.
@@ -821,17 +818,14 @@ class FirestoreRestImpl
             .toList(growable: false);
     }
     // Support where
-    if (queryInfo.wheres.isNotEmpty) {
-      if (queryInfo.wheres.length == 1) {
-        structuredQuery.where = whereToFilter(queryInfo.wheres.first);
-      } else {
-        structuredQuery.where = Filter()
-          ..compositeFilter = (CompositeFilter()
-            ..op = 'AND'
-            ..filters = queryInfo.wheres
-                .map((whereInfo) => whereToFilter(whereInfo))
-                .toList(growable: false));
-      }
+    var filters = queryInfo.wheres.expand(whereToFilters).toList();
+    if (filters.length == 1) {
+      structuredQuery.where = filters.first;
+    } else if (filters.isNotEmpty) {
+      structuredQuery.where = Filter()
+        ..compositeFilter = (CompositeFilter()
+          ..op = 'AND'
+          ..filters = filters);
     }
 
     // Support limit and offset
