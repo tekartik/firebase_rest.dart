@@ -45,7 +45,7 @@ Future main() async {
   await auth.useAuthEmulator('localhost', 9099);
   await firestore.useFirestoreEmulator('localhost', 8080);
 
-  group('firebase_functions_dart', () {
+  group('firestore_rest_emulator', () {
     setUpAll(() async {
       await auth.signInOrUpWithEmailAndPassword(
         email: 'test@mail.com',

@@ -189,6 +189,42 @@ void main() {
       await subscription.cancel();
     });
 
+    test('timestamps with nanoseconds', () async {
+      var docRef = firestore.doc('test/doc');
+      var completer = Completer<DocumentSnapshot>();
+      var subscription = docRef.onGrpcSnapshot().listen((snap) {
+        if (!completer.isCompleted) {
+          completer.complete(snap);
+        }
+      });
+      await mockService.hasListener;
+      grpc.Timestamp timestamp(int nanos) => grpc.Timestamp()
+        ..seconds = Int64(1700000000)
+        ..nanos = nanos;
+      mockService.addResponse(
+        grpc.ListenResponse()
+          ..documentChange = (grpc.DocumentChange()
+            ..document = (grpc.Document()
+              ..name =
+                  'projects/test-project/databases/(default)/documents/test/doc'
+              ..fields['t'] = (grpc.Value()
+                ..timestampValue = timestamp(123456789))
+              ..fields['m'] = (grpc.Value()
+                ..timestampValue = timestamp(1000000))
+              ..createTime = timestamp(5)
+              ..updateTime = timestamp(999999999))
+            ..targetIds.add(1)),
+      );
+      var snapshot = await completer.future.timeout(const Duration(seconds: 2));
+      expect(snapshot.data, {
+        't': Timestamp(1700000000, 123456789),
+        'm': Timestamp(1700000000, 1000000),
+      });
+      expect(snapshot.createTime, Timestamp(1700000000, 5));
+      expect(snapshot.updateTime, Timestamp(1700000000, 999999999));
+      await subscription.cancel();
+    });
+
     test(
       'emits non-existing document snapshot on CURRENT when not yet emitted',
       () async {

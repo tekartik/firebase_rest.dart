@@ -51,7 +51,7 @@ Future main() async {
       });
     });
 
-    test('updateSubfield', () {
+    test('updateSubfields', () {
       var data = {'sub.test': 1, 'sub.sub.test': 2};
       var patchDocument = UpdateDocument(firestoreMock, data);
       var readDocument = ReadDocument(firestoreMock, patchDocument.document);
@@ -193,12 +193,12 @@ Future main() async {
         unorderedEquals(['count', 'sub.time']),
       );
 
-      // Only transforms
+      // Only transforms: an empty update mask, no field written.
       writeDocument = SetMergedDocument(firestoreMock, {
         'count': FieldValue.increment(1),
       });
       expect(writeDocument.fields, isEmpty);
-      expect(writeDocument.fieldPaths, isNull);
+      expect(writeDocument.fieldPaths, isEmpty);
       expect(writeDocument.fieldTransforms, hasLength(1));
 
       // No transforms

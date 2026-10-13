@@ -182,17 +182,7 @@ api.Value _apiValueFromGrpc(grpc.Value grpcValue) {
       restValue.doubleValue = grpcValue.doubleValue;
       break;
     case grpc.Value_ValueType.timestampValue:
-      var seconds = grpcValue.timestampValue.seconds.toInt();
-      var nanos = grpcValue.timestampValue.nanos;
-      var dt = DateTime.fromMillisecondsSinceEpoch(seconds * 1000, isUtc: true);
-      if (nanos > 0) {
-        restValue.timestampValue = dt.toIso8601String().replaceFirst(
-          'Z',
-          '.${nanos.toString().padLeft(9, '0')}Z',
-        );
-      } else {
-        restValue.timestampValue = dt.toIso8601String();
-      }
+      restValue.timestampValue = _grpcTimestampToRest(grpcValue.timestampValue);
       break;
     case grpc.Value_ValueType.stringValue:
       restValue.stringValue = grpcValue.stringValue;
@@ -224,29 +214,21 @@ api.Value _apiValueFromGrpc(grpc.Value grpcValue) {
   return restValue;
 }
 
-api.Document _apiDocumentFromGrpc(grpc.Document grpcDoc) {
-  String? formatTimestamp(grpc.Timestamp ts) {
-    var seconds = ts.seconds.toInt();
-    var nanos = ts.nanos;
-    var dt = DateTime.fromMillisecondsSinceEpoch(seconds * 1000, isUtc: true);
-    if (nanos > 0) {
-      return dt.toIso8601String().replaceFirst(
-        'Z',
-        '.${nanos.toString().padLeft(9, '0')}Z',
-      );
-    }
-    return dt.toIso8601String();
-  }
+/// RFC 3339 text of a grpc timestamp, as in a rest document (nanoseconds
+/// precision).
+String _grpcTimestampToRest(grpc.Timestamp ts) =>
+    Timestamp(ts.seconds.toInt(), ts.nanos).toIso8601String();
 
+api.Document _apiDocumentFromGrpc(grpc.Document grpcDoc) {
   return api.Document()
     ..name = grpcDoc.name
     ..fields = grpcDoc.fields.map(
       (key, val) => MapEntry(key, _apiValueFromGrpc(val)),
     )
     ..createTime = grpcDoc.hasCreateTime()
-        ? formatTimestamp(grpcDoc.createTime)
+        ? _grpcTimestampToRest(grpcDoc.createTime)
         : null
     ..updateTime = grpcDoc.hasUpdateTime()
-        ? formatTimestamp(grpcDoc.updateTime)
+        ? _grpcTimestampToRest(grpcDoc.updateTime)
         : null;
 }

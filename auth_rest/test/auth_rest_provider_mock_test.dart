@@ -36,6 +36,26 @@ Future main() async {
       expect(auth.currentUser, isNull);
       expect((await auth.onCurrentUser.first), isNull);
     });
+    test('email and restore', () async {
+      await auth.signInWithEmailAndPassword(
+        email: 'mock@example.com',
+        password: 'password',
+      );
+      var user = auth.currentUser!;
+      expect(user.isAnonymous, isFalse);
+      expect(user.email, 'mock@example.com');
+      var userId = user.uid;
+      expect(userId, isNot('mock_anonymous_uid'));
+      await app.delete();
+      app = firebase.initializeApp(options: options);
+      auth = authService.auth(app);
+      var fbUser = (await auth.onCurrentUser.first)!;
+      expect(fbUser.uid, userId);
+      expect(fbUser.isAnonymous, isFalse);
+      expect(fbUser.email, 'mock@example.com');
+      await auth.signOut();
+      expect(auth.currentUser, isNull);
+    });
     test('anonymous and restore', () async {
       auth.onCurrentUser.listen((event) {
         print('onCurrentUser: $event');

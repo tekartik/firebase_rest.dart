@@ -48,7 +48,7 @@ class MockBuiltInAuthProviderRest extends BuiltInAuthProviderRest {
     required String email,
     required String password,
   }) async {
-    // Just create a mock user
+    // Just create a mock user, one per email
     var userCredential = _UserCredentialRestMockImpl(
       idToken: 'mock_id_token',
       AuthCredentialRestImpl(),
@@ -56,13 +56,14 @@ class MockBuiltInAuthProviderRest extends BuiltInAuthProviderRest {
         auth: authRest.impl,
         client: authRest.impl.appRest.client,
         emailVerified: false,
+        email: email,
         provider: this,
-        uid: 'mock_anonymous_uid',
+        uid: 'mock_email_uid_$email',
         isAnonymous: false,
       ),
     );
 
-    // save()
+    await setCurrentUserCredential(userCredential);
     return userCredential;
   }
 
@@ -97,9 +98,9 @@ class MockBuiltInAuthProviderRest extends BuiltInAuthProviderRest {
       credential: AuthCredentialRestImpl(),
       user: FirebaseUserRestImpl(
         auth: authRest.impl,
-
-        emailVerified: false,
-        isAnonymous: true,
+        emailVerified: credentials.emailVerified,
+        email: credentials.email,
+        isAnonymous: credentials.isAnonymous,
         uid: credentials.uid,
         provider: this,
       ),

@@ -1,33 +1,6 @@
 import 'package:tekartik_firebase_auth_rest/src/auth_rest.dart';
 
 import '../auth_rest.dart';
-import 'identitytoolkit/v3.dart' as identitytoolkit_v3;
-
-/// User credential email password implementation
-class UserCredentialEmailPasswordRestImpl extends UserCredentialRestImpl {
-  /// The sign in response
-  final identitytoolkit_v3.VerifyPasswordResponse signInResponse;
-
-  /// Create user credential, keeping the refresh token and the expiration of
-  /// the response so the id token can be renewed.
-  UserCredentialEmailPasswordRestImpl(
-    this.signInResponse,
-    super.credential,
-    super.user,
-  ) : super(
-        tokens: RestAuthTokens.fromSignIn(
-          idToken: signInResponse.idToken!,
-          refreshToken: signInResponse.refreshToken,
-          expiresIn: signInResponse.expiresIn,
-        ),
-      );
-
-  @override
-  String toString() => '$user $credential';
-
-  @override
-  String get idToken => tokens!.idToken;
-}
 
 /// User credential rest implementation
 abstract class UserCredentialRestImpl implements UserCredentialRest {

@@ -67,14 +67,34 @@ bool get debugRest => debugFirestoreRest; // devWarning(true); // false
 /// Exported for strict debugging
 var debugFirestoreRest = false; // devWarning(true);
 
-bool _isDigit(String chr) => (chr.codeUnitAt(0) ^ 0x30) <= 9;
+/// A field name that can be used as is in a rest field path.
+final _restSimpleFieldNameRegExp = RegExp(r'^[a-zA-Z_][a-zA-Z_0-9]*$');
 
-/// Escape rest key.
+/// Escape a field name (a single segment of a field path) for a rest field
+/// path: a simple name (`[a-zA-Z_][a-zA-Z_0-9]*`) is kept as is, any other
+/// one is quoted with backticks, backticks and backslashes being escaped
+/// with a backslash (Firestore field path syntax).
 String restEscapeKey(String key) {
-  if (key.isNotEmpty && _isDigit(key[0])) {
-    return '`$key`';
+  if (_restSimpleFieldNameRegExp.hasMatch(key)) {
+    return key;
   }
-  return escapeKey(key);
+  return '`${key.replaceAll(r'\', r'\\').replaceAll('`', r'\`')}`';
+}
+
+/// Convert a field path of the firestore api (segments separated by `.`, a
+/// field path enclosed in backticks being a single field name) to a rest
+/// field path, see [restEscapeKey].
+String? _restFieldPath(String? fieldPath) {
+  if (fieldPath == null || fieldPath == firestoreNameFieldPath) {
+    return fieldPath;
+  }
+  return getFieldParts(fieldPath).map(restEscapeKey).join('.');
+}
+
+/// Throw [e] as a [FirestoreException] (see [wrapFirestoreRestException]),
+/// keeping [st].
+Never _throwFirestoreRestException(Object e, StackTrace st) {
+  Error.throwWithStackTrace(wrapFirestoreRestException(e), st);
 }
 
 /// Date or timestamp value.
@@ -470,11 +490,7 @@ class FirestoreRestImpl
           return DocumentSnapshotRestImpl(this, Document()..name = name);
         }
       }
-      var wrapped = wrapFirestoreRestException(e);
-      if (identical(wrapped, e)) {
-        rethrow;
-      }
-      throw wrapped;
+      _throwFirestoreRestException(e, st);
     }
   }
 
@@ -486,7 +502,7 @@ class FirestoreRestImpl
     var name = getDocumentName(path);
     try {
       await firestoreApi.projects.databases.documents.delete(name);
-    } catch (e) {
+    } catch (e, st) {
       if (e is api.DetailedApiRequestError) {
         // Deleting a missing document is a no-op, any other error (typically
         // a permission denied) must be reported.
@@ -494,11 +510,7 @@ class FirestoreRestImpl
           return;
         }
       }
-      var wrapped = wrapFirestoreRestException(e);
-      if (identical(wrapped, e)) {
-        rethrow;
-      }
-      throw wrapped;
+      _throwFirestoreRestException(e, st);
     }
   }
 
@@ -564,14 +576,10 @@ class FirestoreRestImpl
         parent,
         collectionId,
       );
-    } catch (e) {
+    } catch (e, st) {
       // Like the other document operations, surface a FirestoreException (a
       // security rules denial is a permission-denied one).
-      var wrapped = wrapFirestoreRestException(e);
-      if (identical(wrapped, e)) {
-        rethrow;
-      }
-      throw wrapped;
+      _throwFirestoreRestException(e, st);
     }
     if (debugRest) {
       logDebug('createDocument: ${jsonPretty(document.toJson())}');
@@ -583,57 +591,21 @@ class FirestoreRestImpl
   }
 
   /// Write a document.
+  ///
+  /// Sent as a commit write, like in a batch, so that a merge only writes
+  /// the given fields (an empty merge leaves the document unchanged) and so
+  /// that transforms (`FieldValue.increment`) are supported.
   Future<DocumentReference> writeDocument(
     String path,
     Map<String, Object?> data, {
     required bool? merge,
     String? transactionId,
   }) async {
-    WriteDocument patch;
-    if (merge ?? false) {
-      patch = SetMergedDocument(this, data);
-    } else {
-      patch = SetDocument(this, data);
-    }
-    if (patch.fieldTransforms != null) {
-      // The patch API does not support transforms (FieldValue.increment),
-      // commit the write instead.
-      var write = _writeSetOperation(path, patch, merge: merge);
-      if (debugRest) {
-        logDebug(
-          'writeDocumentRequest (commit): ${jsonPretty(write.toJson())}',
-        );
-      }
-      await _commitTransaction(null, writes: [write]);
-      return DocumentReferenceRestImpl(this, path);
-    }
-    // var patchedDocument =
-    var name = getDocumentName(path);
-    // devPrint('patch $name: $data');
+    var write = writeOperationSet(path, data, merge: merge);
     if (debugRest) {
-      logDebug(
-        'writeDocumentRequest: ${jsonPretty(patch.document.toJson())}, name: $name, updateFieldPaths: ${patch.fieldPaths}',
-      );
+      logDebug('writeDocumentRequest (commit): ${jsonPretty(write.toJson())}');
     }
-    try {
-      var document = await firestoreApi.projects.databases.documents.patch(
-        patch.document,
-        name,
-        updateMask_fieldPaths: patch.fieldPaths,
-      );
-      if (debugRest) {
-        logDebug('writeDocument: ${jsonPretty(document.toJson())}');
-      }
-    } catch (e) {
-      if (debugRest) {
-        logDebug('writeDocument error: $e');
-      }
-      var wrapped = wrapFirestoreRestException(e);
-      if (identical(wrapped, e)) {
-        rethrow;
-      }
-      throw wrapped;
-    }
+    await _commitTransaction(null, writes: [write]);
     return DocumentReferenceRestImpl(this, path);
   }
 
@@ -655,26 +627,22 @@ class FirestoreRestImpl
     } else {
       patch = SetDocument(this, data);
     }
-    return _writeSetOperation(path, patch, merge: merge);
+    return _writeSetOperation(path, patch);
   }
 
   /// Build the [Write] setting the document at [path] from [patch].
-  Write _writeSetOperation(
-    String path,
-    WriteDocument patch, {
-    required bool? merge,
-  }) {
-    DocumentMask? updateMask;
+  Write _writeSetOperation(String path, WriteDocument patch) {
+    // A merge always has field paths (possibly none, then no field is
+    // written, like the official SDKs): only the listed fields are written,
+    // the others are left untouched. Without, the document is replaced.
     var fieldPaths = patch.fieldPaths;
-    if (fieldPaths != null) {
-      // Only the listed fields are written, the others are left untouched.
-      updateMask = DocumentMask()..fieldPaths = fieldPaths;
-    } else if ((merge ?? false) && patch.fieldTransforms != null) {
-      // Only transforms: an empty mask so that no field is written and the
-      // transforms apply to the existing values (like the official SDKs).
-      updateMask = DocumentMask();
-    }
-    return _writeOperation(path, patch, updateMask: updateMask);
+    return _writeOperation(
+      path,
+      patch,
+      updateMask: fieldPaths == null
+          ? null
+          : (DocumentMask()..fieldPaths = fieldPaths),
+    );
   }
 
   /// Build the [Write] writing [patch] (its document, [updateMask] if any
@@ -716,55 +684,19 @@ class FirestoreRestImpl
   }
 
   /// Update a document.
+  ///
+  /// Sent as a commit write, like in a batch: the document must exist, only
+  /// the given fields are written (an empty update leaves the document
+  /// unchanged but still fails on a missing document).
   Future<DocumentReference> updateDocument(
     String path,
     Map<String, Object?> data,
   ) async {
-    var patch = UpdateDocument(this, data);
-    if (patch.fieldTransforms != null) {
-      // The patch API does not support transforms (FieldValue.increment),
-      // commit the write instead.
-      var write = _writeUpdateOperation(path, patch);
-      if (debugRest) {
-        logDebug(
-          'updateDocumentRequest (commit): ${jsonPretty(write.toJson())}',
-        );
-      }
-      await _commitTransaction(null, writes: [write]);
-      return DocumentReferenceRestImpl(this, path);
-    }
-    // var document = Document()..fields = _mapToFields(this, data);
-    // document =
-    var name = getDocumentName(path);
-    // devPrint('update $name: $data');
-
+    var write = writeOperationUpdate(path, data);
     if (debugRest) {
-      logDebug(
-        'updateDocumentRequest: ${jsonPretty(patch.document.toJson())}, name: $name, updateFieldPaths: ${patch.fieldPaths}',
-      );
+      logDebug('updateDocumentRequest (commit): ${jsonPretty(write.toJson())}');
     }
-    try {
-      var document = await firestoreApi.projects.databases.documents.patch(
-        patch.document,
-        name,
-        currentDocument_exists: true,
-        updateMask_fieldPaths: patch.fieldPaths,
-      );
-      if (debugRest) {
-        logDebug('updateDocument: ${jsonPretty(document.toJson())}');
-      }
-    } catch (e) {
-      if (debugRest) {
-        logDebug('updateDocument error: $e');
-      }
-      // Like the other document operations, surface a FirestoreException (a
-      // security rules denial is a permission-denied one).
-      var wrapped = wrapFirestoreRestException(e);
-      if (identical(wrapped, e)) {
-        rethrow;
-      }
-      throw wrapped;
-    }
+    await _commitTransaction(null, writes: [write]);
     return DocumentReferenceRestImpl(this, path);
   }
 
@@ -773,7 +705,8 @@ class FirestoreRestImpl
     if (whereInfo.isNull == true) {
       return Filter()
         ..unaryFilter = (UnaryFilter()
-          ..field = (FieldReference()..fieldPath = whereInfo.fieldPath)
+          ..field = (FieldReference()
+            ..fieldPath = _restFieldPath(whereInfo.fieldPath))
           ..op = 'IS_NULL');
     }
     // Operator
@@ -818,7 +751,8 @@ class FirestoreRestImpl
     if (op != null && value != null) {
       return Filter()
         ..fieldFilter = (FieldFilter()
-          ..field = (FieldReference()..fieldPath = whereInfo.fieldPath)
+          ..field = (FieldReference()
+            ..fieldPath = _restFieldPath(whereInfo.fieldPath))
           ..op = op
           ..value = toRestValue(this, value));
     }
@@ -840,13 +774,15 @@ class FirestoreRestImpl
       return Aggregation(
         alias: alias,
         sum: Sum()
-          ..field = (FieldReference()..fieldPath = aggregateField.field),
+          ..field = (FieldReference()
+            ..fieldPath = _restFieldPath(aggregateField.field)),
       );
     } else if (aggregateField is AggregateFieldAverage) {
       return Aggregation(
         alias: alias,
         avg: Avg()
-          ..field = (FieldReference()..fieldPath = aggregateField.field),
+          ..field = (FieldReference()
+            ..fieldPath = _restFieldPath(aggregateField.field)),
       );
     }
     throw ArgumentError(aggregateField);
@@ -881,7 +817,7 @@ class FirestoreRestImpl
     if (queryInfo.selectKeyPaths != null) {
       structuredQuery.select = Projection()
         ..fields = queryInfo.selectKeyPaths!
-            .map((key) => FieldReference()..fieldPath = key)
+            .map((key) => FieldReference()..fieldPath = _restFieldPath(key))
             .toList(growable: false);
     }
     // Support where
@@ -936,7 +872,8 @@ class FirestoreRestImpl
     structuredQuery.orderBy = queryInfo.orderBys
         .map(
           (info) => Order()
-            ..field = (FieldReference()..fieldPath = info.fieldPath)
+            ..field = (FieldReference()
+              ..fieldPath = _restFieldPath(info.fieldPath))
             ..direction = toRestDirection(info.ascending),
         )
         .toList(growable: false);
@@ -998,14 +935,8 @@ class FirestoreRestImpl
       // ]
       // devPrint('get ${jsonPretty(response.toJson())}');
       return AggregateQuerySnapshotRest(aggregateQueryRest, response);
-    } catch (e) {
-      if (e is api.DetailedApiRequestError) {
-        // devPrint(e.status);
-        if (e.status == httpStatusCodeNotFound) {
-          // return DocumentSnapshotRestImpl(this, null);
-        }
-      }
-      rethrow;
+    } catch (e, st) {
+      _throwFirestoreRestException(e, st);
     }
   }
 
@@ -1029,14 +960,10 @@ class FirestoreRestImpl
       // devPrint(jsonPretty(response.toJson()));
       // devPrint('get ${jsonPretty(response.toJson())}');
       return QuerySnapshotRestImpl(this, response);
-    } catch (e) {
+    } catch (e, st) {
       // Like the document operations, surface a FirestoreException (a
       // security rules denial is a permission-denied one).
-      var wrapped = wrapFirestoreRestException(e);
-      if (identical(wrapped, e)) {
-        rethrow;
-      }
-      throw wrapped;
+      _throwFirestoreRestException(e, st);
     }
   }
 
@@ -1069,15 +996,8 @@ class FirestoreRestImpl
         );
       }
       return beginTransactionResponse.transaction;
-    } catch (e) {
-      // devPrint(e);
-      if (e is api.DetailedApiRequestError) {
-        // devPrint(e.status);
-        if (e.status == httpStatusCodeNotFound) {
-          // return DocumentSnapshotRestImpl(this, null);
-        }
-      }
-      rethrow;
+    } catch (e, st) {
+      _throwFirestoreRestException(e, st);
     }
   }
 
@@ -1095,14 +1015,8 @@ class FirestoreRestImpl
       );
 
       // devPrint('rollback ${jsonPretty(response.toJson())}');
-    } catch (rollbackError) {
-      // devPrint(e);
-      if (rollbackError is api.DetailedApiRequestError) {
-        // devPrint(e.status);
-        if (rollbackError.status == httpStatusCodeNotFound) {
-          // return DocumentSnapshotRestImpl(this, null);
-        }
-      }
+    } catch (_) {
+      // The original error is reported, not the rollback one.
     }
   }
 
@@ -1131,14 +1045,10 @@ class FirestoreRestImpl
       if (debugRest) {
         logDebug('commit ${jsonPretty(response.toJson())}');
       }
-    } catch (e) {
+    } catch (e, st) {
       // Like the document operations, surface a FirestoreException (a
       // security rules denial is a permission-denied one).
-      var wrapped = wrapFirestoreRestException(e);
-      if (identical(wrapped, e)) {
-        rethrow;
-      }
-      throw wrapped;
+      _throwFirestoreRestException(e, st);
     }
   }
 
@@ -1223,14 +1133,8 @@ class FirestoreRestImpl
         }
         request.pageToken = response.nextPageToken;
       }
-    } catch (e) {
-      if (e is api.DetailedApiRequestError) {
-        // devPrint(e.status);
-        if (e.status == httpStatusCodeNotFound) {
-          // return DocumentSnapshotRestImpl(this, null);
-        }
-      }
-      rethrow;
+    } catch (e, st) {
+      _throwFirestoreRestException(e, st);
     }
     return collections;
   }

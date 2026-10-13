@@ -28,6 +28,9 @@ class SetMergedDocument extends WriteDocument {
   @override
   void _fromMap(Map map) {
     _currentParent = null;
+    // A merge always has an update mask, possibly empty (no field written,
+    // the document being only created if missing, like the official SDKs).
+    fieldPaths = [];
     _fields = _firstMapToFields(map);
   }
 
@@ -49,30 +52,32 @@ class SetMergedDocument extends WriteDocument {
 
       /// keys will be added
       void handleMapGetKeys(List<String> keys, Map subMap) {
-        fieldPaths ??= [];
         subMap.forEach((key, value) {
           var stringKey = _keyToString(key.toString());
 
           var newKeys = [...keys, stringKey];
-          if (value is Map) {
+          if (value is Map && value.isNotEmpty) {
             handleMapGetKeys(newKeys, value);
           } else if (isFieldTransformValue(value)) {
             // Applied as a transform, not part of the update mask.
           } else {
+            // A value, an empty map (set as is) or a delete.
             fieldPaths!.add(_toKeyPath(newKeys));
           }
         });
       }
 
-      if (value is Map) {
+      if (value is Map && value.isNotEmpty) {
         handleMapGetKeys([topStringKey], value);
       } else if (isFieldTransformValue(value)) {
         // Applied as a transform, not part of the update mask.
       } else {
-        fieldPaths ??= [];
+        // A value, an empty map (set as is) or a delete.
         fieldPaths!.add(_toKeyPath([topStringKey]));
       }
-      if (!_addFieldTransform(topStringKey, value)) {
+      if (value == FieldValue.delete) {
+        // Only in the update mask, not in the document.
+      } else if (!_addFieldTransform(topStringKey, value)) {
         fields[topStringKey] = patchToRestValue(topStringKey, value);
       }
     });
@@ -88,6 +93,9 @@ class UpdateDocument extends WriteDocument {
 
   @override
   void _fromMap(Map? map) {
+    // An update always has an update mask, possibly empty (no field written
+    // but the document must exist).
+    fieldPaths = [];
     if (map == null) {
       return;
     }
@@ -100,9 +108,10 @@ class UpdateDocument extends WriteDocument {
     map.forEach((key, value) {
       final stringKey = key.toString();
 
-      fieldPaths ??= [];
       if (!isFieldTransformValue(value)) {
-        fieldPaths!.add(stringKey);
+        // A dotted update key is a nested field path, escaped like the
+        // transforms field paths.
+        fieldPaths!.add(getFieldParts(stringKey).map(restEscapeKey).join('.'));
       }
     });
 

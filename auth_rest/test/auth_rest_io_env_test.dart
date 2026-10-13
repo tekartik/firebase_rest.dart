@@ -144,17 +144,9 @@ Future main() async {
 
         group('currentUser', () {
           test('currentUser', () async {
-            var user = auth.currentUser;
-            expect(user, isNull);
-            print('currentUser: $user');
-            try {
-              user = await auth.onCurrentUser.first;
-              print('currentUser: $user');
-              if (user != null) {
-                expect(user, const TypeMatcher<UserInfoWithIdToken>());
-              }
-              //fail('should fail');
-            } on UnsupportedError catch (_) {}
+            // Supported (see factory) but nobody is signed in.
+            expect(auth.currentUser, isNull);
+            expect(await auth.onCurrentUser.first, isNull);
           });
         });
 
