@@ -131,6 +131,20 @@ class BuiltInAuthProviderRest extends AuthProviderRestBase {
         uid: restUserInfo.localId!,
         provider: this,
       );
+      // The reloaded user becomes the current one (same tokens): the
+      // listeners see the change (email verified) and it is persisted.
+      var current = currentUserCredential;
+      if (current != null && current.user.uid == userRest.uid) {
+        var previousUser = current.user;
+        userRest.displayName =
+            restUserInfo.displayName ?? previousUser.displayName;
+        if (previousUser is UserInfoRest) {
+          userRest.accessCredentials = previousUser.accessCredentials;
+        }
+        await setCurrentUserCredential(
+          _UserCredentialRestReloaded(current, userRest),
+        );
+      }
       return userRest;
     }
     throw StateError('no account found');
@@ -500,4 +514,29 @@ class BuiltInAuthProviderRest extends AuthProviderRestBase {
       }
     }
   }
+}
+
+/// The current user credential (tokens, credential) with the reloaded user.
+class _UserCredentialRestReloaded implements UserCredentialRest {
+  final UserCredentialRest _signedIn;
+
+  @override
+  final FirebaseUserRest user;
+
+  _UserCredentialRestReloaded(UserCredentialRest current, this.user)
+    : _signedIn = current is _UserCredentialRestReloaded
+          ? current._signedIn
+          : current;
+
+  @override
+  AuthCredential get credential => _signedIn.credential;
+
+  @override
+  RestAuthTokens? get tokens => _signedIn.tokens;
+
+  @override
+  String get idToken => _signedIn.idToken;
+
+  @override
+  String toString() => '$user $credential';
 }
