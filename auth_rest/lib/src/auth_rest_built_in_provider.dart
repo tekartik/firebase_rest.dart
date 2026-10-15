@@ -82,14 +82,26 @@ class BuiltInAuthProviderRest extends AuthProviderRestBase {
     /// wait for restore if needed
     await authReady;
 
-    // 3. Prepare the request
-    final request =
-        identitytoolkit_v3.IdentitytoolkitRelyingpartySignupNewUserRequest();
     var client = _newApiKeyClient();
-    var apiV3 = _apiV3(client);
-    // 4. Call the signUp method (Anonymous sign-in is a signUp with no email/password)
-    // The '$fields' or custom query params can be used to pass the key
-    final response = await apiV3.relyingparty.signupNewUser(request);
+    // Anonymous sign-in is a signUp with no email/password.
+    identitytoolkit_v3.SignupNewUserResponse response;
+    if (_useEmulator) {
+      // The auth emulator only serves the v1 api (v3 answers 404).
+      var v1Response = await _apiV1(client).accounts.signUp(
+        identitytoolkit_v1.GoogleCloudIdentitytoolkitV1SignUpRequest(),
+      );
+      response = identitytoolkit_v3.SignupNewUserResponse(
+        idToken: v1Response.idToken,
+        localId: v1Response.localId,
+        refreshToken: v1Response.refreshToken,
+        expiresIn: v1Response.expiresIn,
+      );
+    } else {
+      // The '$fields' or custom query params can be used to pass the key
+      response = await _apiV3(client).relyingparty.signupNewUser(
+        identitytoolkit_v3.IdentitytoolkitRelyingpartySignupNewUserRequest(),
+      );
+    }
 
     // devPrint('signInWithPassword response: ${jsonEncode(response.toJson())}');
     var userCredential = UserCredentialAnonymousRestImpl(
