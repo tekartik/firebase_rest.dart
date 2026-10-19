@@ -15,6 +15,69 @@ import 'email_password_auth_rest.dart';
 /// [BuiltInAuthProviderRest.signInWithIdp].
 const googleIdpProviderId = 'google.com';
 
+/// The credential an identity provider gave, its [idToken] and/or
+/// [accessToken], to link to the current user
+/// ([FirebaseUser.linkWithCredential]), see
+/// [BuiltInAuthProviderRest.signInWithIdp].
+class AuthCredentialIdpRest implements AuthCredential {
+  @override
+  final String providerId;
+
+  /// The id token of the identity provider.
+  final String? idToken;
+
+  /// The access token of the identity provider.
+  final String? accessToken;
+
+  /// Credential of [providerId] (`google.com` by default).
+  AuthCredentialIdpRest({
+    this.providerId = googleIdpProviderId,
+    this.idToken,
+    this.accessToken,
+  }) {
+    if (idToken == null && accessToken == null) {
+      throw ArgumentError('idToken or accessToken needed');
+    }
+  }
+
+  @override
+  String toString() => 'AuthCredentialIdpRest($providerId)';
+}
+
+/// The `postBody` of an identity toolkit `accounts:signInWithIdp` request.
+String _idpPostBody({
+  required String providerId,
+  String? idToken,
+  String? accessToken,
+}) => Uri(
+  queryParameters: {
+    'id_token': ?idToken,
+    'access_token': ?accessToken,
+    'providerId': providerId,
+  },
+).query;
+
+/// The firebase error codes of the identity toolkit errors of a link.
+const _identityToolkitLinkErrorCodes = {
+  'EMAIL_EXISTS': 'email-already-in-use',
+  'FEDERATED_USER_ID_ALREADY_LINKED': 'credential-already-in-use',
+  'CREDENTIAL_TOO_OLD_LOGIN_AGAIN': 'requires-recent-login',
+  'WEAK_PASSWORD': 'weak-password',
+  'INVALID_EMAIL': 'invalid-email',
+  'OPERATION_NOT_ALLOWED': 'operation-not-allowed',
+  'USER_NOT_FOUND': 'user-not-found',
+  'USER_DISABLED': 'user-disabled',
+};
+
+/// The firebase error code of an identity toolkit error [message]
+/// (`WEAK_PASSWORD : Password should be...`), null when unknown.
+String? _identityToolkitLinkErrorCode(String? message) {
+  if (message == null) {
+    return null;
+  }
+  return _identityToolkitLinkErrorCodes[message.split(' ').first];
+}
+
 /// One instance
 class BuiltInAuthProviderRest extends AuthProviderRestBase {
   /// Provider ID
@@ -313,13 +376,11 @@ class BuiltInAuthProviderRest extends AuthProviderRestBase {
       var apiV1 = _apiV1(client);
       var response = await apiV1.accounts.signInWithIdp(
         identitytoolkit_v1.GoogleCloudIdentitytoolkitV1SignInWithIdpRequest(
-          postBody: Uri(
-            queryParameters: {
-              'id_token': ?idToken,
-              'access_token': ?accessToken,
-              'providerId': providerId,
-            },
-          ).query,
+          postBody: _idpPostBody(
+            providerId: providerId,
+            idToken: idToken,
+            accessToken: accessToken,
+          ),
           requestUri: requestUri,
           returnSecureToken: true,
         ),
@@ -357,6 +418,138 @@ class BuiltInAuthProviderRest extends AuthProviderRestBase {
 
       await setCurrentUserCredential(userCredential);
       return userCredential;
+    } finally {
+      client.close();
+    }
+  }
+
+  /// Links [credential] to [user], the current user, see
+  /// [FirebaseUser.linkWithCredential].
+  ///
+  /// With the id token of the user: `accounts:update` for a
+  /// [FirebaseAuthEmailPasswordCredential], `accounts:signInWithIdp` for an
+  /// [AuthCredentialIdpRest]. The new tokens make the linked user current.
+  /// The errors are a [StateError] whose message is the firebase error code.
+  Future<UserCredential> linkWithCredential(
+    FirebaseUserRest user,
+    AuthCredential credential,
+  ) async {
+    if (credential is! FirebaseAuthEmailPasswordCredential &&
+        credential is! AuthCredentialIdpRest) {
+      throw UnsupportedError(
+        'linkWithCredential: unsupported ${credential.providerId} credential',
+      );
+    }
+    await authReady;
+    var current = currentUserCredential;
+    if (current == null || current.user.uid != user.uid) {
+      throw StateError(
+        'linkWithCredential: ${user.uid} is not the current user',
+      );
+    }
+    await refreshIdToken(credential: current);
+    var idToken = current.idToken;
+    var client = _newApiKeyClient();
+    try {
+      var apiV1 = _apiV1(client);
+      // Like the js sdk, a provider is linked once.
+      var lookup = await apiV1.accounts.lookup(
+        identitytoolkit_v1.GoogleCloudIdentitytoolkitV1GetAccountInfoRequest(
+          idToken: idToken,
+        ),
+      );
+      var providerIds =
+          lookup.users?.firstOrNull?.providerUserInfo
+              ?.map((info) => info.providerId)
+              .nonNulls ??
+          const <String>[];
+      if (providerIds.contains(credential.providerId)) {
+        throw StateError('provider-already-linked');
+      }
+
+      String? email;
+      String? linkedIdToken;
+      String? localId;
+      String? refreshToken;
+      String? expiresIn;
+      String? displayName;
+      bool? emailVerified;
+      if (credential is FirebaseAuthEmailPasswordCredential) {
+        var response = await apiV1.accounts.update(
+          identitytoolkit_v1.GoogleCloudIdentitytoolkitV1SetAccountInfoRequest(
+            idToken: idToken,
+            email: credential.email,
+            password: credential.password,
+            returnSecureToken: true,
+          ),
+        );
+        // The response email and display name are deprecated.
+        email = credential.email;
+        linkedIdToken = response.idToken;
+        localId = response.localId;
+        refreshToken = response.refreshToken;
+        expiresIn = response.expiresIn;
+        emailVerified = response.emailVerified;
+      } else if (credential is AuthCredentialIdpRest) {
+        var response = await apiV1.accounts.signInWithIdp(
+          identitytoolkit_v1.GoogleCloudIdentitytoolkitV1SignInWithIdpRequest(
+            idToken: idToken,
+            postBody: _idpPostBody(
+              providerId: credential.providerId,
+              idToken: credential.idToken,
+              accessToken: credential.accessToken,
+            ),
+            requestUri: 'http://localhost',
+            returnSecureToken: true,
+          ),
+        );
+        if (response.idToken == null) {
+          throw StateError(
+            _identityToolkitLinkErrorCode(response.errorMessage) ??
+                'linkWithCredential(${credential.providerId}) failed: '
+                    '${response.errorMessage ?? 'no id token'}',
+          );
+        }
+        email = response.email;
+        linkedIdToken = response.idToken;
+        localId = response.localId;
+        refreshToken = response.refreshToken;
+        expiresIn = response.expiresIn;
+        displayName = response.displayName;
+        emailVerified = response.emailVerified;
+      }
+      if (linkedIdToken == null) {
+        throw StateError('linkWithCredential: no id token');
+      }
+
+      var userCredential = UserCredentialEmailPasswordRestImpl(
+        identitytoolkit_v3.VerifyPasswordResponse(
+          email: email,
+          idToken: linkedIdToken,
+          localId: localId ?? user.uid,
+          refreshToken: refreshToken,
+          expiresIn: expiresIn,
+        ),
+        AuthCredentialRestImpl(providerId: credential.providerId),
+        FirebaseUserRestImpl(
+          auth: authRest.impl,
+          client: client,
+          email: email,
+          emailVerified: emailVerified ?? false,
+          provider: this,
+          uid: localId ?? user.uid,
+          isAnonymous: false,
+        )..displayName = displayName ?? user.displayName,
+      );
+
+      await setCurrentUserCredential(userCredential);
+      return userCredential;
+    } on identitytoolkit_v1.DetailedApiRequestError catch (e) {
+      var code = _identityToolkitLinkErrorCode(e.message);
+      if (code != null) {
+        throw StateError(code);
+      }
+      rethrow;
     } finally {
       client.close();
     }

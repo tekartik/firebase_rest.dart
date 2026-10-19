@@ -10,7 +10,7 @@ export 'package:tekartik_firebase_auth_rest/src/auth_rest.dart'
         UserRecordRest,
         PromptUserForConsentRest;
 export 'package:tekartik_firebase_auth_rest/src/auth_rest_built_in_provider.dart'
-    show BuiltInAuthProviderRest, googleIdpProviderId;
+    show BuiltInAuthProviderRest, AuthCredentialIdpRest, googleIdpProviderId;
 export 'package:tekartik_firebase_auth_rest/src/auth_rest_mock_provider.dart'
     show MockBuiltInAuthProviderRest;
 export 'package:tekartik_firebase_auth_rest/src/auth_rest_provider.dart'

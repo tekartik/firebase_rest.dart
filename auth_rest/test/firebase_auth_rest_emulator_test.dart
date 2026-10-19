@@ -4,6 +4,7 @@ library;
 import 'dart:convert';
 import 'dart:io';
 import 'package:tekartik_firebase_auth_rest/auth_rest.dart';
+import 'package:tekartik_firebase_auth_test/auth_link_test_runner.dart';
 import 'package:tekartik_firebase_auth_test/auth_sign_in_delete_test_runner.dart';
 import 'package:tekartik_firebase_emulator/firebase_emulator.dart';
 import 'package:tekartik_firebase_rest/firebase_rest.dart';
@@ -85,6 +86,38 @@ Future main() async {
       expect(credential.user.uid, uid);
       await auth.signOut();
     });
+    test('link a google credential to an anonymous user', () async {
+      await auth.signOut();
+      var user = (await auth.signInAnonymously()).user;
+      // The emulator takes an unsigned id token.
+      var idToken = jsonEncode({
+        'sub': 'idp-link-google-id',
+        'email': 'idp-link@gmail.com',
+        'email_verified': true,
+      });
+      try {
+        var linked = await user.linkWithCredential(
+          AuthCredentialIdpRest(idToken: idToken),
+        );
+        expect(linked.user.uid, user.uid);
+        expect(linked.user.isAnonymous, isFalse);
+        expect(linked.user.email, 'idp-link@gmail.com');
+        expect(auth.currentUser!.uid, user.uid);
+        expect(auth.currentUser!.isAnonymous, isFalse);
+
+        // Signing in with google later finds the same user.
+        await auth.signOut();
+        var credential = await auth.signInWithIdp(idToken: idToken);
+        expect(credential.user.uid, user.uid);
+      } finally {
+        await auth.currentUser?.delete();
+      }
+    });
+    firebaseAuthLinkTests(
+      getAuth: () => auth,
+      email: 'link@gmail.com',
+      password: 'test1234',
+    );
     var email = 'delete@gmail.com';
     var password = 'test1234';
     firebaseAuthSignInDeleteTests(

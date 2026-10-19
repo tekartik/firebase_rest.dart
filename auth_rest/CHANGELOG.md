@@ -1,3 +1,9 @@
+# 0.9.4
+
+- `FirebaseUser.linkWithCredential`: an email and password (`accounts:update`)
+  or an identity provider credential (`AuthCredentialIdpRest`,
+  `accounts:signInWithIdp`) linked to the current user, same uid.
+
 # 0.9.3
 
 - `listUsers` implemented (identity toolkit `downloadAccount`), and

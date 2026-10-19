@@ -318,6 +318,12 @@ class FirebaseUserRestImpl extends UserInfoRest implements FirebaseUserRest {
   Future<void> delete() async {
     await auth.impl.builtInProvider.delete();
   }
+
+  /// Links an email and password or an identity provider credential, see
+  /// [BuiltInAuthProviderRest.linkWithCredential].
+  @override
+  Future<UserCredential> linkWithCredential(AuthCredential credential) =>
+      auth.impl.builtInProvider.linkWithCredential(this, credential);
 }
 
 /// Compat
