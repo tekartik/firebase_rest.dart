@@ -1,3 +1,11 @@
+# 0.9.5
+
+- `UserMetadata.lastRefreshTime` of the user records (`getUser`, `getUsers`,
+  `getUserByEmail`, `listUsers`), read from the `lastRefreshAt` of the json
+  response (dropped by the typed identity toolkit v3 api).
+- `DecodedIdToken.signInProvider` (`DecodedIdTokenLocal`), requires
+  `tekartik_firebase_auth` 0.9.4.
+
 # 0.9.4
 
 - `FirebaseUser.linkWithCredential`: an email and password (`accounts:update`)

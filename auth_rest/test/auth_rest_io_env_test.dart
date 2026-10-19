@@ -176,12 +176,16 @@ String unknownEmail() =>
 /// each found again by uid and by email.
 Future<void> checkListUsers(FirebaseAuth auth) async {
   var uids = <String>{};
+  var refreshedCount = 0;
   String? pageToken;
   for (var page = 0; page < 3; page++) {
     var result = await auth.listUsers(maxResults: 2, pageToken: pageToken);
     expect(result.users.length, lessThanOrEqualTo(2));
     for (var user in result.users.nonNulls) {
       expect(uids.add(user.uid), isTrue, reason: 'listed twice ${user.uid}');
+      if (user.metadata?.lastRefreshTime != null) {
+        refreshedCount++;
+      }
       expect((await auth.getUser(user.uid))!.uid, user.uid);
       var email = user.email;
       if (email != null) {
@@ -193,5 +197,8 @@ Future<void> checkListUsers(FirebaseAuth auth) async {
       break;
     }
   }
-  print('listed ${uids.length} users${pageToken == null ? '' : ' (and more)'}');
+  print(
+    'listed ${uids.length} users${pageToken == null ? '' : ' (and more)'}'
+    ', $refreshedCount with a lastRefreshTime',
+  );
 }

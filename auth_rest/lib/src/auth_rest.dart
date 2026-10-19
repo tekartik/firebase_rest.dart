@@ -177,12 +177,21 @@ class UserMetadataRest implements UserMetadata {
   @override
   final String lastSignInTime;
 
-  /// Create user metadata, the times as iso8601 utc strings, empty when
-  /// unknown.
-  UserMetadataRest({required this.creationTime, required this.lastSignInTime});
+  @override
+  final String? lastRefreshTime;
+
+  /// Create user metadata, the times as iso8601 utc strings, empty
+  /// ([lastSignInTime]) or null ([lastRefreshTime]) when unknown.
+  UserMetadataRest({
+    required this.creationTime,
+    required this.lastSignInTime,
+    this.lastRefreshTime,
+  });
 
   @override
-  String toString() => 'created $creationTime, signed in $lastSignInTime';
+  String toString() =>
+      'created $creationTime, signed in $lastSignInTime'
+      '${lastRefreshTime != null ? ', refreshed $lastRefreshTime' : ''}';
 }
 
 /// User info rest implementation
@@ -505,22 +514,43 @@ class FirebaseAuthRestImpl
   IdentityToolkitApi get identitytoolkitApi => identityToolkitApi;
 
   /// Identity toolkit api
-  IdentityToolkitApi get identityToolkitApi => _identityToolkitApi ??= () {
+  IdentityToolkitApi get identityToolkitApi =>
+      _identityToolkitApi ??= _newIdentityToolkitApi(_identityToolkitClient);
+
+  /// The client of the identity toolkit api, chosen on its first use like
+  /// [identityToolkitApi].
+  late final Client _identityToolkitClient =
+      (rootUrl != null || servicePathBase != null)
+      ? appRest.client!
+      : appRest.apiClient;
+
+  IdentityToolkitApi _newIdentityToolkitApi(Client client) {
     if (rootUrl != null || servicePathBase != null) {
       var defaultRootUrl = 'https://www.googleapis.com/';
 
       var defaultServicePath = 'identitytoolkit/v3/relyingparty/';
       return IdentityToolkitApi(
-        appRest.client!,
+        client,
         servicePath: servicePathBase == null
             ? defaultServicePath
             : '$servicePathBase/$defaultServicePath',
         rootUrl: rootUrl ?? defaultRootUrl,
       );
     } else {
-      return IdentityToolkitApi(appRest.apiClient);
+      return IdentityToolkitApi(client);
     }
-  }();
+  }
+
+  /// Runs [call] on the identity toolkit api, also returning the
+  /// `lastRefreshAt` of the users of the response by uid, a field the typed
+  /// v3 api drops.
+  Future<(T, Map<String, String>)> _identityToolkitUsersCall<T>(
+    Future<T> Function(IdentityToolkitApi api) call,
+  ) async {
+    var client = _UsersLastRefreshAtClient(_identityToolkitClient);
+    var result = await call(_newIdentityToolkitApi(client));
+    return (result, client.usersLastRefreshAt);
+  }
 
   void _setCurrentProviderUser(_ProviderUser? providerUser) {
     _currentProviderUser = providerUser;
@@ -585,7 +615,9 @@ class FirebaseAuthRestImpl
     if (debugFirebaseAuthRest) {
       _log('downloadAccountRequest: ${jsonPretty(request.toJson())}');
     }
-    var result = await identityToolkitApi.relyingparty.downloadAccount(request);
+    var (result, lastRefreshAts) = await _identityToolkitUsersCall(
+      (api) => api.relyingparty.downloadAccount(request),
+    );
     if (debugFirebaseAuthRest) {
       _log('downloadAccount: ${jsonPretty(result.toJson())}');
     }
@@ -594,7 +626,11 @@ class FirebaseAuthRestImpl
       pageToken: (nextPageToken?.isEmpty ?? true) ? null : nextPageToken,
       users: [
         for (var restUserInfo in result.users ?? <api.UserInfo>[])
-          toUserRecord(this, restUserInfo),
+          toUserRecord(
+            this,
+            restUserInfo,
+            lastRefreshAt: lastRefreshAts[restUserInfo.localId],
+          ),
       ],
     );
   }
@@ -606,13 +642,19 @@ class FirebaseAuthRestImpl
     if (debugFirebaseAuthRest) {
       _log('getAccountInfoRequest: ${jsonPretty(request.toJson())}');
     }
-    var result = await identityToolkitApi.relyingparty.getAccountInfo(request);
+    var (result, lastRefreshAts) = await _identityToolkitUsersCall(
+      (api) => api.relyingparty.getAccountInfo(request),
+    );
     if (debugFirebaseAuthRest) {
       _log('getAccountInfo: ${jsonPretty(result.toJson())}');
     }
     if (result.users?.isNotEmpty ?? false) {
       var restUserInfo = result.users!.first;
-      return toUserRecord(this, restUserInfo);
+      return toUserRecord(
+        this,
+        restUserInfo,
+        lastRefreshAt: lastRefreshAts[restUserInfo.localId],
+      );
     }
     return null;
   }
@@ -624,13 +666,21 @@ class FirebaseAuthRestImpl
     if (debugFirebaseAuthRest) {
       _log('getAccountInfoRequest: ${jsonPretty(request.toJson())}');
     }
-    var result = await identityToolkitApi.relyingparty.getAccountInfo(request);
+    var (result, lastRefreshAts) = await _identityToolkitUsersCall(
+      (api) => api.relyingparty.getAccountInfo(request),
+    );
     if (debugFirebaseAuthRest) {
       _log('getAccountInfo: ${jsonPretty(result.toJson())}');
     }
     var users = (result.users ?? <api.UserInfo>[]);
     return users
-        .map((restUserInfo) => toUserRecord(this, restUserInfo))
+        .map(
+          (restUserInfo) => toUserRecord(
+            this,
+            restUserInfo,
+            lastRefreshAt: lastRefreshAts[restUserInfo.localId],
+          ),
+        )
         .toList(growable: false);
   }
 
@@ -655,13 +705,20 @@ class FirebaseAuthRestImpl
     if (debugFirebaseAuthRest) {
       _log('getAccountInfoRequest: ${jsonPretty(request.toJson())}');
     }
-    var result = await identityToolkitApi.relyingparty.getAccountInfo(request);
+    var (result, lastRefreshAts) = await _identityToolkitUsersCall(
+      (api) => api.relyingparty.getAccountInfo(request),
+    );
     if (debugFirebaseAuthRest) {
       _log('getAccountInfo: ${jsonPretty(result.toJson())}');
     }
     var users = result.users;
     if (users != null && users.isNotEmpty) {
-      return toUserRecord(this, users.first);
+      var restUserInfo = users.first;
+      return toUserRecord(
+        this,
+        restUserInfo,
+        lastRefreshAt: lastRefreshAts[restUserInfo.localId],
+      );
     }
     return null;
   }
@@ -758,8 +815,11 @@ class DecodedIdTokenLocal implements DecodedIdToken {
   @override
   final String uid;
 
+  @override
+  final String? signInProvider;
+
   /// Create decoded id token local
-  DecodedIdTokenLocal({required this.uid});
+  DecodedIdTokenLocal({required this.uid, this.signInProvider});
 }
 
 //FirebaseAuthServiceRest get authService => authServiceLocal;
@@ -780,6 +840,61 @@ class AuthAccountApi {
   void dispose() {
     client.close();
   }
+}
+
+/// Client reading, in the json responses of the identity toolkit, the
+/// `lastRefreshAt` of the users by uid (`localId`): the typed v3 api drops
+/// this field the backend sends.
+class _UsersLastRefreshAtClient extends BaseClient {
+  final Client _inner;
+
+  /// The `lastRefreshAt` of the users of the responses, by uid.
+  final usersLastRefreshAt = <String, String>{};
+
+  _UsersLastRefreshAtClient(this._inner);
+
+  @override
+  Future<StreamedResponse> send(BaseRequest request) async {
+    var response = await _inner.send(request);
+    var bytes = await response.stream.toBytes();
+    _readUsersLastRefreshAt(bytes);
+    return StreamedResponse(
+      Stream.value(bytes),
+      response.statusCode,
+      contentLength: bytes.length,
+      request: response.request,
+      headers: response.headers,
+      isRedirect: response.isRedirect,
+      persistentConnection: response.persistentConnection,
+      reasonPhrase: response.reasonPhrase,
+    );
+  }
+
+  void _readUsersLastRefreshAt(List<int> bytes) {
+    Object? users;
+    try {
+      var json = jsonDecode(utf8.decode(bytes));
+      users = json is Map ? json['users'] : null;
+    } on FormatException catch (_) {
+      // Not a json response.
+      return;
+    }
+    if (users is List) {
+      for (var user in users) {
+        if (user is Map) {
+          var localId = user['localId'];
+          var lastRefreshAt = user['lastRefreshAt'];
+          if (localId is String && lastRefreshAt is String) {
+            usersLastRefreshAt[localId] = lastRefreshAt;
+          }
+        }
+      }
+    }
+  }
+
+  /// The inner client is shared, it is not closed.
+  @override
+  void close() {}
 }
 
 /// An iso8601 utc string from a count of [unit]s since epoch as the identity
@@ -807,8 +922,16 @@ Object? _customClaims(String? customAttributes) {
   }
 }
 
-/// Convert [api.UserInfo] to [UserRecord]
-UserRecord toUserRecord(FirebaseAuthRestImpl auth, api.UserInfo restUserInfo) {
+/// Convert [api.UserInfo] to [UserRecord].
+///
+/// [lastRefreshAt] is the `lastRefreshAt` of the user (an RFC 3339 time) in
+/// the json response, dropped by the typed v3 api, see
+/// [UserMetadata.lastRefreshTime].
+UserRecord toUserRecord(
+  FirebaseAuthRestImpl auth,
+  api.UserInfo restUserInfo, {
+  String? lastRefreshAt,
+}) {
   var creationTime = _utcStringFromEpoch(
     restUserInfo.createdAt,
     unit: const Duration(milliseconds: 1),
@@ -843,6 +966,9 @@ UserRecord toUserRecord(FirebaseAuthRestImpl auth, api.UserInfo restUserInfo) {
             unit: const Duration(milliseconds: 1),
           ) ??
           '',
+      lastRefreshTime: DateTime.tryParse(
+        lastRefreshAt ?? '',
+      )?.toUtc().toIso8601String(),
     );
   }
   return userRecord;
