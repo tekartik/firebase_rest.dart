@@ -1,12 +1,16 @@
 // ignore: depend_on_referenced_packages
 import 'package:tekartik_common_utils/common_utils_import.dart';
 import 'package:tekartik_firebase/firebase_mixin.dart';
+import 'package:tekartik_firebase_functions/firebase_functions.dart'
+    show HttpsError, HttpsErrorCode;
 import 'package:tekartik_firebase_functions_call/functions_call_mixin.dart';
 import 'package:tekartik_firebase_functions_call_http/functions_call_http_mixin.dart';
 import 'package:tekartik_firebase_rest/firebase_rest.dart';
 import 'package:tekartik_http/http.dart' as http;
 
-/// Rest call service
+/// The REST functions call service: `functionsCall(app, options:)` for a
+/// `FirebaseAppRest`, then `callableFromUri(uri)` (the only way to get a
+/// callable here).
 final firebaseFunctionsCallServiceRest = _FirebaseFunctionsCallServiceRest();
 
 /// Rest implementation
@@ -22,22 +26,31 @@ class _FirebaseFunctionsCallServiceRest
   /// Constructor
   _FirebaseFunctionsCallServiceRest();
 
-  /// Most implementation need a single instance, keep it in memory!
-  final _instances = <String, FirebaseFunctionsCallRest>{};
+  /// The instances of each app (the app object, not its name: a new app of
+  /// the same name has its own client), by region and base uri, released
+  /// when the app is deleted ([close]).
+  final _appInstances = <App, Map<String, FirebaseFunctionsCallRest>>{};
 
   FirebaseFunctionsCallRest _getInstance(
     App app,
-    String region,
-
+    FirebaseFunctionsCallOptions options,
     FirebaseFunctionsCallRest Function() createIfNotFound,
   ) {
-    var key = '${app.name}_$region';
-    var instance = _instances[key];
-    if (instance == null) {
-      var newInstance = instance = createIfNotFound();
-      _instances[key] = newInstance;
+    var instances = _appInstances[app];
+    if (instances == null) {
+      _appInstances[app] = instances = <String, FirebaseFunctionsCallRest>{};
+      // close(app) is called when the app is deleted.
+      app.addService(this);
     }
-    return instance;
+    // One instance per region and base uri.
+    var key = '${options.region}_${options.baseUri}';
+    return instances[key] ??= createIfNotFound();
+  }
+
+  @override
+  Future<void> close(App app) async {
+    _appInstances.remove(app);
+    await super.close(app);
   }
 
   @override
@@ -45,7 +58,7 @@ class _FirebaseFunctionsCallServiceRest
     App app, {
     required FirebaseFunctionsCallOptions options,
   }) {
-    return _getInstance(app, options.region, () {
+    return _getInstance(app, options, () {
       return _FirebaseFunctionsCallRest(this, app as FirebaseAppRest, options);
     });
   }
@@ -82,7 +95,7 @@ class _FirebaseFunctionsCallRest
     Uri uri, {
     FirebaseFunctionsCallableOptions? options,
   }) {
-    return _FirebaseFunctionsCallableRest(this, uri: uri);
+    return _FirebaseFunctionsCallableRest(this, uri: uri, options: options);
   }
 }
 
@@ -163,11 +176,15 @@ class _FirebaseFunctionsCallableRest
   /// Functions call Http
   final _FirebaseFunctionsCallRest functionsCallRest;
 
+  /// Options, the timeout is applied when set.
+  final FirebaseFunctionsCallableOptions? options;
+
   /// Constructor
   _FirebaseFunctionsCallableRest(
     this.functionsCallRest, {
     Uri? uri,
     String? name,
+    this.options,
   }) {
     this.uri = uri;
     if (uri != null) {
@@ -184,10 +201,22 @@ class _FirebaseFunctionsCallableRest
   ]) async {
     var httpClient = functionsCallRest.client;
     var uri = this.uri!;
-    return await firebaseFunctionsHttpCallUri(
+    var resultFuture = firebaseFunctionsHttpCallUri<T>(
       httpClient,
       uri,
       parameters: parameters,
+    );
+    var timeout = options?.timeout;
+    if (timeout == null) {
+      return await resultFuture;
+    }
+    return await resultFuture.timeout(
+      timeout,
+      onTimeout: () => throw HttpsError(
+        HttpsErrorCode.deadlineExceeded,
+        'deadline-exceeded',
+        null,
+      ),
     );
   }
 

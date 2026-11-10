@@ -9,6 +9,7 @@ Future<void> main() async {
     'auth_rest',
     'storage_rest',
     'firestore_rest',
+    'functions_call_rest',
   ]) {
     await packageRunCi(join(topDir, dir));
   }

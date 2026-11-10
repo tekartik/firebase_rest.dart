@@ -53,17 +53,19 @@ authenticated on the call for free.
   `package:tekartik_firebase_functions/firebase_functions.dart` for them.
 * Get the instance with `firebaseFunctionsCallServiceRest.functionsCall(app,
   options: FirebaseFunctionsCallOptions(region: regionUsCentral1))`; `app`
-  must be a `FirebaseAppRest`. Instances are cached per app name + region.
+  must be a `FirebaseAppRest`. One instance per app object (then region and
+  base uri), released when the app is deleted: a new app of the same name
+  gets its own instance, and so calls with its own client.
 * **Only `callableFromUri(uri)` is implemented.** `callable(name)` throws
   `UnimplementedError` here, so pass the full 2nd gen function url
   (`https://<function>-<hash>-<region>.a.run.app` or
   `https://<region>-<project>.cloudfunctions.net/<name>`). The `region` and
   `baseUri` of `FirebaseFunctionsCallOptions` only key the instance cache;
   they do not build the url. The optional
-  `FirebaseFunctionsCallableOptions` (`timeout`,
-  `limitedUseAppCheckToken`) is accepted but not applied by this
-  implementation — enforce a timeout yourself with `Future.timeout` if you
-  need one.
+  `FirebaseFunctionsCallableOptions` of `callableFromUri`: its `timeout`
+  fails the call with an `HttpsError` `deadline-exceeded` (no timeout at all
+  without options); `limitedUseAppCheckToken` is not used (no App Check
+  token is sent).
 * `call<T>([parameters])` wraps `parameters` in `{'data': ...}`, as callable
   functions require, and sends `Content-Type: application/json`.
   `parameters` must be json-encodable (`String`, `num`, `bool`, `List`,
@@ -79,9 +81,12 @@ authenticated on the call for free.
   string (`HttpsErrorCode.unauthenticated`, `permissionDenied`, `notFound`,
   `invalidArgument`, `internal`...); `message` and `details` come from the
   function.
-* Authentication: the callable uses `app.apiClient`, so a service-account app
-  calls as the service account and an app whose client was replaced by
-  `tekartik_firebase_auth_rest` calls as the signed-in user. Sign in first,
+* Authentication: the callable uses `app.apiClient`, so an app whose client
+  was replaced by `tekartik_firebase_auth_rest` calls as the signed-in user
+  (its Firebase id token). A service-account app sends a Google OAuth access
+  token instead: a callable function verifies a Firebase id token and answers
+  `unauthenticated` to it (firebase-functions `checkAuthToken`), only a
+  function that needs no auth accepts the call. Sign in first,
   and wait for `await auth.onCurrentUser.first`, before calling a function
   that requires auth. The client is the app's shared one: do **not** close it
   after a call, `app.delete()` owns its lifetime.
@@ -93,17 +98,16 @@ authenticated on the call for free.
 
 ## Examples
 
-### Call a 2nd gen callable function as a service account
+### Call a callable function that needs no auth
 
 ```dart
-import 'dart:io';
-
 import 'package:tekartik_firebase_functions_call_rest/functions_call_rest.dart';
 import 'package:tekartik_firebase_rest/firebase_rest.dart';
 
-Future<Map<String, Object?>?> greet(String serviceAccountPath) async {
-  var app = await firebaseRest.initializeAppWithServiceAccountString(
-    File(serviceAccountPath).readAsStringSync(),
+Future<Map<String, Object?>?> greet() async {
+  // No credentials: plain http calls.
+  var app = firebaseRest.initializeApp(
+    options: FirebaseAppOptions(projectId: 'my-project'),
   );
   var functions = firebaseFunctionsCallServiceRest.functionsCall(
     app as FirebaseAppRest,
@@ -171,19 +175,31 @@ Future<Object?> callAsUser(
 }
 ```
 
-### Add your own timeout
+### A timeout
 
 ```dart
+import 'package:tekartik_firebase_functions/firebase_functions.dart';
 import 'package:tekartik_firebase_functions_call_rest/functions_call_rest.dart';
 
-/// FirebaseFunctionsCallableOptions.timeout is not applied by the REST
-/// implementation: wrap the call instead.
-Future<T> callWithTimeout<T>(
-  FirebaseFunctionsCallable callable,
+/// The callable options timeout fails the call with deadline-exceeded
+/// (without options the call waits for the answer).
+Future<T?> callWithTimeout<T>(
+  FirebaseFunctionsCall functions,
+  Uri uri,
   Object? parameters, {
   Duration timeout = const Duration(seconds: 60),
 }) async {
-  var result = await callable.call<T>(parameters).timeout(timeout);
-  return result.data;
+  var callable = functions.callableFromUri(
+    uri,
+    options: FirebaseFunctionsCallableOptions(timeout: timeout),
+  );
+  try {
+    return (await callable.call<T>(parameters)).data;
+  } on HttpsError catch (e) {
+    if (e.code == HttpsErrorCode.deadlineExceeded) {
+      return null;
+    }
+    rethrow;
+  }
 }
 ```
