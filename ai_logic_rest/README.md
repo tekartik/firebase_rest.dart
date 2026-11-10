@@ -1,39 +1,18 @@
-<!-- 
-This README describes the package. If you publish this package to pub.dev,
-this README's contents appear on the landing page for your package.
+# tekartik_firebase_ai_logic_rest
 
-For information about how to write a good package README, see the guide for
-[writing package pages](https://dart.dev/tools/pub/writing-package-pages). 
+Placeholder for a REST (pure Dart) backend of Firebase AI Logic, behind the
+[tekartik_firebase_vertex_ai](https://github.com/tekartik/firebase_vertex_ai.dart/tree/master/vertex_ai)
+interface. **Not implemented yet**: the library only holds the `dart create`
+template (`Awesome`).
 
-For general information about developing packages, see the Dart guide for
-[creating packages](https://dart.dev/guides/libraries/create-packages)
-and the Flutter guide for
-[developing packages and plugins](https://flutter.dev/to/develop-packages). 
--->
+To call Gemini from pure Dart today, use `tekartik_firebase_vertex_ai` with its
+Google AI backend (`tekartik_firebase_vertex_ai_google`) or the standalone
+`tekartik_google_ai`, both in
+[firebase_vertex_ai.dart](https://github.com/tekartik/firebase_vertex_ai.dart).
 
-TODO: Put a short description of the package here that helps potential users
-know whether this package might be useful for them.
+This package is not part of the repo workspace (it resolves on its own).
 
-## Features
+## Agent skills
 
-TODO: List what your package can do. Maybe include images, gifs, or videos.
-
-## Getting started
-
-TODO: List prerequisites and provide or point to information on how to
-start using the package.
-
-## Usage
-
-TODO: Include short and useful examples for package users. Add longer examples
-to `/example` folder. 
-
-```dart
-const like = 'sample';
-```
-
-## Additional information
-
-TODO: Tell users more about the package: where to find more information, how to 
-contribute to the package, how to file issues, what response they can expect 
-from the package authors, and more.
+`skills/tekartik-firebase-ai-logic-rest-setup` (what exists, what to use
+instead).

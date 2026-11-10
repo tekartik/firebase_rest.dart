@@ -63,7 +63,15 @@ functions call) takes that app and reuses its client.
   auth client: use it only with options that already carry a client, or after
   `setApplicationDefault`. With neither options nor an application default
   credential it throws a `StateError`. `initializeAppAsync` is the safe
-  default. Names must be unique per process: re-initializing an existing name
+  default. Once a credential is set, the `options` given to `initializeApp`
+  only bring their `apiKey` and `storageBucket` (project id and client come
+  from the credential).
+* `credential.getAccessToken()` caches its token for the whole process (no
+  refresh once it expires, about an hour later) and replaces the credential's
+  auto refreshing `authClient`/`appOptions` by a non refreshing client: apps
+  initialized after it stop working after an hour. In servers and long
+  running tools, do not call it; use `initializeAppWithServiceAccount...` or
+  `initAuthClient()` + `initializeAppAsync()`. Names must be unique per process: re-initializing an existing name
   throws a `StateError` until `await app.delete()`.
 * `scopes:` defaults to `firebaseBaseScopes`
   (`firebaseGoogleApisCloudPlatformScope` +
@@ -89,9 +97,10 @@ functions call) takes that app and reuses its client.
   sign-in, not for application code. `hasAdminCredentials` is `true` only when
   the app was initialized from a service account.
 * `app.getFirestoreRules()` (extension `FirebaseAppRestExt`) returns the
-  source of the current `cloud.firestore` ruleset through the
-  `googleapis` FirebaseRules API; it needs
-  `firebaseGoogleApisFirebaseRulesApiScope` and an authenticated client.
+  source of the latest ruleset (first of the list) holding `cloud.firestore`,
+  through the `googleapis` FirebaseRules API, not necessarily the released
+  one; it needs `firebaseGoogleApisFirebaseRulesApiScope` and an
+  authenticated client.
 * An app with no credentials is legitimate when talking to an emulator or to
   public rules: pass `AppOptionsRest(client: Client())..projectId = ...`.
 * Tests: `firebaseRestSetupContext({scopes, useEnv, serviceAccountJsonPath,
