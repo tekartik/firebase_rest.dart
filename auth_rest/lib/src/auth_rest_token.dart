@@ -82,19 +82,26 @@ class RestAuthTokens {
 
 /// The expiration of a jwt from its `exp` claim, null if [idToken] is not one.
 DateTime? idTokenExpiration(String idToken) {
+  var exp = idTokenClaims(idToken)?['exp'];
+  if (exp is num) {
+    return DateTime.fromMillisecondsSinceEpoch(exp.toInt() * 1000);
+  }
+  return null;
+}
+
+/// The claims (payload) of a jwt, null if [idToken] is not one. The signature
+/// is not checked.
+Map<String, Object?>? idTokenClaims(String idToken) {
   try {
     var parts = idToken.split('.');
     if (parts.length != 3) {
       return null;
     }
-    var payload =
-        json.decode(
-              utf8.decode(base64Url.decode(base64Url.normalize(parts[1]))),
-            )
-            as Map;
-    var exp = payload['exp'];
-    if (exp is num) {
-      return DateTime.fromMillisecondsSinceEpoch(exp.toInt() * 1000);
+    var payload = json.decode(
+      utf8.decode(base64Url.decode(base64Url.normalize(parts[1]))),
+    );
+    if (payload is Map) {
+      return payload.cast<String, Object?>();
     }
   } catch (_) {
     // Not a jwt.

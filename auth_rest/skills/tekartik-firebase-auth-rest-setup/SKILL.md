@@ -22,7 +22,9 @@ abstraction (`FirebaseAuthService`, `FirebaseAuth`, `User`, `UserCredential`)
 against Google's Identity Toolkit REST API. No native SDK: it needs a
 `FirebaseAppRest` from `tekartik_firebase_rest` with an `apiKey`, and it
 updates that app's http client so the other REST products (firestore, storage)
-call as the signed-in user.
+call as the signed-in user; without a signed-in user the app gets back the
+client it had when the auth was created (its service account client for an
+admin app, none for an api key app).
 
 ## Guidelines
 
@@ -80,6 +82,9 @@ call as the signed-in user.
 * A restore is asynchronous: `auth.currentUser` is `null` until it completed.
   Always start from `await auth.onCurrentUser.first` (it replays the current
   value), then keep listening for sign-in/sign-out.
+* After an email/password sign in, `emailVerified` comes from the id token
+  (`email_verified` claim); `reloadCurrentUser()` reads the account again
+  (a verification done meanwhile) and republishes the current user.
 * Emulator: `await auth.useAuthEmulator('localhost', 9099)` immediately after
   `authService.auth(app)` and before any auth call. Use a dummy `apiKey`
   (`'dummy'`) with it and never point it at production credentials.
@@ -118,8 +123,12 @@ call as the signed-in user.
   (`FirebaseAuthRestExt`, `BuiltInAuthProviderRest.signInWithIdp`) signs in
   (up on first use) with a credential obtained elsewhere. The auth emulator
   takes an unsigned id token: `jsonEncode({'sub': ..., 'email': ...})`.
-* Set `debugFirebaseAuthRest = true` to trace the REST calls while debugging.
-  Never log id tokens, refresh tokens or the client secret.
+* Set `debugFirebaseAuthRest = true` to trace the REST calls while debugging:
+  it prints the raw responses, the password hashes and salts of `listUsers`
+  included, so local debugging only. Never log id tokens, refresh tokens or
+  the client secret: the `toString` of the persisted credentials
+  (`FirebaseRestAuthPersistenceAccessCredentials`) holds the tokens, the one
+  of `GoogleAuthOptions` the client secret and the api key.
 * Do not build sign-in UI directly on this: the generic
   `tekartik_firebase_ui_auth` works with any backend, this one included.
 

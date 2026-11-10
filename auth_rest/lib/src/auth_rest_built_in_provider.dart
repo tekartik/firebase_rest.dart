@@ -9,6 +9,7 @@ import 'anonymous_auth_rest.dart';
 import 'auth_rest.dart';
 import 'auth_rest_persistence.dart';
 import 'auth_rest_provider.dart';
+import 'auth_rest_token.dart';
 import 'email_password_auth_rest.dart';
 
 /// The provider id of Google, the default of
@@ -333,7 +334,9 @@ class BuiltInAuthProviderRest extends AuthProviderRestBase {
           auth: authRest.impl,
           client: client,
           email: response.email,
-          emailVerified: false,
+          // Not in the response, a claim of the id token.
+          emailVerified:
+              idTokenClaims(response.idToken ?? '')?['email_verified'] == true,
           provider: this,
           uid: response.localId!,
           isAnonymous: false,

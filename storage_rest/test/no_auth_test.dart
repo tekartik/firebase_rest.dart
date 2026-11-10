@@ -47,7 +47,7 @@ void main() {
         var downloadUrl = await storage
             .ref(StorageFileRef(bucketName, path).toLink().toString())
             .getDownloadUrl();
-        expect(http.read(Uri.parse(downloadUrl)), content);
+        expect(await http.read(Uri.parse(downloadUrl)), content);
       }
       //devPrint(content);
       // No!

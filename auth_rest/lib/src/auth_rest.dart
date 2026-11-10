@@ -16,7 +16,9 @@ import 'auth_service_rest.dart';
 import 'google_auth_rest.dart';
 import 'import.dart';
 
-/// Debug rest (to move to firebase rest)
+/// Prints the raw identity toolkit requests and responses (the password
+/// hashes and salts of [FirebaseAuth.listUsers] included): local debugging
+/// only.
 var debugFirebaseAuthRest = false; // devWarning(true);
 // var debugFirebaseAuthRest = devWarning(true);
 
@@ -556,20 +558,20 @@ class FirebaseAuthRestImpl
     _currentProviderUser = providerUser;
     _providerUserController.sink.add(providerUser);
 
-    Client? client;
-    if (providerUser != null) {
-      if (providerUser.user != null) {
-        // Needed?
-        client = providerUser.provider.currentAuthClient;
-      } else {
-        if (_currentProviderUser?.provider == providerUser.provider) {
-          client = null;
-        }
-      }
+    // The requests of the app go as the signed in user, as the app did
+    // before otherwise.
+    var client = _appClient;
+    if (providerUser != null && providerUser.user != null) {
+      client = providerUser.provider.currentAuthClient;
     }
     // ignore: invalid_use_of_protected_member
     appRest.client = client;
   }
+
+  /// The client of the app when this auth was created: a service account
+  /// client for an app initialized with admin credentials, null for an api
+  /// key app. The app client again when no user is signed in.
+  final Client? _appClient;
 
   /// Create auth rest
   FirebaseAuthRestImpl(
@@ -577,7 +579,7 @@ class FirebaseAuthRestImpl
     this.appRest, {
     this.rootUrl,
     this.servicePathBase,
-  });
+  }) : _appClient = appRest.client;
 
   @override
   void dispose() {
@@ -754,7 +756,7 @@ class FirebaseAuthRestImpl
     await authReady;
     await _currentProviderUser?.provider.mixin.signOut();
     // ignore: invalid_use_of_protected_member
-    appRest.client = null;
+    appRest.client = _appClient;
   }
 
   @override

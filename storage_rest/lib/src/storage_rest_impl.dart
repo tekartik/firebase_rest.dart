@@ -227,28 +227,20 @@ class StorageRestImpl
     BucketRest bucket,
     GetFilesOptions options,
   ) async {
+    // maxResults is the page size, the api default (1000) otherwise.
     var objects = await storageApi.objects.list(
       bucket.name,
       prefix: options.prefix,
       pageToken: options.pageToken,
+      maxResults: options.maxResults,
     );
     // devPrint(objects.toJson());
     var items = objects.items ?? <api.Object>[];
     var pageToken = objects.nextPageToken;
-    GetFilesOptions? nextQuery;
-    if (items.isNotEmpty &&
-        pageToken != null &&
-        items.length != options.maxResults) {
-      // max resulsts reach?
-      nextQuery = GetFilesOptions(
-        prefix: options.prefix,
-        autoPaginate: options.autoPaginate,
-        maxResults: options.maxResults != null
-            ? options.maxResults! - items.length
-            : null,
-        pageToken: pageToken,
-      );
-    }
+    // A page token means more files: the same query from there.
+    var nextQuery = pageToken == null
+        ? null
+        : options.copyWith(pageToken: pageToken);
     var response = GetFilesResponseRest()
       ..files = items.map((object) {
         // devPrint(object.toJson());

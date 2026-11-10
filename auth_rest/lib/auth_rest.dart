@@ -1,3 +1,11 @@
+/// Firebase Auth over the Identity Toolkit REST API, on an app of
+/// `tekartik_firebase_rest`: email/password, anonymous and identity provider
+/// sign in, id token renewal, persisted sessions and, with a service account,
+/// the admin lookups.
+///
+/// Start with [firebaseAuthServiceRest] (or [FirebaseAuthServiceRest] with a
+/// persistence) and `auth(app)`. `auth_rest_io.dart` adds the Google consent
+/// providers (VM only).
 library;
 
 export 'package:tekartik_firebase_auth/auth.dart';

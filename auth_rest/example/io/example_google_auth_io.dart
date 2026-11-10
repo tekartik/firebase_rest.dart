@@ -30,7 +30,6 @@ Future<void> main() async {
     var result = await auth.signIn(provider);
     print(result);
     currentUser = result.credential?.user;
-    print(options);
   }
   print('currentUser: $currentUser');
   print('applicationDefault: ${firebaseRest.credential.applicationDefault()}');

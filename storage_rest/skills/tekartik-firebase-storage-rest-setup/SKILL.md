@@ -26,9 +26,8 @@ json endpoint) is covered by [tekartik-firebase-storage-rest-download-urls](../t
 
 ## Guidelines
 
-* Dependency (git, not on pub.dev — the README still says "not supported yet",
-  ignore it, the implementation is complete and tested against a real project
-  and the storage emulator):
+* Dependency (git, not on pub.dev; tested against a real project and the
+  storage emulator):
   ```yaml
   dependencies:
     tekartik_firebase_storage_rest:
@@ -86,12 +85,11 @@ json endpoint) is covered by [tekartik-firebase-storage-rest-download-urls](../t
   `timeCreated`, not its last update). `file.metadata` is a cache filled only
   on files returned by `getFiles()`, and null on a `bucket.file(path)`
   reference.
-* Listing: `bucket.getFiles(GetFilesOptions(prefix: 'dir/', pageToken: ...))`
-  returns a `GetFilesResponse` with `files` (each with its metadata) and a
-  `nextQuery` to pass back while it is not null. Only `prefix` and `pageToken`
-  reach the REST call: `maxResults` is not sent to the server (it only stops
-  the paging loop) and `autoPaginate` is carried over untouched, so filter or
-  truncate on your side.
+* Listing: `bucket.getFiles(GetFilesOptions(prefix: 'dir/', maxResults: 100,
+  pageToken: ...))` returns one page: `files` (at most `maxResults`, 1000 by
+  default, each with its metadata) and a `nextQuery` (the same options with
+  the next page token) to pass back while it is not null. `autoPaginate` is
+  ignored: loop on `nextQuery`.
 * Anything but a 404 on `exists()` is rethrown as the `googleapis`
   `DetailedApiRequestError` (`status`, `message`), which this package does not
   re-export: probe with `exists()` rather than catching, or add a direct
@@ -301,8 +299,8 @@ Future<void> main() async {
   for `publicRead`.
 * Calling `useStorageEmulator` after a first storage call, or against
   production credentials.
-* Expecting `GetFilesOptions.maxResults` to limit the REST call: only `prefix`
-  and `pageToken` are sent.
+* Expecting `getFiles` to follow the pages (`autoPaginate`): it returns one
+  page of `maxResults` files, loop on `nextQuery`.
 * Stopping a `getFiles` loop on an empty page instead of a null `nextQuery`.
 * Reading `file.metadata` on a `bucket.file(path)` reference (null) instead of
   awaiting `getMetadata()`, or reading `dateUpdated` as a modification time

@@ -200,6 +200,7 @@ abstract class FirebaseRestAuthPersistenceAccessCredentials {
   /// Convert to map
   Model toMap();
 
+  /// Holds the id and refresh tokens in clear: do not log it.
   @override
   String toString() {
     return toMap().toString();

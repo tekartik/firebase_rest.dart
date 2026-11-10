@@ -129,6 +129,7 @@ class GoogleAuthOptions {
     projectId = (map['projectId'] ?? map['project_id'])?.toString();
   }
 
+  /// Holds the client secret and the api key in clear: do not log it.
   @override
   String toString() => {
     'developerKey': developerKey,
