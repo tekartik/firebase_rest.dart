@@ -1,3 +1,9 @@
+/// Cloud Firestore over the Firestore v1 REST API:
+/// `firestoreServiceRest.firestore(app)` on a `FirebaseAppRest`
+/// (`tekartik_firebase_rest`) gives a [FirestoreRest] (no realtime
+/// listener).
+library;
+
 import 'package:tekartik_firebase_firestore_rest/src/firestore/v1.dart';
 import 'package:tekartik_firebase_firestore_rest/src/firestore_rest_impl.dart'; // ignore: implementation_imports
 export 'package:tekartik_firebase_firestore/firestore.dart';

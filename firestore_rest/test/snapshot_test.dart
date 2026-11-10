@@ -87,5 +87,24 @@ void main() {
         },
       });
     });
+    test('documentDataToJson null value', () {
+      // It threw an ArgumentError (unsupported value).
+      var data = DocumentData({
+        'null': null,
+        'list': [null],
+      });
+      expect(documentDataToJson(app, data), {
+        'fields': {
+          'null': {'nullValue': 'NULL_VALUE'},
+          'list': {
+            'arrayValue': {
+              'values': [
+                {'nullValue': 'NULL_VALUE'},
+              ],
+            },
+          },
+        },
+      });
+    });
   });
 }

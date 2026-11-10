@@ -43,8 +43,9 @@ typed envelope and every document carries its full
   `DateTime` (converted to UTC) and `Timestamp` → `timestampValue`,
   `DocumentReference` → `referenceValue` (absolute name), `Blob` →
   `bytesValue` (base64), `GeoPoint` → `geoPointValue` with `latitude` /
-  `longitude`. Anything else — including `FieldValue.serverTimestamp`,
-  `FieldValue.delete`, `null` and vector values — throws an `ArgumentError`.
+  `longitude`, `null` → `nullValue` (`'NULL_VALUE'`, as the REST client
+  sends it). Anything else — including `FieldValue.serverTimestamp`,
+  `FieldValue.delete` and vector values — throws an `ArgumentError`.
   Strip or replace sentinels before converting.
 * Map keys must be `String`: a `Map` with other key types throws when cast.
 * These are one-way helpers: there is no public `jsonToSnapshot`. To read REST

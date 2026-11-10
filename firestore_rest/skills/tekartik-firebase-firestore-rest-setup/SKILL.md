@@ -63,6 +63,12 @@ setup and the missing pieces are specific.
   (admin) credentials or an OAuth2 (Google) sign-in, `false` with api-key-only
   access and `false` for an email/password REST user. Check it before calling
   `runTransaction`; `batch()` always works.
+* `runTransaction` runs the update function once: a commit aborted by
+  contention (another transaction on the same documents) fails instead of
+  being retried as the Firestore SDKs do.
+* Errors are `FirestoreException`s: `notFound` (404), `unauthenticated`
+  (401), `permissionDenied` (403), `internal` (500); the other statuses
+  (409, 400, 429, 503) give `unknown`, the status in the message.
 * Other capability flags on the service: `supportsQuerySelect`,
   `supportsListCollections`, `supportsAggregateQueries`, `supportsBlobs`,
   `supportsTimestamps`, `supportsDocumentSnapshotTime`,
@@ -82,8 +88,9 @@ setup and the missing pieces are specific.
   `showMissing: false` needs no admin access.
 * `where` maps to the REST field filters `EQUAL`, `LESS_THAN`,
   `LESS_THAN_OR_EQUAL`, `GREATER_THAN`, `GREATER_THAN_OR_EQUAL`,
-  `ARRAY_CONTAINS`, `ARRAY_CONTAINS_ANY`, `IN` and the unary `IS_NULL`
-  (`isNull: true`). Anything else throws `UnsupportedError`. Remember the
+  `ARRAY_CONTAINS`, `ARRAY_CONTAINS_ANY`, `IN`, `NOT_IN` and the unary
+  `IS_NULL` / `IS_NOT_NULL` (`isNull: true` / `false`). A `where` without
+  condition throws `UnsupportedError`. Remember the
   Firestore rule that an inequality field must come first in `orderBy`.
 * Emulator: `await firestore.useFirestoreEmulator('localhost', 8080)` right
   after getting the instance (it drops the cached api client). Pass

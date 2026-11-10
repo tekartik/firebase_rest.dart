@@ -41,7 +41,10 @@ DocumentData? documentDataFromSnapshot(DocumentSnapshot snapshot) =>
 
 /// Document value to json.
 dynamic documentDataValueToJson(App app, dynamic value) {
-  if (value is String) {
+  if (value == null) {
+    // Same as the rest api value of a null.
+    return <String, Object?>{'nullValue': 'NULL_VALUE'};
+  } else if (value is String) {
     return <String, Object?>{'stringValue': value};
   } else if (value is int) {
     return <String, Object?>{'integerValue': value.toString()};
