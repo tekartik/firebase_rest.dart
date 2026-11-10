@@ -59,22 +59,29 @@ listeners through the Firestore v1 gRPC `Listen` rpc. It is a thin layer over
   non-existing one (`snapshot.exists == false`) for a missing document, then
   one snapshot per change or delete. Consecutive snapshots with the same
   `exists`/`updateTime` are skipped, so a reconnect does not duplicate.
-* Resilience: the listener restarts by itself, after one second, when the
-  gRPC stream errors or ends for network reasons, and it restarts whenever
-  the app's http client changes (`apiClientStream`: sign-in, sign-out, token
-  refresh). A `GrpcError` with `StatusCode.permissionDenied` or
-  `unauthenticated` is **not** retried: it is added to the stream and the
-  listener closes. Handle `onError` and re-subscribe after fixing auth.
+* Resilience: the listener reconnects by itself when the gRPC stream errors
+  or ends for any other reason, after a delay of 1 s doubling up to 60 s
+  (back to 1 s after a snapshot), and it reconnects with the new token on
+  each auth change of the app (`onClientChanged`: sign in, sign out, another
+  user). `unauthenticated` (a refused token) renews the token and reconnects
+  once, then ends the stream with the error. `permissionDenied` (the security
+  rules: Firestore answers it as a removed target with a cause, on an open
+  connection) ends the stream with a `GrpcError` of that code, not retried.
+  Handle `onError` and listen again after fixing the auth.
 * Always `cancel()` the subscription: it shuts the gRPC channel down.
   `firestore.dispose()` closes every listener still open on that instance.
-* Auth: the bearer token is read from the app client when it is an
-  `AutoRefreshingAuthClient` (service account / OAuth2). An api-key-only app
-  sends no token, so the listen call is subject to the security rules for
-  unauthenticated access.
+* Auth: the bearer token is the one of the app client
+  (`firebaseRestClientAccessToken`): a signed in user's id token (auth_rest),
+  a service account or OAuth2 access token, `owner` on the emulator with
+  `useFirestoreEmulator(owner: true)`; an api-key-only or plain client sends
+  none, so the listen is subject to the security rules for unauthenticated
+  access.
 * `ref.onGrpcSnapshot()` (extension `DocumentReferenceGrpcRestExt` on any
   `DocumentReference`) is the raw stream, usable on a reference from the plain
-  `firestoreServiceRest` too — no automatic reconnect, no deduplication. It
-  throws `UnsupportedError` for a non-REST `DocumentReference`. Prefer
+  `firestoreServiceRest` too: one connection with the token of the moment,
+  the stream ends with it (with its error, the rules refusal included), no
+  reconnect, no deduplication. It throws `UnsupportedError` for a non-REST
+  `DocumentReference`. Prefer
   `onSnapshot()` through `firestoreServiceGrpcRest` unless you want to own the
   retry logic.
 * Emulator: the channel follows `useFirestoreEmulator(host, port)` (insecure
@@ -111,7 +118,8 @@ Future<StreamSubscription<DocumentSnapshot>> watchDocument(
       }
     },
     onError: (Object error) {
-      // permissionDenied / unauthenticated: the listener is closed.
+      // A GrpcError: permissionDenied (the rules) or unauthenticated, the
+      // listener is closed.
       print('listen failed: $error');
     },
   );
@@ -123,7 +131,6 @@ Future<StreamSubscription<DocumentSnapshot>> watchDocument(
 ```dart
 import 'dart:async';
 
-import 'package:tekartik_firebase_firestore_grpc_rest/firestore_grpc_rest.dart';
 import 'package:tekartik_firebase_firestore_rest/firestore_rest.dart';
 
 /// Cancelling shuts the gRPC channel down.

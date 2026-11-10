@@ -133,6 +133,19 @@ Stream<DocumentSnapshot> grpcListenDocument(
               } else if (response.hasTargetChange()) {
                 var targetChange = response.targetChange;
                 if (targetChange.targetChangeType ==
+                        TargetChange_TargetChangeType.REMOVE &&
+                    targetChange.hasCause()) {
+                  // The listen was refused (the security rules: code 7,
+                  // permission denied): the server keeps the connection open
+                  // but nothing more comes.
+                  var cause = targetChange.cause;
+                  controller.addError(
+                    GrpcError.custom(cause.code, cause.message),
+                  );
+                  unawaited(controller.close());
+                  return;
+                }
+                if (targetChange.targetChangeType ==
                         TargetChange_TargetChangeType.CURRENT &&
                     !hasBeenEmitted) {
                   emit(api.Document(name: documentName));

@@ -13,6 +13,8 @@ import 'package:tekartik_firebase_firestore_grpc_rest/src/generated/google/fires
     as grpc;
 import 'package:tekartik_firebase_firestore_grpc_rest/src/generated/google/firestore/v1/write.pb.dart'
     as grpc;
+import 'package:tekartik_firebase_firestore_grpc_rest/src/generated/google/rpc/status.pb.dart'
+    as rpc;
 import 'package:tekartik_firebase_firestore_rest/firestore_rest.dart';
 import 'package:tekartik_firebase_firestore_rest/src/firestore_rest_impl.dart'; // ignore: implementation_imports
 import 'package:tekartik_firebase_rest/firebase_rest.dart';
@@ -127,6 +129,17 @@ grpc.ListenResponse _changeResponse(int seconds) => grpc.ListenResponse()
       ..createTime = (grpc.Timestamp()..seconds = Int64(seconds))
       ..updateTime = (grpc.Timestamp()..seconds = Int64(seconds)))
     ..targetIds.add(1));
+
+/// The target change Firestore sends when the security rules refuse a listen
+/// (the connection stays open).
+grpc.ListenResponse _targetRemovedResponse() =>
+    grpc.ListenResponse()
+      ..targetChange = (grpc.TargetChange()
+        ..targetChangeType = grpc.TargetChange_TargetChangeType.REMOVE
+        ..targetIds.add(1)
+        ..cause = (rpc.Status()
+          ..code = StatusCode.permissionDenied
+          ..message = 'Missing or insufficient permissions.'));
 
 void main() {
   group('onGrpcSnapshot', () {
@@ -254,6 +267,22 @@ void main() {
         await subscription.cancel();
       },
     );
+
+    test('a target removed with a cause ends the stream', () async {
+      var errors = <Object>[];
+      var done = Completer<void>();
+      var subscription = firestore
+          .doc('test/doc')
+          .onGrpcSnapshot()
+          .listen((_) {}, onError: errors.add, onDone: done.complete);
+      await mockService.hasListener;
+      mockService.addResponse(_targetRemovedResponse());
+      await done.future.timeout(const Duration(seconds: 2));
+      var error = errors.single as GrpcError;
+      expect(error.code, StatusCode.permissionDenied);
+      expect(error.message, 'Missing or insufficient permissions.');
+      await subscription.cancel();
+    });
 
     test('emits non-existing document snapshot on documentDelete', () async {
       var docRef = firestore.doc('test/doc');
@@ -466,6 +495,24 @@ void main() {
       mockService.addError(const GrpcError.permissionDenied('rules'));
       await done.future.timeout(const Duration(seconds: 2));
       expect(errors.single, isA<GrpcError>());
+      await Future<void>.delayed(const Duration(milliseconds: 100));
+      expect(mockService.authorizations, hasLength(1));
+      await subscription.cancel();
+    });
+
+    test('target removed by the rules ends the stream', () async {
+      var errors = <Object>[];
+      var done = Completer<void>();
+      var subscription = firestore
+          .doc('test/doc')
+          .onSnapshot()
+          .listen((_) {}, onError: errors.add, onDone: done.complete);
+      await mockService.waitListenCount(1);
+      // What Firestore answers when the rules refuse the listen: the stream
+      // stays open.
+      mockService.addResponse(_targetRemovedResponse());
+      await done.future.timeout(const Duration(seconds: 2));
+      expect((errors.single as GrpcError).code, StatusCode.permissionDenied);
       await Future<void>.delayed(const Duration(milliseconds: 100));
       expect(mockService.authorizations, hasLength(1));
       await subscription.cancel();
