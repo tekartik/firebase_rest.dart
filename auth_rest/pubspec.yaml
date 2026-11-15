@@ -21,7 +21,8 @@ dependencies:
       path: firebase_rest
     version: '>=0.8.3'
   googleapis_auth: '>=1.4.0'
-  googleapis:
+  # identitytoolkit v3 removed in 19.0.0 (to migrate to v1)
+  googleapis: <19.0.0
   tekartik_common_utils:
     git:
       url: https://github.com/tekartik/common_utils.dart
