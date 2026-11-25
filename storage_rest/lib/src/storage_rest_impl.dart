@@ -151,7 +151,9 @@ class StorageRestImpl
     var object = api.Object()
       ..name = path
       ..bucket = bucket.name
-      ..cacheControl = options?.cacheControl;
+      ..cacheControl = options?.cacheControl
+      ..contentDisposition = options?.contentDisposition
+      ..metadata = options?.metadata;
     var contentType =
         options?.contentType ??
         firebaseStorageContentTypeFromFilename(url.basename(path));
